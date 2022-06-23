@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="14.3.0">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>80</x>
+      <y>110</y>
+      <w>660</w>
+      <h>170</h>
+    </coordinates>
+    <panel_attributes>template=T: object
+TypeInterface
+--
++ getEntityClass(): class-string&lt;T&gt;
++ isAvailable(): bool
++ isReferencable(): bool
++ isDirectlyAccessible(): bool
++ getAccessCondition(): FunctionInterface&lt;bool&gt;
++ getAliases(): array&lt;string,class-string&lt;TypeInterface&lt;object\&gt;&gt;|null&gt;</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>70</x>
+      <y>490</y>
+      <w>670</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>template=T: object
+ReadableTypeInterface
+--
++ getReadableProperties(): array&lt;string,class-string&lt;TypeInterface&lt;object\&gt;&gt;|null&gt;
++ getFilterableProperties(): array&lt;string,class-string&lt;TypeInterface&lt;object\&gt;&gt;|null&gt;
++ getSortableProperties():  array&lt;string,class-string&lt;TypeInterface&lt;object\&gt;&gt;|null&gt;
++ getDefaultSortMethods(): array&lt;int,SortMethodInterface&gt;</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>120</x>
+      <y>270</y>
+      <w>160</w>
+      <h>250</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.
+TypeInterface&lt;T&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;230.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>280</x>
+      <y>350</y>
+      <w>460</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>template=T: object
+IdentifiableTypeInterface
+--
++ getIdentifierPropertyPath(): array&lt;int,string&gt;</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>300</x>
+      <y>270</y>
+      <w>160</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.
+TypeInterface&lt;T&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;90.0</additional_attributes>
+  </element>
+</diagram>

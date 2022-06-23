@@ -1,0 +1,91 @@
+Provides PHP classes that build upon the https://github.com/demos-europe/edt-queries[query component] to provide
+the means to enforce access limitation and simple aliasing from the wrapper schema
+to the schema of your backing object. The https://github.com/demos-europe/edt-paths[path-building] component can optionally be used
+to ease the usage depending on the use case.
+
+== Overview
+
+This component provides the means to define so called `Types` for corresponding objects in
+your application. Your `Types` will limit the access to the schema and instances of your objects
+depending on the authorization of the accessing user or other states in your application. It
+shows its main advantages in https://en.wikipedia.org/wiki/CRUD[CRUD] applications but
+can be applied to other types of applications as well.
+
+As an example lets assume a very simple https://en.wikipedia.org/wiki/Content_management_system[CMS]
+software. It has an `Article` class which is connected to its author in a bidirectional many-to-one relationship.
+
+Suppose for your business layer you need to distinguish between articles which are in their
+draft state and thus only visible to their authors and finished articles visible to everyone.
+Instead of sprinkling your business layer with potentially duplicated checks which user is allowed to
+access which articles you can centralize your authorisations in an `ArticleType` class.
+
+After the initial setup you can use it with conditions to query instances from your data source,
+similar to the https://github.com/demos-europe/edt-queries[Query Component]:
+
+[source,php]
+----
+use EDT\Wrapping\Utilities\GenericEntityFetcher;
+use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
+use EDT\Querying\Contracts\ConditionFactoryInterface;
+
+function getArticleType(): ReadableTypeInterface {
+    // returns the Type defining limits for the access to your Article objects
+}
+function getEntityFetcher(): GenericEntityFetcher {
+    // returns the fetcher handling your query and accessing your data source
+}
+function getConditionFactory(): ConditionFactoryInterface {
+    // returns a factory for conditions adjusted to your data source
+}
+
+$articleType = getArticleType();
+$entityFetcher = getEntityFetcher();
+$conditionFactory = getConditionFactory();
+$nameCondition = $conditionFactory->propertyHasValue('jacob', 'author', 'accountName');
+$filteredEntities = $entityFetcher->listEntities($articleType, [$nameCondition]);
+----
+
+The three helper function are left empty because their implementation depends on your
+actual use case:
+1. `getArticleType` returns your `ArticleType` which you can implement by extending
+`ReadableTypeInterface`
+and instantiate in your favorite style (manually, as Symfony Service, loaded by configuration, ...).
+An overview for the different interfaces available and how to implement them is shown in https://github.com/demos-europe/edt-access-definitions/blob/main/docs/how-to-implement-types.md[How to implement types].
+2. The instances returned by `getEntityFetcher` and `getConditionFactory` depend on your
+data source. To avoid heavy dependencies this library only provides an implementation that
+assumes that all your objects are already loaded into PHP. You can use extensions that provide
+implementations of `ObjectProviderInterface`
+and corresponding condition (`ConditionFactoryInterface`) and
+   sort method (`SortMethodFactoryInterface`) factories.
+An extension to use the https://www.doctrine-project.org/projects/orm.html[Doctrine ORM] as data source
+   already exists. For more information regarding this topic see also https://github.com/demos-europe/edt-queries/tree/main/docs#providers-and-factories-setup[Providers and Factories setup].
+
+As you can see in this example we explicitly specified a condition to only get articles written by `jacob`.
+However if the `ArticleType` was configured correctly we will actually get a subset of the result with only those articles that the current
+user is allowed to access. Eg. if the user currently logged in is not `jacob` she or he will
+only receive articles that are not in their draft state anymore. `jacob` on the other hand
+well get all his articles. This implicit condition will be executed automatically and only needs to be set
+once in the `ArticleType`, where it will be applied every time the `ArticleType` is used to access `Article` objects.
+
+If the object class you've written your `Type` for doesn't contain any relationships but
+primitive types only then accessing your actual object instances may be fine. However in the case
+of the `Article` objects we need to prevent users from simply getting an arbitrary article available to them
+via the `ArticleType` and then accessing its actual author instance. This would enable unlimited access
+to all `Article` instances of that author, regardless of any setting in the `ArticleType`.
+
+Because of this the `listEntities` method is can be set up to not return actual `Article` objects
+but a wrapper around each `Article` instead. The properties the wrapper grants access to depends on the
+`ArticleType` and its relations to other `Types`. For example instead of completely denying access
+to the author in the `ArticleType` we may want to configure a `UserType`. Like the `ArticleType`
+the `UserType` can restrict access to data and schema. This way we can allow access to authors
+to get their public name, but can prevent the access to their drafts.
+
+Like mentioned above all these restrictions take place automatically when the result of
+`$entityFetcher->listWrappers($articleType, $nameCondition)` is used, making it impossible to
+accidentally expose data with the returned result.
+
+Also note that the restrictions of `Types` are in place no matter how they are accessed. For example
+when you've restricted access to the internal e-mail address of your users using a `UserType` then it does not matter
+if the wrapper of the `User` object was received via a relationship from an `ArticleType`, a `CommentType`
+or directly, the restriction will always be applied.
+
