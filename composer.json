@@ -5,7 +5,7 @@
     "type": "library",
     "require": {
         "php": ">=7.3,<8.2",
-        "demos-europe/edt-queries": "^0.7"
+        "demos-europe/edt-queries": "^0.6.2"
     },
     "authors": [
         {
@@ -30,8 +30,8 @@
         "vimeo/psalm": "^4.1"
     },
     "conflict": {
-        "demos-europe/edt-extra": "<0.6.1",
-        "demos-europe/edt-dql": "<0.6.1",
-        "demos-europe/edt-paths": "<0.6.1"
+        "demos-europe/edt-extra": "<0.6.2",
+        "demos-europe/edt-dql": "<0.6.2",
+        "demos-europe/edt-paths": "<0.6.2"
     }
 }
