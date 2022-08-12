@@ -193,15 +193,15 @@ class DraftArticleType implements ReadableTypeInterface
         return true;
     }
 
-    public function getDefaultSortMethods() : array{
+    public function getDefaultSortMethods() : array {
         return [];
     }
     
-    public function getAliases() : array{
+    public function getAliases() : array {
         return [];
     }
 
-    public function getInternalProperties() : array{
+    public function getInternalProperties() : array {
         return [];
     }
 }
@@ -279,7 +279,7 @@ class DraftArticleType implements ReadableTypeInterface
         );
     }
 
-    public function getInternalProperties() : array{
+    public function getInternalProperties() : array {
         return [
             'author' => \Tests\data\Types\AuthorType::class,
         ];
@@ -302,7 +302,7 @@ class AuthorType implements ReadableTypeInterface
 {
     // ...
     
-    public function getInternalProperties() : array{
+    public function getInternalProperties() : array {
         return [
             'accountName' => null,
         ];
