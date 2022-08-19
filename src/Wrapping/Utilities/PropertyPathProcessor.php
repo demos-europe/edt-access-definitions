@@ -6,6 +6,8 @@ namespace EDT\Wrapping\Utilities;
 
 use EDT\Querying\Contracts\PathException;
 use EDT\Querying\Contracts\PathsBasedInterface;
+use EDT\Querying\Contracts\PropertyPathAccessInterface;
+use EDT\Querying\PropertyPaths\PathInfo;
 use EDT\Querying\Utilities\Iterables;
 use EDT\Wrapping\Contracts\AccessException;
 use EDT\Wrapping\Contracts\PropertyAccessException;
@@ -53,7 +55,7 @@ class PropertyPathProcessor
         // then we get the author relationship here and map it to something like
         // `book.authoredBy.fullName` or `book.author.meta.name` depending on the
         // schema of the object class backing the type.
-        foreach ($pathsBased->getPropertyPaths() as $propertyPath) {
+        array_map(function (PropertyPathAccessInterface $propertyPath) use ($type): void {
             $path = Iterables::asArray($propertyPath);
             try {
                 $path = $this->processPropertyPath($type, [], ...$path);
@@ -61,7 +63,7 @@ class PropertyPathProcessor
                 throw PropertyAccessException::pathDenied($type, $exception, ...$path);
             }
             $propertyPath->setPath(...$path);
-        }
+        }, PathInfo::getPropertyPaths($pathsBased));
     }
 
     /**
