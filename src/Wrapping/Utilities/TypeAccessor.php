@@ -41,8 +41,12 @@ class TypeAccessor
             return [];
         }
         $readableProperties = $type->getReadableProperties();
-        array_walk($readableProperties, [$this, 'setTypeInstance']);
-        return array_filter($readableProperties, [$this, 'isReadableProperty']);
+        $readableProperties = array_map([$this, 'getTypeInstance'], $readableProperties);
+        $readableProperties = array_filter($readableProperties, [$this, 'isReadableProperty']);
+
+        return array_map(static function (?ReadableTypeInterface $type): ?ReadableTypeInterface {
+            return $type;
+        }, $readableProperties);
     }
 
     /**
@@ -51,7 +55,7 @@ class TypeAccessor
      * If the given type itself is not an instance of {@link UpdatableTypeInterface} an empty array
      * will be returned.
      *
-     * @template T
+     * @template T of object
      *
      * @param TypeInterface<T> $type
      * @param T                $updateTarget
@@ -64,18 +68,22 @@ class TypeAccessor
             return [];
         }
         $updatableProperties = $type->getUpdatableProperties($updateTarget);
-        array_walk($updatableProperties, [$this, 'setTypeInstance']);
+        $updatableProperties = array_map([$this, 'getTypeInstance'], $updatableProperties);
         return array_filter($updatableProperties, [$this, 'isUpdatableProperty']);
     }
 
     /**
+     * @return TypeInterface<object>|null
+     *
      * @throws TypeRetrievalAccessException
      */
-    private function setTypeInstance(?string &$value): void
+    private function getTypeInstance(?string $value): ?TypeInterface
     {
-        if (null !== $value) {
-            $value = $this->typeProvider->getType($value);
+        if (null === $value) {
+            return null;
         }
+
+        return $this->typeProvider->getType($value);
     }
 
     private function isReadableProperty(?TypeInterface $type): bool

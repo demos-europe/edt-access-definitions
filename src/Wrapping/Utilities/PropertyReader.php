@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Utilities;
 
+use EDT\Querying\Contracts\ObjectProviderInterface;
 use EDT\Querying\Contracts\PathException;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
 use EDT\Querying\Contracts\SliceException;
@@ -76,18 +77,21 @@ class PropertyReader
     public function determineValue(callable $createWrapper, ?ReadableTypeInterface $relationship, $propertyValue)
     {
         if (null === $relationship) {
-            // if non-relationship simply use the value read from the target
+            // if non-relationship, simply use the value read from the target
             return $propertyValue;
         }
 
+        // if to-many relationship, wrap each available value and return them
         if (is_iterable($propertyValue)) {
             return $this->getEntities($createWrapper, $relationship, Iterables::asArray($propertyValue));
         }
 
+        // if null relationship return null
         if (null === $propertyValue) {
             return null;
         }
 
+        // if to-one relationship wrap the value if available and return it, otherwise return null
         $objects = $this->getEntities($createWrapper, $relationship, [$propertyValue]);
 
         switch (count($objects)) {
@@ -103,11 +107,13 @@ class PropertyReader
     }
 
     /**
-     * @template K of int|string
+     * @template V of object
+     * @template R
      *
-     * @param array<K, object> $items must not contain `null` values
+     * @param callable(V, ReadableTypeInterface): R $createWrapper
+     * @param array<int|string, V> $items must not contain `null` values
      *
-     * @return array<K, mixed> the type of the values depends on the return of the given callable
+     * @return array<int, R>
      *
      * @throws SliceException
      * @throws PathException
@@ -117,11 +123,15 @@ class PropertyReader
     {
         // filter out restricted items
         $objectProvider = new PrefilledObjectProvider($this->propertyAccessor, $items);
+        /** @var ObjectProviderInterface<V> $objectProvider */
         $objectProvider = new TypeRestrictedEntityProvider($objectProvider, $relationship, $this->schemaPathProcessor);
-        $objects = Iterables::asArray($objectProvider->getObjects([]));
+
+        $objects = $objectProvider->getObjects([]);
+        $objects = Iterables::asArray($objects);
+        $objects = array_values($objects);
 
         // wrap the remaining objects
-        return array_map(static function ($nestedValue) use ($createWrapper, $relationship) {
+        return array_map(static function (object $nestedValue) use ($createWrapper, $relationship) {
             return $createWrapper($nestedValue, $relationship);
         }, $objects);
     }

@@ -50,7 +50,7 @@ interface TypeInterface
 
     /**
      * Determines if this type can be used directly.
-     * This affects if instances of this type can be accessed (eg. read, if readable) directly
+     * This affects if instances of this type can be accessed (e.g. read, if readable) directly
      * without being reached through a reference.
      *
      * Like {@link TypeInterface::isReferencable()} this has **no** precedence over {@link TypeInterface::isAvailable()}. Even
@@ -81,13 +81,13 @@ interface TypeInterface
      * normalized. The schema of this type can lift some of these normalizations for the everyday use using
      * {@link TypeInterface::getAliases()}. If you maintain an object based database next
      * to your relational one in which the objects are already denormalized and maybe even already
-     * in the schema of this type (eg. for search request optimizations), then a
+     * in the schema of this type (e.g. for search request optimizations), then a
      * condition accessing the schema of the normalized entity would be incompatible with that
      * object database.
      *
      * Beside limiting the access depending on the authorization of the accessing user, this
      * condition also be used to filter out invalid instances of the backing class:
-     * Eg. even though a database may store different animals as a single `Animal` entity/table
+     * E.g. even though a database may store different animals as a single `Animal` entity/table
      * there may be different types for different kinds of animals (`CatType`, `DogType`, ...).
      * For a list query on a `CatType` the condition returned by this method must define
      * limits to only get `Animal` instances that are a `Cat`.
@@ -100,7 +100,7 @@ interface TypeInterface
      * Get the properties of the schema of this type that are aliases to different properties
      * in the schema of the target {@link TypeInterface}.
      *
-     * If a path was directed to a property name of the schema of this type (eg. for filtering
+     * If a path was directed to a property name of the schema of this type (e.g. for filtering
      * or sorting) and it is only an alias, then the return of this method will contain
      * that property name as a key and the (array) path to the actual property of the
      * {@link TypeInterface::getEntityClass() backing entity class} as value.
@@ -109,7 +109,7 @@ interface TypeInterface
      * an `authorName` property in a `Book` Type to `['author', 'name']` is fine **if** your book
      * always has a single author. It is also ok if that author has a list of names stored in its
      * `name` property, because the `name` property is the last part in the alias path.
-     * However in case your `Book` has multiple authors and you use an alias path like
+     * However, in case your `Book` has multiple authors, and you use an alias path like
      * `['authors', 'name']` you may get errors or undesired/unexpected behavior.
      *
      * @return array<string,array<int,string>>
@@ -125,9 +125,9 @@ interface TypeInterface
      * into the schema of the backing object. Any aliasing defined by {@link TypeInterface::getAliases()}
      * will be applied automatically.
      *
-     * @return array<string,string|null> The mapping from property name (in the schema of
-     * this type) to the identifier of the target type of the relationship, or `null` if
-     * the property is a non-relationship.
+     * @return array<string,string|null> The mapping from property name (in the schema of this type)
+     *                                   to the identifier of the target type of the relationship,
+     *                                   or `null` if the property is a non-relationship.
      */
     public function getInternalProperties(): array;
 
@@ -135,7 +135,7 @@ interface TypeInterface
      * Get the sort method to apply when a collection of this property is fetched directly
      * and no sort methods were specified.
      *
-     * The schema the sort methods property paths access must be the one of the this type, **not** the one of the
+     * The schema the sort methods property paths access must be the one of this type, **not** the one of the
      * {@link TypeInterface::getEntityClass() entity class}.
     .*
      * Inside the method your paths can access all properties defined in the {@link TypeInterface::getInternalProperties()}

@@ -135,7 +135,7 @@ class WrapperObjectFactoryTest extends ModelBasedTest
         self::fail('Expected exception');
     }
 
-    public function testInvalidCall(): voìd
+    public function testInvalidCall(): void
     {
         $this->expectException(AccessException::class);
         $author = $this->factory->createWrapper($this->authors['salinger'], $this->authorType);
@@ -143,7 +143,7 @@ class WrapperObjectFactoryTest extends ModelBasedTest
         self::fail('Expected exception');
     }
 
-    public function testInvalidParameterCount(): voìd
+    public function testInvalidParameterCount(): void
     {
         $this->expectException(AccessException::class);
         $author = $this->factory->createWrapper($this->authors['salinger'], $this->authorType);

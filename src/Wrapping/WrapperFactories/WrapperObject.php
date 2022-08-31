@@ -22,6 +22,7 @@ use EDT\Wrapping\Utilities\PropertyReader;
 use EDT\Wrapping\Utilities\TypeAccessor;
 use function array_key_exists;
 use function count;
+use function Safe\preg_match;
 
 /**
  * @template T of object
@@ -44,11 +45,11 @@ class WrapperObject
      */
     private const METHOD_PATTERN = '/(get|set)([A-Z_]\w*)/';
     /**
-     * @var object
+     * @var T
      */
     private $object;
     /**
-     * @var TypeInterface<object>
+     * @var TypeInterface<T>
      */
     private $type;
     /**
@@ -104,6 +105,7 @@ class WrapperObject
     }
 
     /**
+     * @param array<int|string, mixed> $arguments
      * @return mixed|null|void If no parameters given:<ul>
      *   <li>In case of a relationship: an array, {@link WrapperObject} or <code>null</code>.
      *   <li>Otherwise a primitive type.</ul> If parameters given: `void`.
@@ -116,13 +118,16 @@ class WrapperObject
         $argumentsCount = count($arguments);
 
         if ('get' === $match[1] && 0 === $argumentsCount) {
+            /** @phpstan-ignore-next-line */
             return $this->$propertyName;
         }
         if ('set' === $match[1] && 1 === $argumentsCount) {
+            /** @phpstan-ignore-next-line */
             $this->$propertyName = array_pop($arguments);
-        } else {
-            throw AccessException::unexpectedArguments($this->type, 0, $argumentsCount);
+            return;
         }
+
+        throw AccessException::unexpectedArguments($this->type, 0, $argumentsCount);
     }
 
     /**
@@ -226,10 +231,9 @@ class WrapperObject
     /**
      * Set the value into the given object
      *
-     * @param array|object $target
-     * @param mixed $value
+     * @param mixed|null $value
      */
-    protected function setUnrestricted(string $propertyName, $target, $value): void
+    protected function setUnrestricted(string $propertyName, object $target, $value): void
     {
         $this->propertyAccessor->setValue($target, $value, $propertyName);
     }

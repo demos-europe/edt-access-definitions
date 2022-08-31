@@ -44,6 +44,8 @@ class TypeRestrictedEntityProvider implements ObjectProviderInterface
     }
 
     /**
+     * @return iterable<T>
+     *
      * {@inheritDoc}
      *
      * @throws AccessException

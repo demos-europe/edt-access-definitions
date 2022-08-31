@@ -20,7 +20,7 @@ To get wrappers for your entities you can either:
 * invoke the factories `createWrapper` method manually with the entity to wrap, and the
   type to use as schema.
 
-Please note that the type should be tailored to your entity instance. Otherwise the type
+Please note that the type should be tailored to your entity instance. Otherwise, the type
 and thus the wrapper
 may allow accesses to properties that do not exist in the backing entity, which will
 result in errors when actually used.
@@ -36,5 +36,5 @@ When the setter or property is used to set a value the wrapper will check the
 authorizations and, if granted, sets the value in the target property of the backing
 entity (which may differ from the property used when accessing the wrapper depending
 on the aliases set up for the type implementation). If you need side effects to happen
-when a property changes, eg. update a `lastModified` field when any other field is
+when a property changes, e.g. update a `lastModified` field when any other field is
 updated, you need a customized wrapper class.

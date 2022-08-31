@@ -92,6 +92,7 @@ class GenericEntityFetcher
         // get and map the actual entities
         $entities = $restrictedProvider->getObjects($conditions, $sortMethods);
         $entities = Iterables::asArray($entities);
+        $entities = array_values($entities);
 
         return array_map(function ($object) use ($type) {
             return $this->wrapperFactory->createWrapper($object, $type);

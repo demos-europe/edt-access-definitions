@@ -13,7 +13,7 @@ use function is_a;
 /**
  * Takes something iterable containing {@link TypeInterface}s on initialization
  * and will assign each item an identifier using the {@link PrefilledTypeProvider::getIdentifier()}
- * method. By default the fully qualified class name is chosen as identifier. To use something different
+ * method. By default, the fully qualified class name is chosen as identifier. To use something different
  * override {@link PrefilledTypeProvider::getIdentifier()}.
  */
 class PrefilledTypeProvider extends AbstractTypeProvider

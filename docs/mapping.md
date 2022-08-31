@@ -1,7 +1,7 @@
 # Mapping capabilities
 
 The main purpose of Types is to restrict accesses to
-the backing classes and instances. However if needed
+the backing classes and instances. However, if needed
 they provide simple mapping capabilities too.
 
 Different mappings can be done using different methods:

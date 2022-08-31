@@ -122,12 +122,12 @@ not included in this library yet.
 ## Limiting access
 
 On the level of the `TypeInteface` there four ways to restrict accesses.
-* Using `isAvailable()` you can fully hide Types depending on the state of the application (eg. authorizations of the accessing user).
-* Using `isReferencable` and `isDirectlyAccessible` you can prevent access to types similar to `isAvailable` but more fine grained based on the nesting of Types.
+* Using `isAvailable()` you can fully hide Types depending on the state of the application (e.g. authorizations of the accessing user).
+* Using `isReferencable` and `isDirectlyAccessible` you can prevent access to types similar to `isAvailable` but more fine-grained based on the nesting of Types.
 * Using `getAccessCondition()` you can hide entity instances (not types!) depending on the state of the application.
 
 This is kept separate from more specific interfaces as these restrictions are relevant for readability, updates,
-deletions and, partly, for create actions as well. However currently only readability and updatability are
+deletions and, partly, for create actions as well. However, currently only readability and updatability are
 implemented.
 
 To give an example lets assume each article is preceded by a draft article. Articles are connected to their
@@ -136,7 +136,7 @@ both Types readable. The basics about readability are explained in [Making a typ
 Updatability is also supported and explained in [Updating via Types](Updating_via_Types.md).
 
 In the examples we pass primitive values reflecting the permissions of the accessing user into the constructor.
-Instead you probably want to use a class like `Authorization`, `Role` or `User` to keep the constructor simple and conform to your authorization implementation.
+Instead, you probably want to use a class like `Authorization`, `Role` or `User` to keep the constructor simple and conform to your authorization implementation.
 
 The draft article may look like the following:
 
@@ -242,7 +242,7 @@ user and return a condition that applies the filter on that identifier.
 Instead of passing an implementation of the
 `ConditionFactoryInterface`
 you could instantiate instances of `FunctionInterface`
-directly in `getAccessCondition()`. However this is not recommended, as it makes your type implementation
+directly in `getAccessCondition()`. However, this is not recommended, as it makes your type implementation
 dependent on the data source the `FunctionInterface` implementation was written for and thus less reusable for other data sources.
 
 ```php
@@ -320,7 +320,7 @@ conditions returned by `getAccessCondition` methods.
 ### `isAvailable`
 
 Assuming only registered users can write articles we may want to hide the existence of draft articles from
-non-registered users, as there is no case in which they can access one. To do so, we need to inject into the `DraftArticleType` the information if the currently logged in
+non-registered users, as there is no case in which they can access one. To do so, we need to inject into the `DraftArticleType` the information if the currently logged-in
 user is registered. Then we can disable the availability using `isAvailable()`.
 
 ```php

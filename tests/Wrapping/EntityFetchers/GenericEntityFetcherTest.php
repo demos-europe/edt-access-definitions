@@ -107,7 +107,7 @@ class GenericEntityFetcherTest extends ModelBasedTest
         $filteredAuthors = $entityFetcher->listEntities($this->authorType, [$hasString]);
 
         $expected = [
-            'king' => [
+            0 => [
                 'name'         => 'Stephen King',
                 'pseudonym'    => 'Richard Bachman',
                 'birthCountry' => 'USA',
@@ -128,7 +128,7 @@ class GenericEntityFetcherTest extends ModelBasedTest
         $filteredAuthors = $entityFetcher->listEntities($this->authorType, [$hasString]);
 
         $expected = [
-            'king' => [
+            0 => [
                 'name'         => 'Stephen King',
                 'pseudonym'    => 'Richard Bachman',
                 'birthCountry' => 'USA',
@@ -153,7 +153,7 @@ class GenericEntityFetcherTest extends ModelBasedTest
         $filteredAuthors = $entityFetcher->listEntities($this->authorType, [$hasString]);
 
         $expected = [
-            'king' => [
+            0 => [
                 'name'         => 'Stephen King',
                 'pseudonym'    => 'Richard Bachman',
                 'birthCountry' => 'USA',
@@ -185,7 +185,7 @@ class GenericEntityFetcherTest extends ModelBasedTest
         $filteredAuthors = $entityFetcher->listEntities($this->authorType, [$hasString]);
 
         $expected = [
-            'tolkien' => [
+            0 => [
                 'name'         => 'John Ronald Reuel Tolkien',
                 'pseudonym'    => null,
                 'birthCountry' => 'Oranje-Freistaat',

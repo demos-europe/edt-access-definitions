@@ -61,14 +61,14 @@ An extension to use the https://www.doctrine-project.org/projects/orm.html[Doctr
    already exists. For more information regarding this topic see also https://github.com/demos-europe/edt-queries/tree/main/docs#providers-and-factories-setup[Providers and Factories setup].
 
 As you can see in this example we explicitly specified a condition to only get articles written by `jacob`.
-However if the `ArticleType` was configured correctly we will actually get a subset of the result with only those articles that the current
-user is allowed to access. Eg. if the user currently logged in is not `jacob` she or he will
+However, if the `ArticleType` was configured correctly we will actually get a subset of the result with only those articles that the current
+user is allowed to access. E.g. if the user currently logged in is not `jacob` she or he will
 only receive articles that are not in their draft state anymore. `jacob` on the other hand
 well get all his articles. This implicit condition will be executed automatically and only needs to be set
 once in the `ArticleType`, where it will be applied every time the `ArticleType` is used to access `Article` objects.
 
 If the object class you've written your `Type` for doesn't contain any relationships but
-primitive types only then accessing your actual object instances may be fine. However in the case
+primitive types only then accessing your actual object instances may be fine. However, in the case
 of the `Article` objects we need to prevent users from simply getting an arbitrary article available to them
 via the `ArticleType` and then accessing its actual author instance. This would enable unlimited access
 to all `Article` instances of that author, regardless of any setting in the `ArticleType`.

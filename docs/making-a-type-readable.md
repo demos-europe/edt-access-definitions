@@ -45,13 +45,13 @@ class ArticleType implements ReadableTypeInterface
 }
 ```
 
-Lets suppose we want to give strikes to users posting inappropriate comments under articles.
+Let's suppose we want to give strikes to users posting inappropriate comments under articles.
 This way when a user gets obtrusive a moderator can see if it is continuous behaviour and ban
 her/him as a consequence. We do however not want to expose this functionality to the average user,
-let alone making the number of strikes visible to the striked user.
+let alone making the number of strikes visible to the struck user.
 
 To do so we can add a `strikeCount` property to the `UserType`, but make it visible for only for
-moderators. To do so the `UserType` needs to get access the role of the currently logged in user. How
+moderators. To do so the `UserType` needs to get access the role of the currently logged-in user. How
 this is done depends heavily on the implementation of authorizations in your application. In this
 example we will simply assume that the Type instances are created on each request and the
 `UserType` receives a `moderator` boolean on instantiation. The result may look something like
@@ -106,5 +106,5 @@ As can be seen the `strikeCount` of any user will be only made readable if the a
 a moderator. In most cases the `getFilterableProperties()` and `getSortableProperties()` methods
 can simply return the result of `getReadableProperties()`. Returning more properties in these
 two methods than in `getReadableProperties()` may accidentally allow users to guess the values
-of a property that is not supposed to be readable. However returning less properties may be
+of a property that is not supposed to be readable. However, returning fewer properties may be
 desired if sorting/filtering needs to be limited due to performance reasons.

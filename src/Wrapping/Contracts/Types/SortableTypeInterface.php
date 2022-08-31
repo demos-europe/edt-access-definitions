@@ -7,7 +7,7 @@ namespace EDT\Wrapping\Contracts\Types;
 /**
  * @template T of object
  *
- * @template-implements TypeInterface<T>
+ * @template-extends TypeInterface<T>
  */
 interface SortableTypeInterface extends TypeInterface
 {
@@ -16,7 +16,7 @@ interface SortableTypeInterface extends TypeInterface
      *
      * In most use cases this method can return the same array as
      * {@link ReadableTypeInterface::getReadableProperties()} but you may want to limit
-     * the properties further, eg. if sorting over some properties is computation heavy or not supported
+     * the properties further, e.g. if sorting over some properties is computation heavy or not supported
      * at all. You may also want to allow more properties for sorting than you allowed for reading,
      * but be careful as this may allow guessing values of non-readable properties.
      *

@@ -59,7 +59,12 @@ class WrapperArrayFactory implements WrapperFactoryInterface
 
     public function createWrapper(object $object, ReadableTypeInterface $type): array
     {
-        return $this->createWrapperArray($object, $type, $this->depth);
+        $wrapper = $this->createWrapperArray($object, $type, $this->depth);
+        if (null === $wrapper) {
+            throw new InvalidArgumentException("Unexpected null return. `\$this->depth` is set to '$this->depth'.");
+        }
+
+        return $wrapper;
     }
 
     /**
@@ -81,12 +86,12 @@ class WrapperArrayFactory implements WrapperFactoryInterface
      * Assuming the `title` property was not readable then it would not be present in the
      * returned array at all.
      *
-     * If `$depth` would have been `1` then the value for `author` would be an array with all
-     * accessible properties of the `author` type as keys. However the recursion
+     * If `$depth` have been `1` then the value for `author` would be an array with all
+     * accessible properties of the `author` type as keys. However, the recursion
      * would stop at the author and the values to relationships from the `author` property
      * to other types would be set to `null`.
      *
-     * @return array<string,mixed>|null `null` if $depth is less 0. Otherwise an array containing
+     * @return array<string,mixed>|null `null` if $depth is less 0. Otherwise, an array containing
      *                                  the readable properties of the given type.
      * @throws AccessException Thrown if $type is not available.
      */
@@ -112,7 +117,7 @@ class WrapperArrayFactory implements WrapperFactoryInterface
      * Each null $value corresponding to the property given with the $propertyName will be replaced
      * with the value read using the property path corresponding to the $propertyName.
      *
-     * For each relationship the same will be done but additionally it will be recursively
+     * For each relationship the same will be done, but additionally it will be recursively
      * wrapped using this factory until $depth is reached. If access is not granted due to the
      * settings in the corresponding {@link TypeInterface::getAccessCondition()} it will be
      * replaced by `null`.

@@ -34,7 +34,7 @@ class SchemaPathProcessor
     }
 
     /**
-     * Check the paths of of the given conditions for availability and applies aliases using the given type.
+     * Check the paths of the given conditions for availability and applies aliases using the given type.
      *
      * Also adds the {@link ReadableTypeInterface::getAccessCondition() access condition} of the given type.
      *
@@ -117,6 +117,8 @@ class SchemaPathProcessor
     }
 
     /**
+     * @return array<int, SortMethodInterface>
+     *
      * @throws PathException
      */
     protected function processDefaultSortMethods(TypeInterface $type): array

@@ -30,8 +30,8 @@ interface CreatableTypeInterface extends TypeInterface
      *
      * As an example for the distinction between authorization dependent and independent validation lets
      * assume an application allows to add `Book` entities to a book store. Each book must be connected to a
-     * `Publisher` entity. In general we allow the connection from any `Book` to any `Publisher` in the
-     * database. However _who_ is allowed to create that connection is a matter of authorization. Only
+     * `Publisher` entity. In general, we allow the connection from any `Book` to any `Publisher` in the
+     * database. However, _who_ is allowed to create that connection is a matter of authorization. Only
      * users are assigned to a `Publisher` are allowed to add books to that `Publisher`. By returning
      * an array `['publisher' => $currentUserAssignedToPublisherCondition]` we can allow to create `Book`
      * instances with a publisher initially set while still preventing the user from assigning a

@@ -16,7 +16,7 @@ interface FilterableTypeInterface extends TypeInterface
      *
      * In most use cases this method can return the same array as
      * {@link ReadableTypeInterface::getReadableProperties()} but you may want to limit
-     * the properties further, eg. if filtering over some properties is computation heavy or not supported
+     * the properties further, e.g. if filtering over some properties is computation heavy or not supported
      * at all. You may also want to allow more properties for filtering than you allowed for reading,
      * but be careful as this may allow guessing values of non-readable properties.
      *
