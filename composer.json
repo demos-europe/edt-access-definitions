@@ -5,7 +5,7 @@
     "type": "library",
     "require": {
         "php": ">=7.3,<8.2",
-        "demos-europe/edt-queries": "^0.8"
+        "demos-europe/edt-queries": "^0.7.1"
     },
     "authors": [
         {
