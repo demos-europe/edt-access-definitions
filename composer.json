@@ -30,8 +30,8 @@
         "vimeo/psalm": "^4.1"
     },
     "conflict": {
-        "demos-europe/edt-extra": "<0.7.0",
-        "demos-europe/edt-dql": "<0.7.0",
-        "demos-europe/edt-paths": "<0.7.0"
+        "demos-europe/edt-extra": "<0.7.1",
+        "demos-europe/edt-dql": "<0.7.1",
+        "demos-europe/edt-paths": "<0.7.1"
     }
 }
