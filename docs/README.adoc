@@ -74,7 +74,7 @@ via the `ArticleType` and then accessing its actual author instance. This would 
 to all `Article` instances of that author, regardless of any setting in the `ArticleType`.
 
 Because of this the `listEntities` method is can be set up to not return actual `Article` objects
-but a wrapper around each `Article` instead. The properties the wrapper grants access to depends on the
+but a wrapper around each `Article` instead. The properties the wrapper grants access to, depends on the
 `ArticleType` and its relations to other `Types`. For example instead of completely denying access
 to the author in the `ArticleType` we may want to configure a `UserType`. Like the `ArticleType`
 the `UserType` can restrict access to data and schema. This way we can allow access to authors
@@ -89,3 +89,6 @@ when you've restricted access to the internal e-mail address of your users using
 if the wrapper of the `User` object was received via a relationship from an `ArticleType`, a `CommentType`
 or directly, the restriction will always be applied.
 
+== Credits and acknowledgements
+
+Conception and implementation by Christian Dressler with many thanks to https://github.com/eFrane[eFrane].
