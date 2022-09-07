@@ -31,7 +31,7 @@ class TypeRestrictedEntityProvider implements ObjectProviderInterface
 
     /**
      * @param ObjectProviderInterface<T> $baseProvider
-     * @param ReadableTypeInterface<T> $type
+     * @param ReadableTypeInterface<T>   $type
      */
     public function __construct(
         ObjectProviderInterface $baseProvider,

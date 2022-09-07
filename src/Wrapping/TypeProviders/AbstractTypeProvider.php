@@ -10,11 +10,11 @@ use EDT\Wrapping\Contracts\Types\TypeInterface;
 
 abstract class AbstractTypeProvider implements TypeProviderInterface
 {
-    public function getAvailableType(string $typeName, string ...$implementations): TypeInterface
+    public function getAvailableType(string $typeIdentifier, string ...$implementations): TypeInterface
     {
-        $type = $this->getType($typeName, ...$implementations);
+        $type = $this->getType($typeIdentifier, ...$implementations);
         if (!$type->isAvailable()) {
-            throw TypeRetrievalAccessException::typeExistsButNotAvailable($typeName);
+            throw TypeRetrievalAccessException::typeExistsButNotAvailable($typeIdentifier);
         }
         return $type;
     }
