@@ -112,7 +112,7 @@ interface TypeInterface
      * However, in case your `Book` has multiple authors, and you use an alias path like
      * `['authors', 'name']` you may get errors or undesired/unexpected behavior.
      *
-     * @return array<string,array<int,string>>
+     * @return array<string,non-empty-array<int,string>>
      */
     public function getAliases(): array;
 

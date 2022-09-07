@@ -8,7 +8,7 @@ use EDT\Wrapping\Contracts\Types\TypeInterface;
 use InvalidArgumentException;
 use function get_class;
 use function array_key_exists;
-use function is_a;
+use const ARRAY_FILTER_USE_KEY;
 
 /**
  * Takes something iterable containing {@link TypeInterface}s on initialization
@@ -39,6 +39,23 @@ class PrefilledTypeProvider extends AbstractTypeProvider
             }
             $this->typesByIdentifier[$typeIdentifier] = $type;
         }
+    }
+
+    /**
+     * @template I of TypeInterface<object>
+     * @param class-string<I> ...$implementations The fully qualified namespaces that the type must implement.
+     *
+     * @return array<int, I>
+     */
+    public function getAllAvailableTypes(string ...$implementations): array
+    {
+        return array_filter(
+            $this->typesByIdentifier,
+            function (string $typeIdentifier) use ($implementations): bool {
+                return $this->isTypeAvailable($typeIdentifier, ...$implementations);
+            },
+            ARRAY_FILTER_USE_KEY
+        );
     }
 
     /**

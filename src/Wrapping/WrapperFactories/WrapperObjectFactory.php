@@ -12,7 +12,9 @@ use EDT\Wrapping\Utilities\PropertyReader;
 use EDT\Wrapping\Utilities\TypeAccessor;
 
 /**
- * @template-implements WrapperFactoryInterface<object,WrapperObject>
+ * @template O of object
+ *
+ * @template-implements WrapperFactoryInterface<O,WrapperObject<O>>
  */
 class WrapperObjectFactory implements WrapperFactoryInterface
 {

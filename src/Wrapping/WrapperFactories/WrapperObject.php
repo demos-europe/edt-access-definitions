@@ -281,4 +281,15 @@ class WrapperObject
             throw RelationshipAccessException::toOneWithRestrictedItemNotSetable($this->type, $propertyName, $deAliasedPropertyName, $relationship);
         }
     }
+
+    /**
+     * @return T
+     *
+     * @internal Warning: exposing the backing object is dangerous, as it allows to read values
+     * unrestricted not only from the returned object but all its relationships.
+     */
+    public function getObject(): object
+    {
+        return $this->object;
+    }
 }
