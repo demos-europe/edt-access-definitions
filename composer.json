@@ -5,7 +5,7 @@
     "type": "library",
     "require": {
         "php": ">=7.3,<8",
-        "demos-europe/edt-queries": "^0.13",
+        "demos-europe/edt-queries": "^0.12.3",
         "thecodingmachine/safe": "^1.3.3"
     },
     "authors": [
@@ -26,9 +26,9 @@
         }
     },
     "conflict": {
-        "demos-europe/edt-extra": "<0.12.2",
-        "demos-europe/edt-dql": "<0.12.2",
-        "demos-europe/edt-paths": "<0.12.2",
-        "demos-europe/edt-jsonapi": "<0.12.2"
+        "demos-europe/edt-extra": "<0.12.3",
+        "demos-europe/edt-dql": "<0.12.3",
+        "demos-europe/edt-paths": "<0.12.3",
+        "demos-europe/edt-jsonapi": "<0.12.3"
     }
 }
