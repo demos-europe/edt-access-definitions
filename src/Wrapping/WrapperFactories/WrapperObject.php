@@ -18,6 +18,7 @@ use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 use EDT\Wrapping\Contracts\Types\UpdatableTypeInterface;
 use EDT\Wrapping\Contracts\WrapperFactoryInterface;
+use EDT\Wrapping\Contracts\WrapperInterface;
 use EDT\Wrapping\Utilities\PropertyReader;
 use EDT\Wrapping\Utilities\TypeAccessor;
 use function array_key_exists;
@@ -38,7 +39,7 @@ use function Safe\preg_match;
  *
  * Write access will only be granted if the given {@link TypeInterface} implements
  */
-class WrapperObject
+class WrapperObject implements WrapperInterface
 {
     /**
      * @var string
@@ -200,6 +201,11 @@ class WrapperObject
         // need to check the access conditions
         $this->throwIfNotSetable($relationship, $propertyName, $deAliasedPropertyName, $value);
         $this->setUnrestricted($deAliasedPropertyName, $target, $value);
+    }
+
+    public function getPropertyValue(string $propertyName)
+    {
+        return $this->__get($propertyName);
     }
 
     /**

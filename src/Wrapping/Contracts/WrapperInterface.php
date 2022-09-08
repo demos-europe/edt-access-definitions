@@ -7,7 +7,9 @@ namespace EDT\Wrapping\Contracts;
 interface WrapperInterface
 {
     /**
-     * @return mixed
+     * @return mixed|null
+     *
+     * @throws AccessException
      */
     public function getPropertyValue(string $propertyName);
 }
