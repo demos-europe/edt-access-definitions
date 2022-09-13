@@ -7,9 +7,11 @@ namespace EDT\Wrapping\Contracts\Types;
 use EDT\Querying\Contracts\FunctionInterface;
 
 /**
+ * @template C of \EDT\Querying\Contracts\PathsBasedInterface
+ * @template S of \EDT\Querying\Contracts\PathsBasedInterface
  * @template T of object
  *
- * @template-extends TypeInterface<T>
+ * @template-extends TypeInterface<C, S, T>
  */
 interface CreatableTypeInterface extends TypeInterface
 {
@@ -37,7 +39,7 @@ interface CreatableTypeInterface extends TypeInterface
      * instances with a publisher initially set while still preventing the user from assigning a
      * `Publisher` instance he is not allowed to use.
      *
-     * @return array<string,FunctionInterface<bool>|null>
+     * @return array<non-empty-string, C|null>
      */
     public function getInitializableProperties(): array;
 

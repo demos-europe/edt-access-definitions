@@ -71,7 +71,7 @@ class PropertyReaderTest extends ModelBasedTest
         $author = $this->authors['phen'];
 
         $value = $propertyReader->determineValue(
-            [$this->nonWrappingWrapperFactory, 'createWrapper'],
+            $this->nonWrappingWrapperFactory,
             $this->authorType,
             $author
         );
@@ -89,7 +89,7 @@ class PropertyReaderTest extends ModelBasedTest
         $author = $this->authors['tolkien'];
 
         $value = $propertyReader->determineValue(
-            [$this->nonWrappingWrapperFactory, 'createWrapper'],
+            $this->nonWrappingWrapperFactory,
             $this->authorType,
             $author
         );

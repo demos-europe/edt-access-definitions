@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\WrapperFactories;
 
+use EDT\Querying\Contracts\FunctionInterface;
 use EDT\Querying\Contracts\PathException;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
 use EDT\Querying\Contracts\SliceException;
 use EDT\Querying\Contracts\SortException;
+use EDT\Querying\Contracts\SortMethodInterface;
 use EDT\Wrapping\Contracts\AccessException;
 use EDT\Wrapping\Contracts\WrapperFactoryInterface;
 use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
@@ -17,7 +19,7 @@ use EDT\Wrapping\Utilities\TypeAccessor;
 use InvalidArgumentException;
 
 /**
- * @template-implements WrapperFactoryInterface<object,array<string,mixed>>
+ * @template-implements WrapperFactoryInterface<FunctionInterface<bool>, SortMethodInterface, object, array<string,mixed|null>>
  */
 class WrapperArrayFactory implements WrapperFactoryInterface
 {
@@ -26,11 +28,11 @@ class WrapperArrayFactory implements WrapperFactoryInterface
      */
     private $propertyAccessor;
     /**
-     * @var int
+     * @var int<0, max>
      */
     private $depth;
     /**
-     * @var TypeAccessor
+     * @var TypeAccessor<FunctionInterface<bool>, SortMethodInterface>
      */
     private $typeAccessor;
     /**
@@ -39,7 +41,10 @@ class WrapperArrayFactory implements WrapperFactoryInterface
     private $propertyReader;
 
     /**
-     * @param PropertyAccessorInterface<object> $propertyAccessor
+     * @param PropertyAccessorInterface<object>                          $propertyAccessor
+     * @param TypeAccessor<FunctionInterface<bool>, SortMethodInterface> $typeAccessor
+     * @param int<0, max>                                                $depth
+     *
      * @throws InvalidArgumentException Thrown if the given depth is negative.
      */
     public function __construct(
@@ -50,33 +55,20 @@ class WrapperArrayFactory implements WrapperFactoryInterface
     ) {
         $this->propertyAccessor = $propertyAccessor;
         $this->typeAccessor = $typeAccessor;
-        if (0 > $depth) {
-            throw new InvalidArgumentException("Depth must be 0 or positive, is $depth");
-        }
         $this->depth = $depth;
         $this->propertyReader = $propertyReader;
     }
 
-    public function createWrapper(object $object, ReadableTypeInterface $type): array
-    {
-        $wrapper = $this->createWrapperArray($object, $type, $this->depth);
-        if (null === $wrapper) {
-            throw new InvalidArgumentException("Unexpected null return. `\$this->depth` is set to '$this->depth'.");
-        }
-
-        return $wrapper;
-    }
-
     /**
-     * Converts the given object into an array with the objects property names as array keys and the
+     * Converts the given object into an array with the object's property names as array keys and the
      * property values as array values. Only properties that are defined as readable by
      * {@link ReadableTypeInterface::getReadableProperties()} are included. Relationships to
      * other types will be copied recursively in the same manner, but only if they're
-     * allowed to be accessed (depends on their {@link ReadableTypeInterface::isAvailable()},
+     * allowed to be accessed. If they are allowed to be accessed depends on their {@link ReadableTypeInterface::isAvailable()},
      * {@link TypeInterface::getAccessCondition()} and {@link TypeInterface::isReferencable()} methods,
      * all must return `true` for the property to be included.
      *
-     * The recursion stops when the specified depth is reached.
+     * The recursion stops when the specified depth in {@link WrapperArrayFactory::$depth} is reached.
      *
      * If for example the specified depth is 0 and the given type is a Book with a
      * `title` string property and an author relationship to another type then
@@ -86,21 +78,19 @@ class WrapperArrayFactory implements WrapperFactoryInterface
      * Assuming the `title` property was not readable then it would not be present in the
      * returned array at all.
      *
-     * If `$depth` have been `1` then the value for `author` would be an array with all
+     * If depth is set to `1` then the value for `author` would be an array with all
      * accessible properties of the `author` type as keys. However, the recursion
      * would stop at the author and the values to relationships from the `author` property
      * to other types would be set to `null`.
      *
-     * @return array<string,mixed>|null `null` if $depth is less 0. Otherwise, an array containing
-     *                                  the readable properties of the given type.
+     * @param ReadableTypeInterface<FunctionInterface<bool>, SortMethodInterface, object> $type
+     *
+     * @return array<string,mixed> an array containing the readable properties of the given type
+     *
      * @throws AccessException Thrown if $type is not available.
      */
-    protected function createWrapperArray(object $target, ReadableTypeInterface $type, int $depth): ?array
+    public function createWrapper(object $object, ReadableTypeInterface $type): array
     {
-        if (0 > $depth) {
-            return null;
-        }
-
         if (!$type->isAvailable()) {
             throw AccessException::typeNotAvailable($type);
         }
@@ -109,7 +99,7 @@ class WrapperArrayFactory implements WrapperFactoryInterface
         $readableProperties = $this->typeAccessor->getAccessibleReadableProperties($type);
 
         // Set the actual value for each remaining property
-        array_walk($readableProperties, [$this, 'setValue'], [$target, $depth, $type->getAliases()]);
+        array_walk($readableProperties, [$this, 'setValue'], [$object, $this->depth, $type->getAliases()]);
         return $readableProperties;
     }
 
@@ -126,8 +116,7 @@ class WrapperArrayFactory implements WrapperFactoryInterface
      * if it should be included, if so it is wrapped using this factory and included in the result.
      *
      * @param ReadableTypeInterface|null $value If not null the type must be {@link TypeInterface::isAvailable() available} and {@link TypeInterface::isReferencable() referencable}.
-     *
-     * @param array<int, mixed> $context
+     * @param array{0: object, 1: int, 2: array<non-empty-string, non-empty-list<non-empty-string>>} $context
      *
      * @throws PathException
      * @throws SliceException
@@ -137,15 +126,16 @@ class WrapperArrayFactory implements WrapperFactoryInterface
     {
         [$target, $depth, $aliases] = $context;
         $propertyPath = $aliases[$propertyName] ?? [$propertyName];
+        // TODO: this should probably be `1 === count($propertyPath)`
         $propertyValue = [] === $propertyPath
             ? $target
             : $this->propertyAccessor->getValueByPropertyPath($target, ...$propertyPath);
-        $value = $this->propertyReader->determineValue(
-            function (object $value, ReadableTypeInterface $relationship) use ($depth): ?array {
-                return $this->createWrapperArray($value, $relationship, $depth - 1);
-            },
-            $value,
-            $propertyValue
-        );
+
+        $newDepth = $depth - 1;
+        $wrapperFactory = 0 > $newDepth
+            ? new ArrayEndWrapperFactory()
+            : new self($this->propertyAccessor, $this->propertyReader, $this->typeAccessor, $newDepth);
+
+        $value = $this->propertyReader->determineValue($wrapperFactory, $value, $propertyValue);
     }
 }

@@ -8,11 +8,11 @@ use EDT\Querying\Contracts\PathException;
 use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Querying\Contracts\PropertyPathAccessInterface;
 use EDT\Querying\PropertyPaths\PathInfo;
-use EDT\Querying\Utilities\Iterables;
 use EDT\Wrapping\Contracts\AccessException;
 use EDT\Wrapping\Contracts\PropertyAccessException;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
-use EDT\Wrapping\Utilities\TypeAccessors\ContextualizedTypeAccessorInterface;
+use EDT\Wrapping\Utilities\TypeAccessors\AbstractTypeAccessor;
+use InvalidArgumentException;
 
 /**
  * Instances of this class can be used to convert the property paths in a {@link PathsBasedInterface}
@@ -25,14 +25,14 @@ use EDT\Wrapping\Utilities\TypeAccessors\ContextualizedTypeAccessorInterface;
 class PropertyPathProcessor
 {
     /**
-     * @var ContextualizedTypeAccessorInterface<T>
+     * @var AbstractTypeAccessor<T>
      */
     private $typeAccessor;
 
     /**
-     * @param ContextualizedTypeAccessorInterface<T> $typeAccessor
+     * @param AbstractTypeAccessor<T> $typeAccessor
      */
-    public function __construct(ContextualizedTypeAccessorInterface $typeAccessor)
+    public function __construct(AbstractTypeAccessor $typeAccessor)
     {
         $this->typeAccessor = $typeAccessor;
     }
@@ -56,13 +56,16 @@ class PropertyPathProcessor
         // `book.authoredBy.fullName` or `book.author.meta.name` depending on the
         // schema of the object class backing the type.
         array_map(function (PropertyPathAccessInterface $propertyPath) use ($type): void {
-            $path = Iterables::asArray($propertyPath);
+            $path = $propertyPath->getAsNames();
+            if ([] === $path) {
+                throw new InvalidArgumentException('Property path must not be empty.');
+            }
             try {
                 $path = $this->processPropertyPath($type, [], ...$path);
             } catch (PropertyAccessException $exception) {
-                throw PropertyAccessException::pathDenied($type, $exception, ...$path);
+                throw PropertyAccessException::pathDenied($type, $exception, $path);
             }
-            $propertyPath->setPath(...$path);
+            $propertyPath->setPath($path);
         }, PathInfo::getPropertyPaths($pathsBased));
     }
 
@@ -70,9 +73,11 @@ class PropertyPathProcessor
      * Follows the given property path recursively and rewrites it if necessary by appending the rewritten path to the given array.
      *
      * @param T $type
-     * @param array<int,string> $newPath is filled with the rewritten path during the recursive execution of this method
+     * @param list<non-empty-string> $newPath is filled with the rewritten path during the recursive execution of this method
+     * @param non-empty-string $currentPathPart
+     * @param non-empty-string ...$remainingParts
      *
-     * @return array<int,string> A list of property names denoting the processed path to a specific property.
+     * @return non-empty-list<non-empty-string> A list of property names denoting the processed path to a specific property.
      *
      * @throws PropertyAccessException if the property of the $currentPathPart or any of the $remainingParts is not available for some reason
      */

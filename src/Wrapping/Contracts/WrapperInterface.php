@@ -7,6 +7,8 @@ namespace EDT\Wrapping\Contracts;
 interface WrapperInterface
 {
     /**
+     * @param non-empty-string $propertyName
+     *
      * @return mixed|null
      *
      * @throws AccessException

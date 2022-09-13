@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace EDT\Wrapping\Contracts\Types;
 
 /**
+ * @template C of \EDT\Querying\Contracts\PathsBasedInterface
+ * @template S of \EDT\Querying\Contracts\PathsBasedInterface
  * @template T of object
  *
- * @template-extends TypeInterface<T>
+ * @template-extends TypeInterface<C, S, T>
  */
 interface FilterableTypeInterface extends TypeInterface
 {
@@ -20,7 +22,7 @@ interface FilterableTypeInterface extends TypeInterface
      * at all. You may also want to allow more properties for filtering than you allowed for reading,
      * but be careful as this may allow guessing values of non-readable properties.
      *
-     * @return array<string,string|null> The keys in the returned array are the names of the
+     * @return array<non-empty-string, non-empty-string|null> The keys in the returned array are the names of the
      *                                   properties. Each value is the identifier of the target
      *                                   {@link TypeInterface} (by which it can be requested from your
      *                                   {@link TypeProviderInterface}), or `null` if the

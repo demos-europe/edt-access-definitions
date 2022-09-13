@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\data\Types;
 
 use EDT\Querying\Contracts\ConditionFactoryInterface;
-use EDT\Querying\Contracts\FunctionInterface;
+use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\Types\FilterableTypeInterface;
 use EDT\Wrapping\Contracts\Types\IdentifiableTypeInterface;
 use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
@@ -54,7 +54,7 @@ class BookType implements ReadableTypeInterface, FilterableTypeInterface, Sortab
         ];
     }
 
-    public function getAccessCondition(): FunctionInterface
+    public function getAccessCondition(): PathsBasedInterface
     {
         return $this->conditionFactory->propertyHasNotSize(0, 'author', 'books');
     }

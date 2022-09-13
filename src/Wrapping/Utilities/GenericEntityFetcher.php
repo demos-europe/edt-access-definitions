@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace EDT\Wrapping\Utilities;
 
 use EDT\Querying\Contracts\ConditionFactoryInterface;
-use EDT\Querying\Contracts\FunctionInterface;
 use EDT\Querying\Contracts\PathException;
+use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Querying\Contracts\SliceException;
 use EDT\Querying\Contracts\SortException;
-use EDT\Querying\Contracts\SortMethodInterface;
 use EDT\Querying\ObjectProviders\TypeRestrictedEntityProvider;
 use EDT\Querying\Utilities\Iterables;
 use EDT\Querying\Contracts\ObjectProviderInterface;
@@ -23,21 +22,23 @@ use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 use function count;
 
 /**
+ * @template C of \EDT\Querying\Contracts\PathsBasedInterface
+ * @template S of \EDT\Querying\Contracts\PathsBasedInterface
  * @template O of object
  * @template R
  */
 class GenericEntityFetcher
 {
     /**
-     * @var ObjectProviderInterface<O>
+     * @var ObjectProviderInterface<C, S, O>
      */
     private $objectProvider;
     /**
-     * @var ConditionFactoryInterface
+     * @var ConditionFactoryInterface<C>
      */
     private $conditionFactory;
     /**
-     * @var WrapperFactoryInterface<O,R>
+     * @var WrapperFactoryInterface<C, S, O, R>
      */
     private $wrapperFactory;
     /**
@@ -46,8 +47,9 @@ class GenericEntityFetcher
     private $schemaPathProcessor;
 
     /**
-     * @param ObjectProviderInterface<O> $objectProvider
-     * @param WrapperFactoryInterface<O,R> $wrapperFactory All returned instances are wrapped using the given instance.
+     * @param ObjectProviderInterface<C, S, O>    $objectProvider
+     * @param ConditionFactoryInterface<C>        $conditionFactory
+     * @param WrapperFactoryInterface<C, S, O, R> $wrapperFactory All returned instances are wrapped using the given instance.
      *                                                             To avoid any wrapping simply pass an instance that returns
      *                                                             its input without wrapping.
      */
@@ -73,15 +75,17 @@ class GenericEntityFetcher
      * * the property is available for {@link FilterableTypeInterface::getFilterableProperties() filtering} if conditions were given
      * * the property is available for {@link SortableTypeInterface::getSortableProperties() sorting} if sort methods were given
      *
-     * @param ReadableTypeInterface<O> $type
-     * @param array<int,FunctionInterface<bool>> $conditions
-     * @return array<int,R>
+     * @param ReadableTypeInterface<C, S, O> $type
+     * @param list<C>                        $conditions
+     * @param S                              ...$sortMethods
+     *
+     * @return list<R>
      *
      * @throws AccessException
      * @throws SortException
      * @throws SliceException
      */
-    public function listEntities(ReadableTypeInterface $type, array $conditions, SortMethodInterface ...$sortMethods): array
+    public function listEntities(ReadableTypeInterface $type, array $conditions, PathsBasedInterface ...$sortMethods): array
     {
         $restrictedProvider = new TypeRestrictedEntityProvider(
             $this->objectProvider,
@@ -90,25 +94,25 @@ class GenericEntityFetcher
         );
 
         // get and map the actual entities
-        $entities = $restrictedProvider->getObjects($conditions, $sortMethods);
+        $entities = $restrictedProvider->getObjects($conditions, array_values($sortMethods));
         $entities = Iterables::asArray($entities);
         $entities = array_values($entities);
 
-        return array_map(function ($object) use ($type) {
+        return array_map(function (object $object) use ($type) {
             return $this->wrapperFactory->createWrapper($object, $type);
         }, $entities);
     }
 
     /**
-     * @param IdentifiableTypeInterface<O>&ReadableTypeInterface<O> $type
-     * @param mixed $identifier
+     * @param IdentifiableTypeInterface<C, S, O>&ReadableTypeInterface<C, S, O> $type
+     * @param non-empty-string $identifier
      * @return R
      * @throws SliceException
      * @throws SortException
      * @throws PathException
      * @throws AccessException
      */
-    public function getEntityByIdentifier(IdentifiableTypeInterface $type, $identifier)
+    public function getEntityByIdentifier(IdentifiableTypeInterface $type, string $identifier)
     {
         $identifierPath = $type->getIdentifierPropertyPath();
         $identifierCondition = $this->conditionFactory->propertyHasValue($identifier, ...$identifierPath);

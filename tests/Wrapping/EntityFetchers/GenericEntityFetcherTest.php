@@ -145,6 +145,27 @@ class GenericEntityFetcherTest extends ModelBasedTest
         self::assertEquals($expected, $filteredAuthors);
     }
 
+    public function testListWrappersDepthNegative(): void
+    {
+        $wrapperFactory = $this->createWrapperArrayFactory(-1);
+        $entityFetcher = $this->createGenericEntityFetcher($wrapperFactory);
+        $hasString = $this->conditionFactory->propertyHasStringContainingCaseInsensitiveValue('man', 'pseudonym');
+        $filteredAuthors = $entityFetcher->listEntities($this->authorType, [$hasString]);
+
+        $expected = [
+            0 => [
+                'name'         => 'Stephen King',
+                'pseudonym'    => 'Richard Bachman',
+                'birthCountry' => 'USA',
+                'books'        => [
+                    0 => null,
+                ],
+            ],
+        ];
+
+        self::assertEquals($expected, $filteredAuthors);
+    }
+
     public function testListWrappersDepthTwo(): void
     {
         $wrapperFactory = $this->createWrapperArrayFactory(2);

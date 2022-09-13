@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\WrapperFactories;
 
+use EDT\Querying\Contracts\FunctionInterface;
 use EDT\Querying\Contracts\PathException;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
 use EDT\Querying\Contracts\SliceException;
 use EDT\Querying\Contracts\SortException;
+use EDT\Querying\Contracts\SortMethodInterface;
 use EDT\Querying\Utilities\ConditionEvaluator;
 use EDT\Querying\Utilities\Iterables;
 use EDT\Wrapping\Contracts\AccessException;
@@ -21,6 +23,7 @@ use EDT\Wrapping\Contracts\WrapperFactoryInterface;
 use EDT\Wrapping\Contracts\WrapperInterface;
 use EDT\Wrapping\Utilities\PropertyReader;
 use EDT\Wrapping\Utilities\TypeAccessor;
+use InvalidArgumentException;
 use function array_key_exists;
 use function count;
 use function Safe\preg_match;
@@ -50,11 +53,11 @@ class WrapperObject implements WrapperInterface
      */
     private $object;
     /**
-     * @var TypeInterface<T>
+     * @var TypeInterface<FunctionInterface<bool>, SortMethodInterface, T>
      */
     private $type;
     /**
-     * @var TypeAccessor
+     * @var TypeAccessor<FunctionInterface<bool>, SortMethodInterface>
      */
     private $typeAccessor;
     /**
@@ -75,9 +78,10 @@ class WrapperObject implements WrapperInterface
     private $wrapperFactory;
 
     /**
-     * @param T                            $object
-     * @param TypeInterface<T>             $type
-     * @param PropertyAccessorInterface<T> $propertyAccessor
+     * @param T                                                              $object
+     * @param TypeInterface<FunctionInterface<bool>, SortMethodInterface, T> $type
+     * @param TypeAccessor<FunctionInterface<bool>, SortMethodInterface>     $typeAccessor
+     * @param PropertyAccessorInterface<T>                                   $propertyAccessor
      */
     public function __construct(
         object                    $object,
@@ -98,7 +102,7 @@ class WrapperObject implements WrapperInterface
     }
 
     /**
-     * @return TypeInterface<T>
+     * @return TypeInterface<FunctionInterface<bool>, SortMethodInterface, T>
      */
     public function getResourceType(): TypeInterface
     {
@@ -106,7 +110,9 @@ class WrapperObject implements WrapperInterface
     }
 
     /**
+     * @param non-empty-string         $methodName
      * @param array<int|string, mixed> $arguments
+     *
      * @return mixed|null|void If no parameters given:<ul>
      *   <li>In case of a relationship: an array, {@link WrapperObject} or <code>null</code>.
      *   <li>Otherwise a primitive type.</ul> If parameters given: `void`.
@@ -116,15 +122,16 @@ class WrapperObject implements WrapperInterface
     {
         $match = $this->parseMethodAccess($methodName);
         $propertyName = lcfirst($match[2]);
+        if ('' === $propertyName) {
+            throw new InvalidArgumentException('Property name must not be an empty string.');
+        }
         $argumentsCount = count($arguments);
 
         if ('get' === $match[1] && 0 === $argumentsCount) {
-            /** @phpstan-ignore-next-line */
-            return $this->$propertyName;
+            return $this->__get($propertyName);
         }
         if ('set' === $match[1] && 1 === $argumentsCount) {
-            /** @phpstan-ignore-next-line */
-            $this->$propertyName = array_pop($arguments);
+            $this->__set($propertyName, array_pop($arguments));
             return;
         }
 
@@ -132,6 +139,8 @@ class WrapperObject implements WrapperInterface
     }
 
     /**
+     * @param non-empty-string $propertyName
+     *
      * @return mixed|null The value of the accessed property, wrapped into another wrapper instance.
      *
      * @throws AccessException
@@ -161,13 +170,16 @@ class WrapperObject implements WrapperInterface
         // Get the potentially wrapped value for the requested property
         $relationship = $readableProperties[$propertyName];
         $propertyPath = $this->mapProperty($propertyName);
+        // TODO: this should probably be `1 === count($propertyPath)`
         $propertyValue = [] === $propertyPath
             ? $this->object
             : $this->propertyAccessor->getValueByPropertyPath($this->object, ...$propertyPath);
-        return $this->propertyReader->determineValue([$this->wrapperFactory, 'createWrapper'], $relationship, $propertyValue);
+
+        return $this->propertyReader->determineValue($this->wrapperFactory, $relationship, $propertyValue);
     }
 
     /**
+     * @param non-empty-string $propertyName
      * @param mixed $value The value to set. Will only be allowed if the property name matches with an allowed property
      *                     (must be {@link UpdatableTypeInterface::getUpdatableProperties() updatable} and,
      *                     if it is a relationship, the target type of the relationship must be {@link TypeInterface::isReferencable() referencable}
@@ -209,7 +221,9 @@ class WrapperObject implements WrapperInterface
     }
 
     /**
-     * @return array<int,string>
+     * @param non-empty-string $methodName
+     *
+     * @return list<string>
      *
      * @throws AccessException
      */
@@ -226,8 +240,9 @@ class WrapperObject implements WrapperInterface
     }
 
     /**
-     * @param string $propertyName
-     * @return string[]
+     * @param non-empty-string $propertyName
+     *
+     * @return non-empty-list<non-empty-string>
      */
     private function mapProperty(string $propertyName): array
     {
@@ -263,7 +278,10 @@ class WrapperObject implements WrapperInterface
      * {@link UpdatableTypeInterface::getUpdatableProperties() updatable} or
      * {@link CreatableTypeInterface::getInitializableProperties() initializable} properties.
      *
-     * @param mixed $propertyValue A single value of some type or an iterable.
+     * @param TypeInterface<FunctionInterface<bool>, SortMethodInterface, object>|null $relationship
+     * @param non-empty-string                                    $propertyName
+     * @param non-empty-string                                    $deAliasedPropertyName
+     * @param mixed                                               $propertyValue         A single value of some type or an iterable.
      *
      * @throws AccessException
      */

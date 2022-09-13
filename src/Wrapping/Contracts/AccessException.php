@@ -12,15 +12,23 @@ use function get_class;
 class AccessException extends InvalidArgumentException
 {
     /**
-     * @var class-string<TypeInterface>|string
+     * @var class-string<TypeInterface>|null
      */
-    protected $typeClassOrIdentifier;
+    protected $typeClass;
 
+    /**
+     * @var non-empty-string|null
+     */
+    protected $typeIdentifier;
+
+    /**
+     * @param TypeInterface $type
+     */
     public static function typeNotDirectlyAccessible(TypeInterface $type): self
     {
         $typeClass = get_class($type);
         $self = new self("Type '$typeClass' not directly accessible.");
-        $self->typeClassOrIdentifier = $typeClass;
+        $self->typeClass = $typeClass;
 
         return $self;
     }
@@ -29,7 +37,7 @@ class AccessException extends InvalidArgumentException
     {
         $typeClass = get_class($type);
         $self = new self("Unexpected arguments received for type class '$typeClass'. Expected $expected arguments, got $actual arguments.");
-        $self->typeClassOrIdentifier = $typeClass;
+        $self->typeClass = $typeClass;
 
         return $self;
     }
@@ -38,7 +46,7 @@ class AccessException extends InvalidArgumentException
     {
         $typeClass = get_class($type);
         $self = new self("Methods for sorting were provided but the type class '$typeClass' is not sortable.");
-        $self->typeClassOrIdentifier = $typeClass;
+        $self->typeClass = $typeClass;
 
         return $self;
     }
@@ -47,19 +55,16 @@ class AccessException extends InvalidArgumentException
     {
         $typeClass = get_class($type);
         $self = new self("Conditions for filtering were provided but the type class '$typeClass' is not filterable.");
-        $self->typeClassOrIdentifier = $typeClass;
+        $self->typeClass = $typeClass;
 
         return $self;
     }
 
-    /**
-     * @param TypeInterface<object> $type
-     */
     public static function typeNotAvailable(TypeInterface $type): self
     {
         $typeClass = get_class($type);
         $self = new self("Type class '$typeClass' not available.");
-        $self->typeClassOrIdentifier = $typeClass;
+        $self->typeClass = $typeClass;
 
         return $self;
     }
@@ -68,7 +73,7 @@ class AccessException extends InvalidArgumentException
     {
         $typeClass = get_class($type);
         $self = new self("The type class you try to access is not readable: $typeClass");
-        $self->typeClassOrIdentifier = $typeClass;
+        $self->typeClass = $typeClass;
 
         return $self;
     }
@@ -77,7 +82,7 @@ class AccessException extends InvalidArgumentException
     {
         $typeClass = get_class($type);
         $self = new self("The type class you try to access is not updatable: $typeClass");
-        $self->typeClassOrIdentifier = $typeClass;
+        $self->typeClass = $typeClass;
 
         return $self;
     }
@@ -86,7 +91,7 @@ class AccessException extends InvalidArgumentException
     {
         $typeClass = get_class($type);
         $self = new self("Multiple entities were found for the given identifier when accessing type class '$typeClass'. The identifier must be unique.");
-        $self->typeClassOrIdentifier = $typeClass;
+        $self->typeClass = $typeClass;
 
         return $self;
     }
@@ -95,25 +100,36 @@ class AccessException extends InvalidArgumentException
     {
         $typeClass = get_class($type);
         $self = new self("No entity could be found when accessing type class '$typeClass'. Either no one exists for the given identifier or the given types access condition restricts the access.");
-        $self->typeClassOrIdentifier = $typeClass;
-
-        return $self;
-    }
-
-    public static function failedToParseAccessor(TypeInterface $type, string $methodName): self
-    {
-        $typeClass = get_class($type);
-        $self = new self("The method you've called is not supported: '$methodName'");
-        $self->typeClassOrIdentifier = $typeClass;
+        $self->typeClass = $typeClass;
 
         return $self;
     }
 
     /**
-     * @return class-string<TypeInterface>|string
+     * @param non-empty-string $methodName
      */
-    public function getTypeClassOrIdentifier(): string
+    public static function failedToParseAccessor(TypeInterface $type, string $methodName): self
     {
-        return $this->typeClassOrIdentifier;
+        $typeClass = get_class($type);
+        $self = new self("The method you've called is not supported: '$methodName'");
+        $self->typeClass = $typeClass;
+
+        return $self;
+    }
+
+    /**
+     * @return class-string<TypeInterface>|null
+     */
+    public function getTypeClass(): ?string
+    {
+        return $this->typeClass;
+    }
+
+    /**
+     * @return non-empty-string|null
+     */
+    public function getTypeIdentifier(): ?string
+    {
+        return $this->typeIdentifier;
     }
 }
