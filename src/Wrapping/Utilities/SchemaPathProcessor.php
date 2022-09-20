@@ -30,9 +30,15 @@ class SchemaPathProcessor
      */
     private $typeProvider;
 
-    public function __construct(TypeProviderInterface $typeProvider)
+    /**
+     * @var PropertyPathProcessorFactory
+     */
+    private $propertyPathProcessorFactory;
+
+    public function __construct(PropertyPathProcessorFactory $propertyPathProcessorFactory, TypeProviderInterface $typeProvider)
     {
         $this->typeProvider = $typeProvider;
+        $this->propertyPathProcessorFactory = $propertyPathProcessorFactory;
     }
 
     /**
@@ -107,7 +113,7 @@ class SchemaPathProcessor
     public function mapExternReadablePath(ReadableTypeInterface $type, array $path, bool $allowAttribute): array
     {
         $typeAccessor = new ExternReadableTypeAccessor($this->typeProvider, $allowAttribute);
-        $processor = new PropertyPathProcessor($typeAccessor);
+        $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($typeAccessor);
         try {
             return $processor->processPropertyPath($type, [], ...$path);
         } catch (PropertyAccessException $exception) {
@@ -142,7 +148,7 @@ class SchemaPathProcessor
     protected function processExternalSortMethod(PathsBasedInterface $sortMethod, int $key, TypeInterface $type): void
     {
         $typeAccessor = new ExternSortableTypeAccessor($this->typeProvider);
-        $processor = new PropertyPathProcessor($typeAccessor);
+        $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($typeAccessor);
         $processor->processPropertyPaths($sortMethod, $type);
     }
 
@@ -155,7 +161,7 @@ class SchemaPathProcessor
     protected function processInternalSortMethod(PathsBasedInterface $sortMethod, int $key, TypeInterface $type): void
     {
         $typeAccessor = new InternTypeAccessor($this->typeProvider);
-        $processor = new PropertyPathProcessor($typeAccessor);
+        $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($typeAccessor);
         $processor->processPropertyPaths($sortMethod, $type);
     }
 
@@ -169,7 +175,7 @@ class SchemaPathProcessor
     protected function processExternalCondition(PathsBasedInterface $condition, int $key, FilterableTypeInterface $type): void
     {
         $typeAccessor = new ExternFilterableTypeAccessor($this->typeProvider);
-        $processor = new PropertyPathProcessor($typeAccessor);
+        $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($typeAccessor);
         $processor->processPropertyPaths($condition, $type);
     }
 
@@ -187,7 +193,7 @@ class SchemaPathProcessor
     {
         $condition = $type->getAccessCondition();
         $typeAccessor = new InternTypeAccessor($this->typeProvider);
-        $processor = new PropertyPathProcessor($typeAccessor);
+        $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($typeAccessor);
         $processor->processPropertyPaths($condition, $type);
 
         return $condition;

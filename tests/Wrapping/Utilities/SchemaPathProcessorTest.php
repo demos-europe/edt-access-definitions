@@ -12,6 +12,7 @@ use EDT\Querying\SortMethodFactories\PhpSortMethodFactory;
 use EDT\Querying\SortMethods\Ascending;
 use EDT\Wrapping\Contracts\AccessException;
 use EDT\Wrapping\TypeProviders\PrefilledTypeProvider;
+use EDT\Wrapping\Utilities\PropertyPathProcessorFactory;
 use EDT\Wrapping\Utilities\SchemaPathProcessor;
 use InvalidArgumentException;
 use Tests\data\Types\AuthorType;
@@ -48,7 +49,7 @@ class SchemaPathProcessorTest extends ModelBasedTest
         $typeProvider = new PrefilledTypeProvider([
             $this->authorType,
         ]);
-        $this->schemaPathProcessor = new SchemaPathProcessor($typeProvider);
+        $this->schemaPathProcessor = new SchemaPathProcessor(new PropertyPathProcessorFactory(), $typeProvider);
     }
 
     public function testSortAccessException(): void

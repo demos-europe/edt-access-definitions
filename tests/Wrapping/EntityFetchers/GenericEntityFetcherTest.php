@@ -9,6 +9,7 @@ use EDT\Querying\PropertyAccessors\ReflectionPropertyAccessor;
 use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 use EDT\Wrapping\Contracts\WrapperFactoryInterface;
+use EDT\Wrapping\Utilities\PropertyPathProcessorFactory;
 use EDT\Wrapping\Utilities\PropertyReader;
 use EDT\Wrapping\Utilities\SchemaPathProcessor;
 use EDT\Wrapping\Utilities\TypeAccessor;
@@ -81,7 +82,7 @@ class GenericEntityFetcherTest extends ModelBasedTest
                 return $object;
             }
         };
-        $this->schemaPathProcessor = new SchemaPathProcessor($this->typeProvider);
+        $this->schemaPathProcessor = new SchemaPathProcessor(new PropertyPathProcessorFactory(), $this->typeProvider);
         $this->typeAccessor = new TypeAccessor($this->typeProvider);
         $this->propertyReader = new PropertyReader($this->propertyAccessor, $this->schemaPathProcessor);
     }

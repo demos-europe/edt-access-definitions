@@ -11,6 +11,7 @@ use EDT\Wrapping\Contracts\TypeProviderInterface;
 use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 use EDT\Wrapping\Contracts\WrapperFactoryInterface;
 use EDT\Wrapping\TypeProviders\PrefilledTypeProvider;
+use EDT\Wrapping\Utilities\PropertyPathProcessorFactory;
 use EDT\Wrapping\Utilities\PropertyReader;
 use EDT\Wrapping\Utilities\SchemaPathProcessor;
 use Tests\data\Model\Person;
@@ -58,7 +59,7 @@ class PropertyReaderTest extends ModelBasedTest
             $this->authorType,
             $bookType,
         ]);
-        $this->schemaPathProcessor = new SchemaPathProcessor($this->typeProvider);
+        $this->schemaPathProcessor = new SchemaPathProcessor(new PropertyPathProcessorFactory(), $this->typeProvider);
     }
 
     public function testInternalConditionAliasWithoutAccess(): void

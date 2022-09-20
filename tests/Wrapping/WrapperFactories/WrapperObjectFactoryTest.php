@@ -9,6 +9,7 @@ use EDT\Querying\PropertyAccessors\ReflectionPropertyAccessor;
 use EDT\Querying\Utilities\ConditionEvaluator;
 use EDT\Wrapping\Contracts\AccessException;
 use EDT\Wrapping\TypeProviders\PrefilledTypeProvider;
+use EDT\Wrapping\Utilities\PropertyPathProcessorFactory;
 use EDT\Wrapping\Utilities\PropertyReader;
 use EDT\Wrapping\Utilities\SchemaPathProcessor;
 use EDT\Wrapping\Utilities\TypeAccessor;
@@ -43,7 +44,7 @@ class WrapperObjectFactoryTest extends ModelBasedTest
         $propertyAccessor = new ReflectionPropertyAccessor();
         $this->factory = new WrapperObjectFactory(
             new TypeAccessor($typeProvider),
-            new PropertyReader($propertyAccessor, new SchemaPathProcessor($typeProvider)),
+            new PropertyReader($propertyAccessor, new SchemaPathProcessor(new PropertyPathProcessorFactory(), $typeProvider)),
             $propertyAccessor,
             new ConditionEvaluator($propertyAccessor)
         );
