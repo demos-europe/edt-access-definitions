@@ -10,9 +10,12 @@ use EDT\Querying\Contracts\PropertyPathAccessInterface;
 use EDT\Querying\PropertyPaths\PathInfo;
 use EDT\Wrapping\Contracts\AccessException;
 use EDT\Wrapping\Contracts\PropertyAccessException;
+use EDT\Wrapping\Contracts\RelationshipAccessException;
+use EDT\Wrapping\Contracts\TypeRetrievalAccessException;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 use EDT\Wrapping\Utilities\TypeAccessors\AbstractTypeAccessor;
 use InvalidArgumentException;
+use function array_key_exists;
 
 /**
  * Instances of this class can be used to convert the property paths in a {@link PathsBasedInterface}
@@ -81,21 +84,47 @@ class PropertyPathProcessor
      *
      * @throws PropertyAccessException if the property of the $currentPathPart or any of the $remainingParts is not available for some reason
      */
-    protected function processPropertyPath(TypeInterface $type, array $newPath, string $currentPathPart, string ...$remainingParts): array
+    public function processPropertyPath(TypeInterface $type, array $newPath, string $currentPathPart, string ...$remainingParts): array
     {
+        $availableProperties = $this->typeAccessor->getProperties($type);
+        // abort if the (originally accessed/non-de-aliased) property is not available
+        if (!array_key_exists($currentPathPart, $availableProperties)) {
+            $availablePropertyNames = array_keys($availableProperties);
+            throw PropertyAccessException::propertyNotAvailableInType($currentPathPart, $type, ...$availablePropertyNames);
+        }
+
         // Check if the current type needs mapping to the backing object schema, if so, apply it.
         $pathToAdd = $this->typeAccessor->getDeAliasedPath($type, $currentPathPart);
         // append the de-aliased path to the processed path
         array_push($newPath, ...$pathToAdd);
 
-        // if no parts remain we are done and don't need to follow the $nextTarget
+        $propertyTypeIdentifier = $availableProperties[$currentPathPart];
+        if (null !== $propertyTypeIdentifier) {
+            try {
+                // even if we don't need the $nextTarget here because there may be no
+                // remaining segments, we still check with this call if the current
+                // relationship is valid in this path
+                $nextTarget = $this->typeAccessor->getType($propertyTypeIdentifier);
+
+                if ([] === $remainingParts) {
+                    // if no parts remain after the current relationship are done and don't need to follow the $nextTarget
+                    return $newPath;
+                }
+
+                // otherwise, we continue the mapping recursively
+                return $this->processPropertyPath($nextTarget, $newPath, ...$remainingParts);
+            } catch (TypeRetrievalAccessException $exception) {
+                throw RelationshipAccessException::relationshipTypeAccess($type, $currentPathPart, $exception);
+            }
+        }
+
         if ([] === $remainingParts) {
+            // no parts remain after the attribute, we are done
             return $newPath;
         }
 
-        // otherwise, we continue the mapping recursively
-        $nextTarget = $this->typeAccessor->getPropertyType($type, $currentPathPart);
-
-        return $this->processPropertyPath($nextTarget, $newPath, ...$remainingParts);
+        // the current segment is an attribute followed by more segments,
+        // thus we throw an exception
+        throw PropertyAccessException::nonRelationship($currentPathPart, $type);
     }
 }

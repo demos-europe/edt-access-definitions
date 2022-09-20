@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Utilities;
 
-use EDT\Querying\Contracts\FunctionInterface;
 use EDT\Querying\Contracts\PathException;
 use EDT\Querying\Contracts\PathsBasedInterface;
-use EDT\Querying\Contracts\SortMethodInterface;
 use EDT\Wrapping\Contracts\AccessException;
+use EDT\Wrapping\Contracts\PropertyAccessException;
 use EDT\Wrapping\Contracts\TypeProviderInterface;
 use EDT\Wrapping\Contracts\Types\FilterableTypeInterface;
+use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 use EDT\Wrapping\Contracts\Types\SortableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 use EDT\Wrapping\Utilities\TypeAccessors\ExternFilterableTypeAccessor;
+use EDT\Wrapping\Utilities\TypeAccessors\ExternReadableTypeAccessor;
 use EDT\Wrapping\Utilities\TypeAccessors\ExternSortableTypeAccessor;
 use EDT\Wrapping\Utilities\TypeAccessors\InternTypeAccessor;
 
@@ -94,6 +95,24 @@ class SchemaPathProcessor
         }
 
         throw AccessException::typeNotSortable($type);
+    }
+
+    /**
+     * @param non-empty-list<non-empty-string> $path
+     *
+     * @return non-empty-list<non-empty-string>
+     *
+     * @throws PropertyAccessException
+     */
+    public function mapExternReadablePath(ReadableTypeInterface $type, array $path, bool $allowAttribute): array
+    {
+        $typeAccessor = new ExternReadableTypeAccessor($this->typeProvider, $allowAttribute);
+        $processor = new PropertyPathProcessor($typeAccessor);
+        try {
+            return $processor->processPropertyPath($type, [], ...$path);
+        } catch (PropertyAccessException $exception) {
+            throw PropertyAccessException::pathDenied($type, $exception, $path);
+        }
     }
 
     /**

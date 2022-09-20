@@ -29,12 +29,12 @@ class ExternSortableTypeAccessor extends AbstractTypeAccessor
         $this->typeProvider = $typeProvider;
     }
 
-    protected function getProperties(TypeInterface $type): array
+    public function getProperties(TypeInterface $type): array
     {
         return $type->getSortableProperties();
     }
 
-    protected function getType(string $typeIdentifier): TypeInterface
+    public function getType(string $typeIdentifier): TypeInterface
     {
         return $this->typeProvider->getAvailableType($typeIdentifier, SortableTypeInterface::class);
     }

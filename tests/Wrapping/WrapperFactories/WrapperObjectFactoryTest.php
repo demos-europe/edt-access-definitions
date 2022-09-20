@@ -15,6 +15,7 @@ use EDT\Wrapping\Utilities\TypeAccessor;
 use EDT\Wrapping\WrapperFactories\WrapperObject;
 use EDT\Wrapping\WrapperFactories\WrapperObjectFactory;
 use Tests\data\Types\AuthorType;
+use Tests\data\Types\BirthType;
 use Tests\data\Types\BookType;
 use Tests\ModelBasedTest;
 
@@ -37,6 +38,7 @@ class WrapperObjectFactoryTest extends ModelBasedTest
         $typeProvider = new PrefilledTypeProvider([
             $this->authorType,
             new BookType($conditionFactory),
+            new BirthType($conditionFactory),
         ]);
         $propertyAccessor = new ReflectionPropertyAccessor();
         $this->factory = new WrapperObjectFactory(

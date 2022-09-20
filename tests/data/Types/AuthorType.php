@@ -33,7 +33,10 @@ class AuthorType implements ReadableTypeInterface, FilterableTypeInterface, Sort
 
     public function getReadableProperties(): array
     {
-        return $this->getFilterableProperties();
+        $properties = $this->getFilterableProperties();
+        $properties['birth'] = BirthType::class;
+
+        return $properties;
     }
 
     public function getFilterableProperties(): array

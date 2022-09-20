@@ -18,6 +18,7 @@ use EDT\Wrapping\TypeProviders\PrefilledTypeProvider;
 use EDT\Wrapping\Utilities\GenericEntityFetcher;
 use ReflectionClass;
 use Tests\data\Model\Person;
+use Tests\data\Types\BirthType;
 use Tests\ModelBasedTest;
 use Tests\data\Types\AuthorType;
 use Tests\data\Types\BookType;
@@ -70,6 +71,7 @@ class GenericEntityFetcherTest extends ModelBasedTest
         $this->typeProvider = new PrefilledTypeProvider([
             $this->authorType,
             $bookType,
+            new BirthType($this->conditionFactory),
         ]);
         $this->propertyAccessor = new ReflectionPropertyAccessor();
         $this->authorProvider = new PrefilledObjectProvider($this->propertyAccessor, $this->authors);
