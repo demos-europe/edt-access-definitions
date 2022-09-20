@@ -86,19 +86,13 @@ class PropertyPathProcessor
      */
     public function processPropertyPath(TypeInterface $type, array $newPath, string $currentPathPart, string ...$remainingParts): array
     {
-        $availableProperties = $this->typeAccessor->getProperties($type);
-        // abort if the (originally accessed/non-de-aliased) property is not available
-        if (!array_key_exists($currentPathPart, $availableProperties)) {
-            $availablePropertyNames = array_keys($availableProperties);
-            throw PropertyAccessException::propertyNotAvailableInType($currentPathPart, $type, ...$availablePropertyNames);
-        }
+        $propertyTypeIdentifier = $this->getPropertyTypeIdentifier($type, $currentPathPart);
 
         // Check if the current type needs mapping to the backing object schema, if so, apply it.
         $pathToAdd = $this->typeAccessor->getDeAliasedPath($type, $currentPathPart);
         // append the de-aliased path to the processed path
         array_push($newPath, ...$pathToAdd);
 
-        $propertyTypeIdentifier = $availableProperties[$currentPathPart];
         if (null !== $propertyTypeIdentifier) {
             try {
                 // even if we don't need the $nextTarget here because there may be no
@@ -126,5 +120,23 @@ class PropertyPathProcessor
         // the current segment is an attribute followed by more segments,
         // thus we throw an exception
         throw PropertyAccessException::nonRelationship($currentPathPart, $type);
+    }
+
+    /**
+     * @param T $type
+     * @param non-empty-string $pathSegment
+     *
+     * @return non-empty-string|null
+     */
+    protected function getPropertyTypeIdentifier(TypeInterface $type, string $pathSegment): ?string
+    {
+        $availableProperties = $this->typeAccessor->getProperties($type);
+        // abort if the (originally accessed/non-de-aliased) property is not available
+        if (!array_key_exists($pathSegment, $availableProperties)) {
+            $availablePropertyNames = array_keys($availableProperties);
+            throw PropertyAccessException::propertyNotAvailableInType($pathSegment, $type, ...$availablePropertyNames);
+        }
+
+        return $availableProperties[$pathSegment];
     }
 }
