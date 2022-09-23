@@ -9,7 +9,7 @@ use EDT\Wrapping\Utilities\TypeAccessors\AbstractTypeAccessor;
 class PropertyPathProcessorFactory
 {
     /**
-     * @template T of \EDT\Wrapping\Contracts\Types\TypeInterface
+     * @template T of \EDT\Wrapping\Contracts\Types\TypeInterface<\EDT\Querying\Contracts\PathsBasedInterface, \EDT\Querying\Contracts\PathsBasedInterface, object>
      *
      * @param AbstractTypeAccessor<T> $typeAccessor
      *

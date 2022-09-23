@@ -15,7 +15,7 @@ use EDT\Wrapping\Contracts\WrapperFactoryInterface;
  */
 class ArrayEndWrapperFactory implements WrapperFactoryInterface
 {
-    public function createWrapper(object $value, ReadableTypeInterface $type)
+    public function createWrapper(object $object, ReadableTypeInterface $type)
     {
         return null;
     }

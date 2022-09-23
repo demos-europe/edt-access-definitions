@@ -7,9 +7,15 @@ namespace EDT\Wrapping\Contracts\Types;
 use EDT\Querying\Contracts\PathsBasedInterface;
 
 /**
+ * Template parameters:
+ *
+ * * `C`: the type of the condition instances
+ * * `S`: the type of the sort instances
+ * * `T`: the class of the backing entity returned by {@link TypeInterface::getEntityClass()}
+ *
  * @template C of \EDT\Querying\Contracts\PathsBasedInterface
  * @template S of \EDT\Querying\Contracts\PathsBasedInterface
- * @template T of object The class of the backing entity returned by {@link TypeInterface::getEntityClass()}
+ * @template T of object
  */
 interface TypeInterface
 {

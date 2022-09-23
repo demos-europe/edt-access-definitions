@@ -16,29 +16,14 @@ use EDT\Wrapping\Contracts\Types\TypeInterface;
  */
 abstract class AbstractTypeProvider implements TypeProviderInterface
 {
-    public function getAvailableType(string $typeIdentifier, string ...$implementations): TypeInterface
-    {
-        $type = $this->getType($typeIdentifier, ...$implementations);
-        if (!$type->isAvailable()) {
-            throw TypeRetrievalAccessException::typeExistsButNotAvailable($typeIdentifier);
-        }
-        return $type;
-    }
-
-    public function getType(string $typeIdentifier, string ...$implementations): TypeInterface
+    public function requestType(string $typeIdentifier): TypeRequirement
     {
         $type = $this->getTypeByIdentifier($typeIdentifier);
         if (null === $type) {
             throw TypeRetrievalAccessException::unknownTypeIdentifier($typeIdentifier, $this->getTypeIdentifiers());
         }
 
-        foreach ($implementations as $implementation) {
-            if (!is_a($type, $implementation)) {
-                throw TypeRetrievalAccessException::noNameWithImplementation($typeIdentifier, $implementation);
-            }
-        }
-
-        return $type;
+        return new TypeRequirement($type, $typeIdentifier);
     }
 
     /**
@@ -61,6 +46,8 @@ abstract class AbstractTypeProvider implements TypeProviderInterface
     }
 
     /**
+     * @return TypeInterface<C, S, object>|null
+     *
      * @throws TypeRetrievalAccessException
      */
     abstract protected function getTypeByIdentifier(string $typeIdentifier): ?TypeInterface;

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Utilities\TypeAccessors;
 
+use EDT\Querying\Contracts\PathsBasedInterface;
+use EDT\Wrapping\Contracts\TypeProviderInterface;
 use EDT\Wrapping\Contracts\TypeRetrievalAccessException;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 
@@ -12,10 +14,23 @@ use EDT\Wrapping\Contracts\Types\TypeInterface;
  * criteria, e.g. the {@link ExternFilterableTypeAccessor} will only allow access
  * to filterable properties and types.
  *
- * @template T of TypeInterface
+ * @template T of TypeInterface<\EDT\Querying\Contracts\PathsBasedInterface, \EDT\Querying\Contracts\PathsBasedInterface, object>
  */
 abstract class AbstractTypeAccessor
 {
+    /**
+     * @var TypeProviderInterface<PathsBasedInterface, PathsBasedInterface>
+     */
+    protected $typeProvider;
+
+    /**
+     * @param TypeProviderInterface<PathsBasedInterface, PathsBasedInterface> $typeProvider
+     */
+    public function __construct(TypeProviderInterface $typeProvider)
+    {
+        $this->typeProvider = $typeProvider;
+    }
+
     /**
      * If the given property name is just an alias for a different path, then
      * that path will be returned as array. Otherwise, an array containing only the given

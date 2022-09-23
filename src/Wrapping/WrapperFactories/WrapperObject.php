@@ -29,8 +29,6 @@ use function count;
 use function Safe\preg_match;
 
 /**
- * @template T of object
- *
  * Wraps a given object, corresponding to a {@link TypeInterface}.
  *
  * Instances will provide read and write access to specific properties of the given object.
@@ -40,7 +38,7 @@ use function Safe\preg_match;
  * Only those relationships will be readable that have an {@link TypeInterface::isAvailable() available}
  * and {@link TypeInterface::isReferencable() referencable} target type. Returned relationships will be wrapped themselves inside {@link WrapperObject} instances.
  *
- * Write access will only be granted if the given {@link TypeInterface} implements
+ * @template T of object
  */
 class WrapperObject implements WrapperInterface
 {

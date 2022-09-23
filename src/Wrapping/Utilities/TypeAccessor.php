@@ -90,7 +90,7 @@ class TypeAccessor
             return null;
         }
 
-        return $this->typeProvider->getType($typeIdentifier);
+        return $this->typeProvider->requestType($typeIdentifier)->getTypeInstance();
     }
 
     /**

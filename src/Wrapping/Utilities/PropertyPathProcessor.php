@@ -23,7 +23,7 @@ use function array_key_exists;
  * for property access violations, depending on the context (readability/sortability/...).
  * The context is set on instantiation by using providers that limit the access accordingly.
  *
- * @template T of TypeInterface
+ * @template T of TypeInterface<\EDT\Querying\Contracts\PathsBasedInterface, \EDT\Querying\Contracts\PathsBasedInterface, object>
  */
 class PropertyPathProcessor
 {
@@ -91,7 +91,7 @@ class PropertyPathProcessor
         // Check if the current type needs mapping to the backing object schema, if so, apply it.
         $pathToAdd = $this->typeAccessor->getDeAliasedPath($type, $currentPathPart);
         // append the de-aliased path to the processed path
-        array_push($newPath, ...$pathToAdd);
+        $newPath = $this->appendDeAliasedPath($newPath, $pathToAdd);
 
         if (null !== $propertyTypeIdentifier) {
             try {
@@ -138,5 +138,18 @@ class PropertyPathProcessor
         }
 
         return $availableProperties[$pathSegment];
+    }
+
+    /**
+     * @param list<non-empty-string>           $newPath
+     * @param non-empty-list<non-empty-string> $pathToAdd
+     *
+     * @return non-empty-list<non-empty-string>
+     */
+    private function appendDeAliasedPath(array $newPath, array $pathToAdd): array
+    {
+        array_push($newPath, ...$pathToAdd);
+
+        return $newPath;
     }
 }

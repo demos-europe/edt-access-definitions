@@ -261,14 +261,15 @@ class GenericEntityFetcherTest extends ModelBasedTest
      */
     public function testInternalIsAvailable(): void
     {
-        // Set the return of isAvailable to false to simulate being able to access
+        // Set the return of isAvailable to `false` to simulate being able to access
         // AuthorType but not BookType.
-        $bookType = $this->typeProvider->getType(BookType::class);
+        $bookType = $this->typeProvider->requestType(BookType::class)->getTypeInstance();
         $bookTypeReflection = new ReflectionClass($bookType);
         $property = $bookTypeReflection->getProperty('available');
         $property->setAccessible(true);
         $property->setValue($bookType, false);
-        self::assertFalse($this->typeProvider->getType(BookType::class)->isAvailable());
+        $type = $this->typeProvider->requestType(BookType::class)->getTypeInstance();
+        self::assertFalse($type->isAvailable());
 
         // When fetching the AuthorType::getAccessCondition method is automatically executed, in which
         // a path uses the BookType. This automatic check must not fail due to missing availability

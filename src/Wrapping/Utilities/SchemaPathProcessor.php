@@ -26,7 +26,7 @@ use EDT\Wrapping\Utilities\TypeAccessors\InternTypeAccessor;
 class SchemaPathProcessor
 {
     /**
-     * @var TypeProviderInterface
+     * @var TypeProviderInterface<PathsBasedInterface, PathsBasedInterface>
      */
     private $typeProvider;
 
@@ -87,7 +87,7 @@ class SchemaPathProcessor
      * @return list<S>
      *
      * @throws AccessException
-     * @throws PathException
+     * @throws PathException Thrown if {@link TypeInterface::getAliases()} returned an invalid path.
      */
     public function mapSortMethods(TypeInterface $type, PathsBasedInterface ...$sortMethods): array
     {
@@ -96,7 +96,11 @@ class SchemaPathProcessor
         }
 
         if ($type instanceof SortableTypeInterface) {
-            array_walk($sortMethods, [$this, 'processExternalSortMethod'], $type);
+            $typeAccessor = new ExternSortableTypeAccessor($this->typeProvider);
+            $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($typeAccessor);
+            foreach ($sortMethods as $sortMethod) {
+                $processor->processPropertyPaths($sortMethod, $type);
+            }
             return array_values($sortMethods);
         }
 
@@ -122,47 +126,27 @@ class SchemaPathProcessor
     }
 
     /**
+     * Check if all properties used in the sort methods are available
+     * and map the paths to be applied to the schema of the backing class.
+     *
      * @template S of \EDT\Querying\Contracts\PathsBasedInterface
      *
      * @param TypeInterface<PathsBasedInterface, S, object> $type
      *
      * @return list<S>
      *
-     * @throws PathException
+     * @throws PathException Thrown if {@link TypeInterface::getAliases()} returned an invalid path.
      */
     protected function processDefaultSortMethods(TypeInterface $type): array
     {
         $sortMethods = $type->getDefaultSortMethods();
-        array_walk($sortMethods, [$this, 'processInternalSortMethod'], $type);
-
-        return $sortMethods;
-    }
-
-    /**
-     * Check if all properties used in the sort methods are available
-     * and map the paths to be applied to the schema of the backing class.
-     *
-     * @throws PathException Thrown if {@link TypeInterface::getAliases()} returned an invalid path.
-     * @throws AccessException
-     */
-    protected function processExternalSortMethod(PathsBasedInterface $sortMethod, int $key, TypeInterface $type): void
-    {
-        $typeAccessor = new ExternSortableTypeAccessor($this->typeProvider);
-        $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($typeAccessor);
-        $processor->processPropertyPaths($sortMethod, $type);
-    }
-
-    /**
-     * Check if all properties used in the sort methods are available
-     * and map the paths to be applied to the schema of the backing class.
-     *
-     * @throws PathException Thrown if {@link TypeInterface::getAliases()} returned an invalid path.
-     */
-    protected function processInternalSortMethod(PathsBasedInterface $sortMethod, int $key, TypeInterface $type): void
-    {
         $typeAccessor = new InternTypeAccessor($this->typeProvider);
         $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($typeAccessor);
-        $processor->processPropertyPaths($sortMethod, $type);
+        foreach ($sortMethods as $sortMethod) {
+            $processor->processPropertyPaths($sortMethod, $type);
+        }
+
+        return $sortMethods;
     }
 
     /**

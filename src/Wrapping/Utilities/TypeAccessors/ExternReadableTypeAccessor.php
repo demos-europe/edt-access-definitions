@@ -4,34 +4,27 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Utilities\TypeAccessors;
 
+use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\TypeProviderInterface;
 use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 
 /**
- * @template C of \EDT\Querying\Contracts\PathsBasedInterface
- * @template S of \EDT\Querying\Contracts\PathsBasedInterface
- *
- * @template-extends AbstractTypeAccessor<ReadableTypeInterface<C, S, object>>
+ * @template-extends AbstractTypeAccessor<ReadableTypeInterface<PathsBasedInterface, PathsBasedInterface, object>>
  */
 class ExternReadableTypeAccessor extends AbstractTypeAccessor
 {
-    /**
-     * @var TypeProviderInterface<C, S>
-     */
-    private $typeProvider;
-
     /**
      * @var bool
      */
     private $allowAttribute;
 
     /**
-     * @param TypeProviderInterface<C, S> $typeProvider
+     * @param TypeProviderInterface<PathsBasedInterface, PathsBasedInterface> $typeProvider
      */
     public function __construct(TypeProviderInterface $typeProvider, bool $allowAttribute)
     {
-        $this->typeProvider = $typeProvider;
+        parent::__construct($typeProvider);
         $this->allowAttribute = $allowAttribute;
     }
 
@@ -52,6 +45,8 @@ class ExternReadableTypeAccessor extends AbstractTypeAccessor
 
     public function getType(string $typeIdentifier): TypeInterface
     {
-        return $this->typeProvider->getType($typeIdentifier, ReadableTypeInterface::class);
+        return $this->typeProvider->requestType($typeIdentifier)
+            ->instanceOf(ReadableTypeInterface::class)
+            ->getTypeInstance();
     }
 }

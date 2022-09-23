@@ -48,19 +48,13 @@ class PrefilledTypeProvider extends AbstractTypeProvider
     }
 
     /**
-     * @template I of TypeInterface
-     *
-     * @param class-string<I> ...$implementations The fully qualified namespaces that the type must implement.
-     *
-     * @return array<non-empty-string, I&TypeInterface<C, S, object>>
+     * @return array<non-empty-string, TypeInterface<C, S, object>>
      */
-    public function getAllAvailableTypes(string ...$implementations): array
+    public function getAllAvailableTypes(): array
     {
         return array_filter(
             $this->typesByIdentifier,
-            function (string $typeIdentifier) use ($implementations): bool {
-                return $this->isTypeAvailable($typeIdentifier, ...$implementations);
-            },
+            [$this, 'isTypeAvailable'],
             ARRAY_FILTER_USE_KEY
         );
     }
