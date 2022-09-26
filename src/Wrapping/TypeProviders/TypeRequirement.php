@@ -61,6 +61,18 @@ class TypeRequirement
     }
 
     /**
+     * @return $this
+     */
+    public function directlyAccessible(bool $accessible): self
+    {
+        if ($this->typeInstance->isDirectlyAccessible() !== $accessible) {
+            throw TypeRetrievalAccessException::typeExistsButNotDirectlyAccessible($this->identifier);
+        }
+
+        return $this;
+    }
+
+    /**
      * @return T
      */
     public function getTypeInstance(): TypeInterface

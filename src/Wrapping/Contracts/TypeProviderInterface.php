@@ -21,4 +21,9 @@ interface TypeProviderInterface
      * @return TypeRequirement<TypeInterface<C, S, object>>
      */
     public function requestType(string $typeIdentifier): TypeRequirement;
+
+    /**
+     * @return list<non-empty-string>
+     */
+    public function getTypeIdentifiers(): array;
 }

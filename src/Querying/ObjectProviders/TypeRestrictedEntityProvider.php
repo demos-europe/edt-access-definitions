@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace EDT\Querying\ObjectProviders;
 
 use EDT\Querying\Contracts\ObjectProviderInterface;
+use EDT\Querying\Contracts\PathException;
+use EDT\Querying\Contracts\SliceException;
+use EDT\Querying\Contracts\SortException;
 use EDT\Wrapping\Contracts\AccessException;
 use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 use EDT\Wrapping\Utilities\SchemaPathProcessor;
@@ -15,6 +18,8 @@ use EDT\Wrapping\Utilities\SchemaPathProcessor;
  * @template T of object
  *
  * @template-implements ObjectProviderInterface<C, S, T>
+ *
+ * @deprecated use the individual components manually and optimize them for your use-case
  */
 class TypeRestrictedEntityProvider implements ObjectProviderInterface
 {
@@ -52,6 +57,9 @@ class TypeRestrictedEntityProvider implements ObjectProviderInterface
      *
      * {@inheritDoc}
      *
+     * @throws PathException
+     * @throws SliceException
+     * @throws SortException
      * @throws AccessException
      */
     public function getObjects(array $conditions, array $sortMethods = [], int $offset = 0, int $limit = null): iterable

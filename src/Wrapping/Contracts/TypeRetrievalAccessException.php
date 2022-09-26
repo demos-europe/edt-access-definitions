@@ -44,4 +44,15 @@ class TypeRetrievalAccessException extends AccessException
 
         return $self;
     }
+
+    /**
+     * @param non-empty-string $typeIdentifier
+     */
+    public static function typeExistsButNotDirectlyAccessible(string $typeIdentifier): self
+    {
+        $self = new self("Type '$typeIdentifier' exists but is not directly accessible.");
+        $self->typeIdentifier = $typeIdentifier;
+
+        return $self;
+    }
 }

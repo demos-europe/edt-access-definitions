@@ -260,7 +260,7 @@ class WrapperObject implements WrapperInterface
     /**
      * This method will prevent access to relationship values that should not be accessible.
      *
-     * The type of the relationship is provided via `$relationship`. The value will be deemed readable if one of the following is true:
+     * The type of the relationship is provided via `$relationship`. The value will be deemed setable if one of the following is true:
      *
      * * `$relationship` is `null`, indicating it is a non-relationship, which is not the scope of this method
      * * the {@link TypeInterface::getAccessCondition() access condition} of the given `$relationship` match
@@ -270,11 +270,13 @@ class WrapperObject implements WrapperInterface
      * value within this iterable will be checked against the access condition. All values must
      * match, otherwise an {@link AccessException} is thrown.
      *
-     * This method will **not** check if the given `$relationship` is {@link TypeInterface::isAvailable() available}, {@link TypeInterface::isReferencable() referencable} or
-     * {@link TypeInterface::isDirectlyAccessible() directly accessible}. It will also **not** consider
-     * information like {@link ReadableTypeInterface::getReadableProperties() readable},
-     * {@link UpdatableTypeInterface::getUpdatableProperties() updatable} or
-     * {@link CreatableTypeInterface::getInitializableProperties() initializable} properties.
+     * This method will **not** check if the given `$relationship` is
+     * {@link TypeInterface::isAvailable() available},
+     * {@link TypeInterface::isReferencable() referencable} or
+     * {@link TypeInterface::isDirectlyAccessible() directly accessible}.
+     * It will also **not** consider
+     * information like {@link ReadableTypeInterface::getReadableProperties() readable} or
+     * {@link UpdatableTypeInterface::getUpdatableProperties() updatable} properties.
      *
      * @param TypeInterface<FunctionInterface<bool>, SortMethodInterface, object>|null $relationship
      * @param non-empty-string                                    $propertyName

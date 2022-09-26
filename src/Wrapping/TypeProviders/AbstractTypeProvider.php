@@ -51,9 +51,4 @@ abstract class AbstractTypeProvider implements TypeProviderInterface
      * @throws TypeRetrievalAccessException
      */
     abstract protected function getTypeByIdentifier(string $typeIdentifier): ?TypeInterface;
-
-    /**
-     * @return list<non-empty-string>
-     */
-    abstract protected function getTypeIdentifiers(): array;
 }

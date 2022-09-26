@@ -47,21 +47,28 @@ class SchemaPathProcessor
      * Also adds the {@link ReadableTypeInterface::getAccessCondition() access condition} of the given type.
      *
      * @template C of \EDT\Querying\Contracts\PathsBasedInterface
+     * @template S of \EDT\Querying\Contracts\PathsBasedInterface
      *
-     * @param TypeInterface<C, PathsBasedInterface, object> $type
-     * @param C ...$conditions
+     * @param TypeInterface<C, S, object> $type
+     * @param C                           ...$conditions
      *
      * @return list<C>
      *
-     * @throws PathException
+     * @throws PathException Thrown if {@link TypeInterface::getAliases()} returned an invalid path.
      * @throws AccessException
+     *
+     * @deprecated use {@link SchemaPathProcessor::mapFilterConditions()} and {@link SchemaPathProcessor::processAccessCondition()} instead
      */
     public function mapConditions(TypeInterface $type, PathsBasedInterface ...$conditions): array
     {
         $conditions = array_values($conditions);
         if ([] !== $conditions) {
             if ($type instanceof FilterableTypeInterface) {
-                array_walk($conditions, [$this, 'processExternalCondition'], $type);
+                $typeAccessor = new ExternFilterableTypeAccessor($this->typeProvider);
+                $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($typeAccessor);
+                foreach ($conditions as $condition) {
+                    $processor->processPropertyPaths($condition, $type);
+                }
             } else {
                 throw AccessException::typeNotFilterable($type);
             }
@@ -74,20 +81,44 @@ class SchemaPathProcessor
     }
 
     /**
+     * Check the paths of the given conditions for availability and applies aliases using the given type.
+     *
+     * @template C of \EDT\Querying\Contracts\PathsBasedInterface
+     * @template S of \EDT\Querying\Contracts\PathsBasedInterface
+     *
+     * @param FilterableTypeInterface<C, S, object> $type
+     * @param non-empty-list<C>                     $conditions
+     *
+     * @throws PathException Thrown if {@link TypeInterface::getAliases()} returned an invalid path.
+     * @throws AccessException
+     */
+    public function mapFilterConditions(FilterableTypeInterface $type, array $conditions): void
+    {
+        $typeAccessor = new ExternFilterableTypeAccessor($this->typeProvider);
+        $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($typeAccessor);
+        foreach ($conditions as $condition) {
+           $processor->processPropertyPaths($condition, $type);
+        }
+    }
+
+    /**
      * Check the paths of the given sort methods for availability and aliases using the given type.
      *
      * If no sort methods were given then apply the {@link TypeInterface::getDefaultSortMethods() default sort methods}
      * of the given type.
      *
+     * @template C of \EDT\Querying\Contracts\PathsBasedInterface
      * @template S of \EDT\Querying\Contracts\PathsBasedInterface
      *
-     * @param TypeInterface<PathsBasedInterface, S, object> $type
-     * @param S                                             ...$sortMethods
+     * @param TypeInterface<C, S, object> $type
+     * @param S                           ...$sortMethods
      *
      * @return list<S>
      *
      * @throws AccessException
      * @throws PathException Thrown if {@link TypeInterface::getAliases()} returned an invalid path.
+     *
+     * @deprecated use {@link SchemaPathProcessor::processDefaultSortMethods()} and {@link SchemaPathProcessor::mapSorting()} instead
      */
     public function mapSortMethods(TypeInterface $type, PathsBasedInterface ...$sortMethods): array
     {
@@ -105,6 +136,27 @@ class SchemaPathProcessor
         }
 
         throw AccessException::typeNotSortable($type);
+    }
+
+    /**
+     * Check the paths of the given sort methods for availability and aliases using the given type.
+     *
+     * @template C of \EDT\Querying\Contracts\PathsBasedInterface
+     * @template S of \EDT\Querying\Contracts\PathsBasedInterface
+     *
+     * @param SortableTypeInterface<C, S, object> $type
+     * @param non-empty-list<S>                   $sortMethods
+     *
+     * @throws AccessException
+     * @throws PathException Thrown if {@link TypeInterface::getAliases()} returned an invalid path.
+     */
+    public function mapSorting(SortableTypeInterface $type, array $sortMethods): void
+    {
+        $typeAccessor = new ExternSortableTypeAccessor($this->typeProvider);
+        $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($typeAccessor);
+        foreach ($sortMethods as $sortMethod) {
+            $processor->processPropertyPaths($sortMethod, $type);
+        }
     }
 
     /**
@@ -129,15 +181,18 @@ class SchemaPathProcessor
      * Check if all properties used in the sort methods are available
      * and map the paths to be applied to the schema of the backing class.
      *
+     * @template C of \EDT\Querying\Contracts\PathsBasedInterface
      * @template S of \EDT\Querying\Contracts\PathsBasedInterface
      *
-     * @param TypeInterface<PathsBasedInterface, S, object> $type
+     * @param TypeInterface<C, S, object> $type
      *
      * @return list<S>
      *
      * @throws PathException Thrown if {@link TypeInterface::getAliases()} returned an invalid path.
+     *
+     * @internal
      */
-    protected function processDefaultSortMethods(TypeInterface $type): array
+    public function processDefaultSortMethods(TypeInterface $type): array
     {
         $sortMethods = $type->getDefaultSortMethods();
         $typeAccessor = new InternTypeAccessor($this->typeProvider);
@@ -150,30 +205,22 @@ class SchemaPathProcessor
     }
 
     /**
-     * Check if all properties used in the condition are available for filtering
-     * and map the paths to be applied to the schema of the backing class.
+     * Get the processed {@link ReadableTypeInterface::getAccessCondition() access condition}
+     * of the given type.
      *
-     * @throws AccessException
-     * @throws PathException Thrown if {@link TypeInterface::getAliases()} returned an invalid path.
-     */
-    protected function processExternalCondition(PathsBasedInterface $condition, int $key, FilterableTypeInterface $type): void
-    {
-        $typeAccessor = new ExternFilterableTypeAccessor($this->typeProvider);
-        $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($typeAccessor);
-        $processor->processPropertyPaths($condition, $type);
-    }
-
-    /**
      * @template C of \EDT\Querying\Contracts\PathsBasedInterface
+     * @template S of \EDT\Querying\Contracts\PathsBasedInterface
      *
-     * @param TypeInterface<C, PathsBasedInterface, object> $type
+     * @param TypeInterface<C, S, object> $type
      *
      * @return C
      *
      * @throws AccessException
      * @throws PathException
+     *
+     * @internal
      */
-    protected function processAccessCondition(TypeInterface $type): PathsBasedInterface
+    public function processAccessCondition(TypeInterface $type): PathsBasedInterface
     {
         $condition = $type->getAccessCondition();
         $typeAccessor = new InternTypeAccessor($this->typeProvider);

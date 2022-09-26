@@ -73,7 +73,7 @@ class PrefilledTypeProvider extends AbstractTypeProvider
         return $this->typesByIdentifier[$typeIdentifier] ?? null;
     }
 
-    protected function getTypeIdentifiers(): array
+    public function getTypeIdentifiers(): array
     {
         return array_keys($this->typesByIdentifier);
     }

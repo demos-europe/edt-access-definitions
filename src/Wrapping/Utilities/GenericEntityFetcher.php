@@ -26,6 +26,8 @@ use function count;
  * @template S of \EDT\Querying\Contracts\PathsBasedInterface
  * @template O of object
  * @template R
+ *
+ * @deprecated use the individual components manually and optimize them for your use-case
  */
 class GenericEntityFetcher
 {

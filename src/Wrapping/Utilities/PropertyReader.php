@@ -11,8 +11,8 @@ use EDT\Querying\Contracts\SliceException;
 use EDT\Querying\Contracts\SortException;
 use EDT\Querying\Contracts\SortMethodInterface;
 use EDT\Querying\ObjectProviders\PrefilledObjectProvider;
-use EDT\Querying\ObjectProviders\TypeRestrictedEntityProvider;
 use EDT\Querying\Utilities\Iterables;
+use EDT\Wrapping\Contracts\AccessException;
 use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 use EDT\Wrapping\Contracts\WrapperFactoryInterface;
@@ -150,11 +150,16 @@ class PropertyReader
      */
     private function filterAndWrap(WrapperFactoryInterface $wrapperFactory, ReadableTypeInterface $relationship, array $objects): array
     {
+        if (!$relationship->isAvailable()) {
+            throw AccessException::typeNotAvailable($relationship);
+        }
+
+        $condition = $this->schemaPathProcessor->processAccessCondition($relationship);
+        $sortMethods = $this->schemaPathProcessor->processDefaultSortMethods($relationship);
+
         // filter out restricted items
         $objectProvider = new PrefilledObjectProvider($this->propertyAccessor, $objects);
-        $objectProvider = new TypeRestrictedEntityProvider($objectProvider, $relationship, $this->schemaPathProcessor);
-
-        $objectsToWrap = $objectProvider->getObjects([]);
+        $objectsToWrap = $objectProvider->getObjects([$condition], $sortMethods);
         $objectsToWrap = Iterables::asArray($objectsToWrap);
         $objectsToWrap = array_values($objectsToWrap);
 

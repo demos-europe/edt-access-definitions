@@ -44,6 +44,11 @@ interface CreatableTypeInterface extends TypeInterface
     public function getInitializableProperties(): array;
 
     /**
+     * @return list<non-empty-string>
+     */
+    public function getPropertiesRequiredForCreation(): array;
+
+    /**
      * Controls if the implementing instance can be used to create resources of the corresponding
      * type. This not only enables to restrict createability based on the context (e.g.
      * authorizations) but also allows special cases in which a resource can be created without any
