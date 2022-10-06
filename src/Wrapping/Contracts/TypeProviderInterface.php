@@ -10,15 +10,15 @@ use EDT\Wrapping\TypeProviders\TypeRequirement;
 /**
  * Returns {@link TypeInterface} instances for given Type identifiers.
  *
- * @template C of \EDT\Querying\Contracts\PathsBasedInterface
- * @template S of \EDT\Querying\Contracts\PathsBasedInterface
+ * @template TCondition of \EDT\Querying\Contracts\PathsBasedInterface
+ * @template TSorting of \EDT\Querying\Contracts\PathsBasedInterface
  */
 interface TypeProviderInterface
 {
     /**
      * @param non-empty-string $typeIdentifier
      *
-     * @return TypeRequirement<TypeInterface<C, S, object>>
+     * @return TypeRequirement<TypeInterface<TCondition, TSorting, object>>
      */
     public function requestType(string $typeIdentifier): TypeRequirement;
 

@@ -23,17 +23,17 @@ use function array_key_exists;
  * for property access violations, depending on the context (readability/sortability/...).
  * The context is set on instantiation by using providers that limit the access accordingly.
  *
- * @template T of TypeInterface<\EDT\Querying\Contracts\PathsBasedInterface, \EDT\Querying\Contracts\PathsBasedInterface, object>
+ * @template TType of TypeInterface<\EDT\Querying\Contracts\PathsBasedInterface, \EDT\Querying\Contracts\PathsBasedInterface, object>
  */
 class PropertyPathProcessor
 {
     /**
-     * @var AbstractTypeAccessor<T>
+     * @var AbstractTypeAccessor<TType>
      */
     private $typeAccessor;
 
     /**
-     * @param AbstractTypeAccessor<T> $typeAccessor
+     * @param AbstractTypeAccessor<TType> $typeAccessor
      */
     public function __construct(AbstractTypeAccessor $typeAccessor)
     {
@@ -47,7 +47,7 @@ class PropertyPathProcessor
      * Executes {@link PropertyPathProcessor::processPropertyPath} on all given paths. Will throw an
      * exception if the processing of any of the given paths fails.
      *
-     * @param T $type
+     * @param TType $type
      *
      * @throws AccessException Thrown if any of the given paths can not be used because the path itself is not available (not made present via $getProperties) or the Type it leads to is not accessible (e.g. {@link TypeInterface::isAvailable()} returned `false`).
      * @throws PathException Thrown if {@link TypeInterface::getAliases()} returned an invalid path.
@@ -75,7 +75,7 @@ class PropertyPathProcessor
     /**
      * Follows the given property path recursively and rewrites it if necessary by appending the rewritten path to the given array.
      *
-     * @param T $type
+     * @param TType $type
      * @param list<non-empty-string> $newPath is filled with the rewritten path during the recursive execution of this method
      * @param non-empty-string $currentPathPart
      * @param non-empty-string ...$remainingParts
@@ -123,7 +123,7 @@ class PropertyPathProcessor
     }
 
     /**
-     * @param T $type
+     * @param TType $type
      * @param non-empty-string $pathSegment
      *
      * @return non-empty-string|null

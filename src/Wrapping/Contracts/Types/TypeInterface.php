@@ -4,26 +4,18 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Contracts\Types;
 
+use EDT\Querying\Contracts\EntityBasedInterface;
 use EDT\Querying\Contracts\PathsBasedInterface;
 
 /**
- * Template parameters:
+ * @template TCondition of \EDT\Querying\Contracts\PathsBasedInterface
+ * @template TSorting of \EDT\Querying\Contracts\PathsBasedInterface
+ * @template TEntity of object
  *
- * * `C`: the type of the condition instances
- * * `S`: the type of the sort instances
- * * `T`: the class of the backing entity returned by {@link TypeInterface::getEntityClass()}
- *
- * @template C of \EDT\Querying\Contracts\PathsBasedInterface
- * @template S of \EDT\Querying\Contracts\PathsBasedInterface
- * @template T of object
+ * @template-extends EntityBasedInterface<TEntity>
  */
-interface TypeInterface
+interface TypeInterface extends EntityBasedInterface
 {
-    /**
-     * @return class-string<T> The fully qualified name of the class backing entities this type defines.
-     */
-    public function getEntityClass(): string;
-
     /**
      * This is **not** a simplified version of {@link TypeInterface::getAccessCondition()}.
      * While the condition will prevent access to
@@ -99,7 +91,7 @@ interface TypeInterface
      * For a list query on a `CatType` the condition returned by this method must define
      * limits to only get `Animal` instances that are a `Cat`.
      *
-     * @return C
+     * @return TCondition
      */
     public function getAccessCondition(): PathsBasedInterface;
 
@@ -132,7 +124,7 @@ interface TypeInterface
      * into the schema of the backing object. Any aliasing defined by {@link TypeInterface::getAliases()}
      * will be applied automatically.
      *
-     * @return array<non-empty-string,non-empty-string|null> The mapping from property name (in the schema of this type)
+     * @return array<non-empty-string, non-empty-string|null> The mapping from property name (in the schema of this type)
      *                                   to the identifier of the target type of the relationship,
      *                                   or `null` if the property is a non-relationship.
      */
@@ -151,7 +143,7 @@ interface TypeInterface
      *
      * Return an empty array to not define any default sorting.
      *
-     * @return list<S>
+     * @return list<TSorting>
      */
     public function getDefaultSortMethods(): array;
 }

@@ -7,7 +7,7 @@ namespace EDT\Wrapping\WrapperFactories;
 use EDT\Querying\Contracts\FunctionInterface;
 use EDT\Querying\Contracts\PathException;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
-use EDT\Querying\Contracts\SliceException;
+use EDT\Querying\Contracts\PaginationException;
 use EDT\Querying\Contracts\SortException;
 use EDT\Querying\Contracts\SortMethodInterface;
 use EDT\Wrapping\Contracts\AccessException;
@@ -17,31 +17,34 @@ use EDT\Wrapping\Contracts\Types\TypeInterface;
 use EDT\Wrapping\Utilities\PropertyReader;
 use EDT\Wrapping\Utilities\TypeAccessor;
 use InvalidArgumentException;
+use function is_array;
 
 /**
- * @template-implements WrapperFactoryInterface<FunctionInterface<bool>, SortMethodInterface, object, array<string,mixed|null>>
+ * @template-implements WrapperFactoryInterface<FunctionInterface<bool>, SortMethodInterface>
  */
 class WrapperArrayFactory implements WrapperFactoryInterface
 {
     /**
-     * @var PropertyAccessorInterface<object>
+     * @var PropertyAccessorInterface
      */
     private $propertyAccessor;
+
     /**
      * @var int<0, max>
      */
     private $depth;
+
     /**
      * @var TypeAccessor<FunctionInterface<bool>, SortMethodInterface>
      */
     private $typeAccessor;
+
     /**
      * @var PropertyReader
      */
     private $propertyReader;
 
     /**
-     * @param PropertyAccessorInterface<object>                          $propertyAccessor
      * @param TypeAccessor<FunctionInterface<bool>, SortMethodInterface> $typeAccessor
      * @param int<0, max>                                                $depth
      *
@@ -85,11 +88,11 @@ class WrapperArrayFactory implements WrapperFactoryInterface
      *
      * @param ReadableTypeInterface<FunctionInterface<bool>, SortMethodInterface, object> $type
      *
-     * @return array<string,mixed> an array containing the readable properties of the given type
+     * @return array<non-empty-string, mixed> an array containing the readable properties of the given type
      *
      * @throws AccessException Thrown if $type is not available.
      */
-    public function createWrapper(object $object, ReadableTypeInterface $type): array
+    public function createWrapper(object $entity, ReadableTypeInterface $type): array
     {
         if (!$type->isAvailable()) {
             throw AccessException::typeNotAvailable($type);
@@ -99,7 +102,8 @@ class WrapperArrayFactory implements WrapperFactoryInterface
         $readableProperties = $this->typeAccessor->getAccessibleReadableProperties($type);
 
         // Set the actual value for each remaining property
-        array_walk($readableProperties, [$this, 'setValue'], [$object, $this->depth, $type->getAliases()]);
+        array_walk($readableProperties, [$this, 'setValue'], [$entity, $this->depth, $type->getAliases()]);
+
         return $readableProperties;
     }
 
@@ -119,7 +123,7 @@ class WrapperArrayFactory implements WrapperFactoryInterface
      * @param array{0: object, 1: int, 2: array<non-empty-string, non-empty-list<non-empty-string>>} $context
      *
      * @throws PathException
-     * @throws SliceException
+     * @throws PaginationException
      * @throws SortException
      */
     private function setValue(?ReadableTypeInterface &$value, string $propertyName, array $context): void
@@ -136,6 +140,21 @@ class WrapperArrayFactory implements WrapperFactoryInterface
             ? new ArrayEndWrapperFactory()
             : new self($this->propertyAccessor, $this->propertyReader, $this->typeAccessor, $newDepth);
 
-        $value = $this->propertyReader->determineValue($wrapperFactory, $value, $propertyValue);
+        if (null === $value) {
+            // if non-relationship, simply use the value read from the target
+            $value = $propertyValue;
+        } else {
+            $entityOrEntities = $this->propertyReader->determineRelationshipValue($value, $propertyValue);
+            if (null === $entityOrEntities) {
+                $value = null;
+            } elseif (is_array($entityOrEntities)) {
+                // wrap the entities
+                $value = array_map(static function (object $objectToWrap) use ($wrapperFactory, $value) {
+                    return $wrapperFactory->createWrapper($objectToWrap, $value);
+                }, $entityOrEntities);
+            } else {
+                $value = $wrapperFactory->createWrapper($entityOrEntities, $value);
+            }
+        }
     }
 }

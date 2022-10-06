@@ -14,9 +14,7 @@ use EDT\Wrapping\Utilities\PropertyReader;
 use EDT\Wrapping\Utilities\TypeAccessor;
 
 /**
- * @template O of object
- *
- * @template-implements WrapperFactoryInterface<FunctionInterface<bool>, SortMethodInterface, O, WrapperObject<O>>
+ * @template-implements WrapperFactoryInterface<FunctionInterface<bool>, SortMethodInterface>
  */
 class WrapperObjectFactory implements WrapperFactoryInterface
 {
@@ -24,14 +22,17 @@ class WrapperObjectFactory implements WrapperFactoryInterface
      * @var TypeAccessor<FunctionInterface<bool>, SortMethodInterface>
      */
     private $typeAccessor;
+
     /**
-     * @var PropertyAccessorInterface<O>
+     * @var PropertyAccessorInterface
      */
     private $propertyAccessor;
+
     /**
      * @var PropertyReader
      */
     private $propertyReader;
+
     /**
      * @var ConditionEvaluator
      */
@@ -39,7 +40,6 @@ class WrapperObjectFactory implements WrapperFactoryInterface
 
     /**
      * @param TypeAccessor<FunctionInterface<bool>, SortMethodInterface> $typeAccessor
-     * @param PropertyAccessorInterface<O>                               $propertyAccessor
      */
     public function __construct(
         TypeAccessor $typeAccessor,
@@ -53,10 +53,18 @@ class WrapperObjectFactory implements WrapperFactoryInterface
         $this->conditionEvaluator = $conditionEvaluator;
     }
 
-    public function createWrapper(object $object, ReadableTypeInterface $type): WrapperObject
+    /**
+     * @template TEntity of object
+     *
+     * @param TEntity                                                                      $entity
+     * @param ReadableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity> $type
+     *
+     * @return WrapperObject<TEntity>
+     */
+    public function createWrapper(object $entity, ReadableTypeInterface $type): WrapperObject
     {
         return new WrapperObject(
-            $object,
+            $entity,
             $this->propertyReader,
             $type,
             $this->typeAccessor,

@@ -7,11 +7,11 @@ namespace EDT\Wrapping\Contracts\Types;
 use EDT\Wrapping\Contracts\TypeProviderInterface;
 
 /**
- * @template C of \EDT\Querying\Contracts\PathsBasedInterface
- * @template S of \EDT\Querying\Contracts\PathsBasedInterface
- * @template T of object
+ * @template TCondition of \EDT\Querying\Contracts\PathsBasedInterface
+ * @template TSorting of \EDT\Querying\Contracts\PathsBasedInterface
+ * @template TEntity of object
  *
- * @template-extends TypeInterface<C, S, T>
+ * @template-extends TypeInterface<TCondition, TSorting, TEntity>
  */
 interface ReadableTypeInterface extends TypeInterface
 {

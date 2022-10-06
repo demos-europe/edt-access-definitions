@@ -21,10 +21,10 @@ class TypeRetrievalAccessException extends AccessException
     }
 
     /**
-     * @template T of \EDT\Wrapping\Contracts\Types\TypeInterface
+     * @template TType of \EDT\Wrapping\Contracts\Types\TypeInterface
      *
      * @param non-empty-string $typeIdentifier
-     * @param class-string<T> $implementation
+     * @param class-string<TType> $implementation
      */
     public static function noNameWithImplementation(string $typeIdentifier, string $implementation): self
     {
@@ -51,6 +51,17 @@ class TypeRetrievalAccessException extends AccessException
     public static function typeExistsButNotDirectlyAccessible(string $typeIdentifier): self
     {
         $self = new self("Type '$typeIdentifier' exists but is not directly accessible.");
+        $self->typeIdentifier = $typeIdentifier;
+
+        return $self;
+    }
+
+    /**
+     * @param non-empty-string $typeIdentifier
+     */
+    public static function typeExistsButNotReferencable(string $typeIdentifier): self
+    {
+        $self = new self("Type '$typeIdentifier' exists but is not referencable.");
         $self->typeIdentifier = $typeIdentifier;
 
         return $self;

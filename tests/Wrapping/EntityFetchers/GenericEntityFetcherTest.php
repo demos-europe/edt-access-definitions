@@ -77,9 +77,9 @@ class GenericEntityFetcherTest extends ModelBasedTest
         $this->propertyAccessor = new ReflectionPropertyAccessor();
         $this->authorProvider = new PrefilledObjectProvider($this->propertyAccessor, $this->authors);
         $this->nonWrappingWrapperFactory = new class implements WrapperFactoryInterface {
-            public function createWrapper(object $object, ReadableTypeInterface $type): object
+            public function createWrapper(object $entity, ReadableTypeInterface $type): object
             {
-                return $object;
+                return $entity;
             }
         };
         $this->schemaPathProcessor = new SchemaPathProcessor(new PropertyPathProcessorFactory(), $this->typeProvider);

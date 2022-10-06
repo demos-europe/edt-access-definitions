@@ -12,18 +12,22 @@ use EDT\Wrapping\Contracts\Types\TypeInterface;
  * Implementations can be tailored for a specific object class (specified via the template parameter `O`)
  * or be more generic and create wrappers suitable for different kinds of objects.
  *
- * @template C of \EDT\Querying\Contracts\PathsBasedInterface
- * @template S of \EDT\Querying\Contracts\PathsBasedInterface
- * @template O of object
- * @template R
+ * @template TCondition of \EDT\Querying\Contracts\PathsBasedInterface
+ * @template TSorting of \EDT\Querying\Contracts\PathsBasedInterface
+ *
+ * TODO: check if usages can be replaced with {@link WrapperObjectFactory} and remove interface
  */
 interface WrapperFactoryInterface
 {
     /**
-     * @param O $object
-     * @param ReadableTypeInterface<C, S, O> $type
-     * @return R
+     * @template TEntity of object
+     *
+     * @param TEntity                              $entity
+     * @param ReadableTypeInterface<TCondition, TSorting, TEntity> $type
+     *
+     * @return array<non-empty-string, mixed>|object|null
+     *
      * @throws AccessException
      */
-    public function createWrapper(object $object, ReadableTypeInterface $type);
+    public function createWrapper(object $entity, ReadableTypeInterface $type);
 }

@@ -9,10 +9,10 @@ use EDT\Wrapping\Contracts\TypeRetrievalAccessException;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 
 /**
- * @template C of \EDT\Querying\Contracts\PathsBasedInterface
- * @template S of \EDT\Querying\Contracts\PathsBasedInterface
+ * @template TCondition of \EDT\Querying\Contracts\PathsBasedInterface
+ * @template TSorting of \EDT\Querying\Contracts\PathsBasedInterface
  *
- * @template-implements TypeProviderInterface<C, S>
+ * @template-implements TypeProviderInterface<TCondition, TSorting>
  */
 abstract class AbstractTypeProvider implements TypeProviderInterface
 {
@@ -46,7 +46,7 @@ abstract class AbstractTypeProvider implements TypeProviderInterface
     }
 
     /**
-     * @return TypeInterface<C, S, object>|null
+     * @return TypeInterface<TCondition, TSorting, object>|null
      *
      * @throws TypeRetrievalAccessException
      */

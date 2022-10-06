@@ -7,7 +7,7 @@ namespace EDT\Wrapping\WrapperFactories;
 use EDT\Querying\Contracts\FunctionInterface;
 use EDT\Querying\Contracts\PathException;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
-use EDT\Querying\Contracts\SliceException;
+use EDT\Querying\Contracts\PaginationException;
 use EDT\Querying\Contracts\SortException;
 use EDT\Querying\Contracts\SortMethodInterface;
 use EDT\Querying\Utilities\ConditionEvaluator;
@@ -19,13 +19,12 @@ use EDT\Wrapping\Contracts\TypeRetrievalAccessException;
 use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 use EDT\Wrapping\Contracts\Types\UpdatableTypeInterface;
-use EDT\Wrapping\Contracts\WrapperFactoryInterface;
-use EDT\Wrapping\Contracts\WrapperInterface;
 use EDT\Wrapping\Utilities\PropertyReader;
 use EDT\Wrapping\Utilities\TypeAccessor;
 use InvalidArgumentException;
 use function array_key_exists;
 use function count;
+use function is_array;
 use function Safe\preg_match;
 
 /**
@@ -38,48 +37,54 @@ use function Safe\preg_match;
  * Only those relationships will be readable that have an {@link TypeInterface::isAvailable() available}
  * and {@link TypeInterface::isReferencable() referencable} target type. Returned relationships will be wrapped themselves inside {@link WrapperObject} instances.
  *
- * @template T of object
+ * @template TEntity of object
  */
-class WrapperObject implements WrapperInterface
+class WrapperObject
 {
     /**
-     * @var string
+     * @var non-empty-string
      */
     private const METHOD_PATTERN = '/(get|set)([A-Z_]\w*)/';
+
     /**
-     * @var T
+     * @var TEntity
      */
     private $object;
+
     /**
-     * @var TypeInterface<FunctionInterface<bool>, SortMethodInterface, T>
+     * @var TypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity>
      */
     private $type;
+
     /**
      * @var TypeAccessor<FunctionInterface<bool>, SortMethodInterface>
      */
     private $typeAccessor;
+
     /**
      * @var PropertyAccessorInterface
      */
     private $propertyAccessor;
+
     /**
      * @var PropertyReader
      */
     private $propertyReader;
+
     /**
      * @var ConditionEvaluator
      */
     private $conditionEvaluator;
+
     /**
-     * @var WrapperFactoryInterface
+     * @var WrapperObjectFactory
      */
     private $wrapperFactory;
 
     /**
-     * @param T                                                              $object
-     * @param TypeInterface<FunctionInterface<bool>, SortMethodInterface, T> $type
+     * @param TEntity                                                              $object
+     * @param TypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity> $type
      * @param TypeAccessor<FunctionInterface<bool>, SortMethodInterface>     $typeAccessor
-     * @param PropertyAccessorInterface<T>                                   $propertyAccessor
      */
     public function __construct(
         object                    $object,
@@ -88,7 +93,7 @@ class WrapperObject implements WrapperInterface
         TypeAccessor              $typeAccessor,
         PropertyAccessorInterface $propertyAccessor,
         ConditionEvaluator        $conditionEvaluator,
-        WrapperFactoryInterface   $wrapperFactory
+        WrapperObjectFactory      $wrapperFactory
     ) {
         $this->object = $object;
         $this->type = $type;
@@ -100,7 +105,7 @@ class WrapperObject implements WrapperInterface
     }
 
     /**
-     * @return TypeInterface<FunctionInterface<bool>, SortMethodInterface, T>
+     * @return TypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity>
      */
     public function getResourceType(): TypeInterface
     {
@@ -147,7 +152,7 @@ class WrapperObject implements WrapperInterface
      * @throws PropertyAccessException
      * @throws PathException
      * @throws SortException
-     * @throws SliceException
+     * @throws PaginationException
      */
     public function __get(string $propertyName)
     {
@@ -173,7 +178,24 @@ class WrapperObject implements WrapperInterface
             ? $this->object
             : $this->propertyAccessor->getValueByPropertyPath($this->object, ...$propertyPath);
 
-        return $this->propertyReader->determineValue($this->wrapperFactory, $relationship, $propertyValue);
+        if (null === $relationship) {
+            // if non-relationship, simply use the value read from the target
+            return $propertyValue;
+        }
+
+        $entityOrEntities = $this->propertyReader->determineRelationshipValue($relationship, $propertyValue);
+        if (null === $entityOrEntities) {
+            return null;
+        }
+
+        if (is_array($entityOrEntities)) {
+            // wrap the entities
+            return array_map(function (object $objectToWrap) use ($relationship) {
+                return $this->wrapperFactory->createWrapper($objectToWrap, $relationship);
+            }, $entityOrEntities);
+        }
+
+        return $this->wrapperFactory->createWrapper($entityOrEntities, $relationship);
     }
 
     /**
@@ -213,6 +235,13 @@ class WrapperObject implements WrapperInterface
         $this->setUnrestricted($deAliasedPropertyName, $target, $value);
     }
 
+    /**
+     * @param non-empty-string $propertyName
+     *
+     * @return mixed|null
+     *
+     * @throws AccessException
+     */
     public function getPropertyValue(string $propertyName)
     {
         return $this->__get($propertyName);
@@ -307,7 +336,7 @@ class WrapperObject implements WrapperInterface
     }
 
     /**
-     * @return T
+     * @return TEntity
      *
      * @internal Warning: exposing the backing object is dangerous, as it allows to read values
      * unrestricted not only from the returned object but all its relationships.

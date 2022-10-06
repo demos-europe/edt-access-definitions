@@ -14,7 +14,7 @@ use EDT\Wrapping\Contracts\Types\TypeInterface;
  * criteria, e.g. the {@link ExternFilterableTypeAccessor} will only allow access
  * to filterable properties and types.
  *
- * @template T of TypeInterface<\EDT\Querying\Contracts\PathsBasedInterface, \EDT\Querying\Contracts\PathsBasedInterface, object>
+ * @template TType of TypeInterface<\EDT\Querying\Contracts\PathsBasedInterface, \EDT\Querying\Contracts\PathsBasedInterface, object>
  */
 abstract class AbstractTypeAccessor
 {
@@ -50,7 +50,7 @@ abstract class AbstractTypeAccessor
     /**
      * Get actually available properties of the given {@link TypeInterface type}.
      *
-     * @param T $type
+     * @param TType $type
      *
      * @return array<non-empty-string, non-empty-string|null>
      */
@@ -59,7 +59,7 @@ abstract class AbstractTypeAccessor
     /**
      * @param non-empty-string $typeIdentifier
      *
-     * @return T
+     * @return TType
      *
      * @throws TypeRetrievalAccessException
      */

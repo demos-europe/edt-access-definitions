@@ -16,20 +16,20 @@ use const ARRAY_FILTER_USE_KEY;
  * method. By default, the fully qualified class name is chosen as identifier. To use something different
  * override {@link PrefilledTypeProvider::getIdentifier()}.
  *
- * @template C of \EDT\Querying\Contracts\PathsBasedInterface
- * @template S of \EDT\Querying\Contracts\PathsBasedInterface
+ * @template TCondition of \EDT\Querying\Contracts\PathsBasedInterface
+ * @template TSorting of \EDT\Querying\Contracts\PathsBasedInterface
  *
- * @template-extends AbstractTypeProvider<C, S>
+ * @template-extends AbstractTypeProvider<TCondition, TSorting>
  */
 class PrefilledTypeProvider extends AbstractTypeProvider
 {
     /**
-     * @var array<non-empty-string, TypeInterface<C, S, object>>
+     * @var array<non-empty-string, TypeInterface<TCondition, TSorting, object>>
      */
     protected $typesByIdentifier = [];
 
     /**
-     * @param iterable<TypeInterface<C, S, object>> $types The types this instance is able to provide.
+     * @param iterable<TypeInterface<TCondition, TSorting, object>> $types The types this instance is able to provide.
      *
      * @throws InvalidArgumentException Thrown if the given array contains duplicates. Types are considered duplicates
      * if {@link PrefilledTypeProvider::getIdentifier their} return the same result for two given types.
@@ -48,7 +48,7 @@ class PrefilledTypeProvider extends AbstractTypeProvider
     }
 
     /**
-     * @return array<non-empty-string, TypeInterface<C, S, object>>
+     * @return array<non-empty-string, TypeInterface<TCondition, TSorting, object>>
      */
     public function getAllAvailableTypes(): array
     {

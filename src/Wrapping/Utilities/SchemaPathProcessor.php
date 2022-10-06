@@ -46,13 +46,13 @@ class SchemaPathProcessor
      *
      * Also adds the {@link ReadableTypeInterface::getAccessCondition() access condition} of the given type.
      *
-     * @template C of \EDT\Querying\Contracts\PathsBasedInterface
-     * @template S of \EDT\Querying\Contracts\PathsBasedInterface
+     * @template TCondition of \EDT\Querying\Contracts\PathsBasedInterface
+     * @template TSorting of \EDT\Querying\Contracts\PathsBasedInterface
      *
-     * @param TypeInterface<C, S, object> $type
-     * @param C                           ...$conditions
+     * @param TypeInterface<TCondition, TSorting, object> $type
+     * @param TCondition                           ...$conditions
      *
-     * @return list<C>
+     * @return list<TCondition>
      *
      * @throws PathException Thrown if {@link TypeInterface::getAliases()} returned an invalid path.
      * @throws AccessException
@@ -83,11 +83,11 @@ class SchemaPathProcessor
     /**
      * Check the paths of the given conditions for availability and applies aliases using the given type.
      *
-     * @template C of \EDT\Querying\Contracts\PathsBasedInterface
-     * @template S of \EDT\Querying\Contracts\PathsBasedInterface
+     * @template TCondition of \EDT\Querying\Contracts\PathsBasedInterface
+     * @template TSorting of \EDT\Querying\Contracts\PathsBasedInterface
      *
-     * @param FilterableTypeInterface<C, S, object> $type
-     * @param non-empty-list<C>                     $conditions
+     * @param FilterableTypeInterface<TCondition, TSorting, object> $type
+     * @param non-empty-list<TCondition>                     $conditions
      *
      * @throws PathException Thrown if {@link TypeInterface::getAliases()} returned an invalid path.
      * @throws AccessException
@@ -107,13 +107,13 @@ class SchemaPathProcessor
      * If no sort methods were given then apply the {@link TypeInterface::getDefaultSortMethods() default sort methods}
      * of the given type.
      *
-     * @template C of \EDT\Querying\Contracts\PathsBasedInterface
-     * @template S of \EDT\Querying\Contracts\PathsBasedInterface
+     * @template TCondition of \EDT\Querying\Contracts\PathsBasedInterface
+     * @template TSorting of \EDT\Querying\Contracts\PathsBasedInterface
      *
-     * @param TypeInterface<C, S, object> $type
-     * @param S                           ...$sortMethods
+     * @param TypeInterface<TCondition, TSorting, object> $type
+     * @param TSorting                           ...$sortMethods
      *
-     * @return list<S>
+     * @return list<TSorting>
      *
      * @throws AccessException
      * @throws PathException Thrown if {@link TypeInterface::getAliases()} returned an invalid path.
@@ -141,11 +141,11 @@ class SchemaPathProcessor
     /**
      * Check the paths of the given sort methods for availability and aliases using the given type.
      *
-     * @template C of \EDT\Querying\Contracts\PathsBasedInterface
-     * @template S of \EDT\Querying\Contracts\PathsBasedInterface
+     * @template TCondition of \EDT\Querying\Contracts\PathsBasedInterface
+     * @template TSorting of \EDT\Querying\Contracts\PathsBasedInterface
      *
-     * @param SortableTypeInterface<C, S, object> $type
-     * @param non-empty-list<S>                   $sortMethods
+     * @param SortableTypeInterface<TCondition, TSorting, object> $type
+     * @param non-empty-list<TSorting>                   $sortMethods
      *
      * @throws AccessException
      * @throws PathException Thrown if {@link TypeInterface::getAliases()} returned an invalid path.
@@ -181,12 +181,12 @@ class SchemaPathProcessor
      * Check if all properties used in the sort methods are available
      * and map the paths to be applied to the schema of the backing class.
      *
-     * @template C of \EDT\Querying\Contracts\PathsBasedInterface
-     * @template S of \EDT\Querying\Contracts\PathsBasedInterface
+     * @template TCondition of \EDT\Querying\Contracts\PathsBasedInterface
+     * @template TSorting of \EDT\Querying\Contracts\PathsBasedInterface
      *
-     * @param TypeInterface<C, S, object> $type
+     * @param TypeInterface<TCondition, TSorting, object> $type
      *
-     * @return list<S>
+     * @return list<TSorting>
      *
      * @throws PathException Thrown if {@link TypeInterface::getAliases()} returned an invalid path.
      *
@@ -208,12 +208,12 @@ class SchemaPathProcessor
      * Get the processed {@link ReadableTypeInterface::getAccessCondition() access condition}
      * of the given type.
      *
-     * @template C of \EDT\Querying\Contracts\PathsBasedInterface
-     * @template S of \EDT\Querying\Contracts\PathsBasedInterface
+     * @template TCondition of \EDT\Querying\Contracts\PathsBasedInterface
+     * @template TSorting of \EDT\Querying\Contracts\PathsBasedInterface
      *
-     * @param TypeInterface<C, S, object> $type
+     * @param TypeInterface<TCondition, TSorting, object> $type
      *
-     * @return C
+     * @return TCondition
      *
      * @throws AccessException
      * @throws PathException

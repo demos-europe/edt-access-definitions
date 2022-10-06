@@ -19,14 +19,11 @@ class CachingPropertyReader extends PropertyReader
      */
     private $valueCache = [];
 
-    protected function determineRelationshipValue(
-        WrapperFactoryInterface $wrapperFactory,
-        ReadableTypeInterface $relationship,
-        $propertyValue
-    ) {
-        $hash = $this->createHash($wrapperFactory, $relationship, $propertyValue);
+    public function determineRelationshipValue(ReadableTypeInterface $type, $valueOrValues)
+    {
+        $hash = $this->createHash($type, $valueOrValues);
         if (!array_key_exists($hash, $this->valueCache)) {
-            $value = parent::determineRelationshipValue($wrapperFactory, $relationship, $propertyValue);
+            $value = parent::determineRelationshipValue($type, $valueOrValues);
             $this->valueCache[$hash] = $value;
         }
 
@@ -40,7 +37,7 @@ class CachingPropertyReader extends PropertyReader
      *
      * @return non-empty-string
      */
-    private function createHash(WrapperFactoryInterface $wrapperFactory, ReadableTypeInterface $relationship, $propertyValue): string
+    private function createHash(ReadableTypeInterface $relationship, $propertyValue): string
     {
         $hashRelationship = spl_object_hash($relationship);
 
@@ -58,8 +55,6 @@ class CachingPropertyReader extends PropertyReader
             throw new InvalidArgumentException("Unexpected value type '$valueType'.");
         }
 
-        $hashWrapper = spl_object_hash($wrapperFactory);
-
-        return hash('sha256', $hashRelationship.$hashProperty.$hashWrapper);
+        return hash('sha256', $hashRelationship.$hashProperty);
     }
 }

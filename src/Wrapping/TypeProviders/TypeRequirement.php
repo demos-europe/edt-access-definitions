@@ -8,12 +8,14 @@ use EDT\Wrapping\Contracts\TypeRetrievalAccessException;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 
 /**
- * @template T of \EDT\Wrapping\Contracts\Types\TypeInterface
+ * @template TType of \EDT\Wrapping\Contracts\Types\TypeInterface
+ *           
+ * @template-implements OptionalTypeRequirementInterface<TType>
  */
-class TypeRequirement
+class TypeRequirement implements OptionalTypeRequirementInterface
 {
     /**
-     * @var T&TypeInterface
+     * @var TType&TypeInterface
      */
     private $typeInstance;
 
@@ -23,21 +25,21 @@ class TypeRequirement
     private $identifier;
 
     /**
-     * @param T                $type
-     * @param non-empty-string $name
+     * @param TType                $type
+     * @param non-empty-string $identifier
      */
-    public function __construct(object $type, string $name)
+    public function __construct(object $type, string $identifier)
     {
         $this->typeInstance = $type;
-        $this->identifier = $name;
+        $this->identifier = $identifier;
     }
 
     /**
-     * @template I
+     * @template TImpl
      *
-     * @param class-string<I> $fqn
+     * @param class-string<TImpl> $fqn
      *
-     * @return TypeRequirement<I&T>
+     * @return TypeRequirement<TImpl&TType>
      */
     public function instanceOf(string $fqn): TypeRequirement
     {
@@ -73,9 +75,53 @@ class TypeRequirement
     }
 
     /**
-     * @return T
+     * @return $this
+     */
+    public function referencable(bool $referencable): self
+    {
+        if ($this->typeInstance->isReferencable() !== $referencable) {
+            throw TypeRetrievalAccessException::typeExistsButNotReferencable($this->identifier);
+        }
+
+        return $this;
+    }
+
+    public function availableOrNull(bool $available)
+    {
+        if ($this->typeInstance->isAvailable() !== $available) {
+            return new EmptyTypeRequirement($this->typeInstance, $this->identifier);
+        }
+
+        return $this;
+    }
+
+    public function directlyAccessibleOrNull(bool $accessible)
+    {
+        if ($this->typeInstance->isDirectlyAccessible() !== $accessible) {
+            return new EmptyTypeRequirement($this->typeInstance, $this->identifier);
+        }
+
+        return $this;
+    }
+
+    public function referencableOrNull(bool $referencable)
+    {
+        if ($this->typeInstance->isReferencable() !== $referencable) {
+            return new EmptyTypeRequirement($this->typeInstance, $this->identifier);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return TType
      */
     public function getTypeInstance(): TypeInterface
+    {
+        return $this->typeInstance;
+    }
+
+    public function getTypeInstanceOrNull(): ?TypeInterface
     {
         return $this->typeInstance;
     }

@@ -10,12 +10,15 @@ use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 use EDT\Wrapping\Contracts\WrapperFactoryInterface;
 
 /**
- * @template-implements WrapperFactoryInterface<FunctionInterface<bool>, SortMethodInterface, object, null>
+ * @template-implements WrapperFactoryInterface<FunctionInterface<bool>, SortMethodInterface>
  * @internal
  */
 class ArrayEndWrapperFactory implements WrapperFactoryInterface
 {
-    public function createWrapper(object $object, ReadableTypeInterface $type)
+    /**
+     * @return null
+     */
+    public function createWrapper(object $entity, ReadableTypeInterface $type)
     {
         return null;
     }

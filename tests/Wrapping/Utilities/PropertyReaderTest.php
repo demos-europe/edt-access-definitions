@@ -22,21 +22,20 @@ use Tests\ModelBasedTest;
 class PropertyReaderTest extends ModelBasedTest
 {
     /**
-     * @var WrapperFactoryInterface
-     */
-    private $nonWrappingWrapperFactory;
-    /**
      * @var AuthorType
      */
     private $authorType;
+
     /**
      * @var PropertyAccessorInterface
      */
     private $propertyAccessor;
+
     /**
      * @var TypeProviderInterface
      */
     private $typeProvider;
+
     /**
      * @var SchemaPathProcessor
      */
@@ -45,12 +44,6 @@ class PropertyReaderTest extends ModelBasedTest
     protected function setUp(): void
     {
         parent::setUp();
-        $this->nonWrappingWrapperFactory = new class implements WrapperFactoryInterface {
-            public function createWrapper(object $object, ReadableTypeInterface $type)
-            {
-                return $object;
-            }
-        };
         $conditionFactory = new PhpConditionFactory();
         $this->authorType = new AuthorType($conditionFactory);
         $bookType = new BookType($conditionFactory);
@@ -71,11 +64,7 @@ class PropertyReaderTest extends ModelBasedTest
         /** @var Person $author */
         $author = $this->authors['phen'];
 
-        $value = $propertyReader->determineValue(
-            $this->nonWrappingWrapperFactory,
-            $this->authorType,
-            $author
-        );
+        $value = $propertyReader->determineRelationshipValue($this->authorType, $author);
 
         self::assertNull($value);
     }
@@ -89,11 +78,7 @@ class PropertyReaderTest extends ModelBasedTest
         /** @var Person $author */
         $author = $this->authors['tolkien'];
 
-        $value = $propertyReader->determineValue(
-            $this->nonWrappingWrapperFactory,
-            $this->authorType,
-            $author
-        );
+        $value = $propertyReader->determineRelationshipValue($this->authorType, $author);
 
         self::assertSame($author, $value);
     }
