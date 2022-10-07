@@ -58,12 +58,12 @@ class AuthorType implements ReadableTypeInterface, FilterableTypeInterface, Sort
         ];
     }
 
-    public function getAccessCondition(): PathsBasedInterface
+    public function getAccessConditions(): array
     {
-        return $this->conditionFactory->allConditionsApply(
+        return [
             $this->conditionFactory->propertyHasNotSize(0, 'books'),
-            $this->conditionFactory->propertyHasNotSize(0, 'writtenBooks')
-        );
+            $this->conditionFactory->propertyHasNotSize(0, 'writtenBooks'),
+        ];
     }
 
     public function getEntityClass(): string

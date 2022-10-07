@@ -249,15 +249,15 @@ class GenericEntityFetcherTest extends ModelBasedTest
     }
 
     /**
-     * When {@link TypeInterface::getAccessCondition()} is processed the paths must not be
-     * checked against {@link TypeInterface::isAvailable()}. Otherwise a user may request
+     * When {@link TypeInterface::getAccessConditions()} is processed, the paths must not be
+     * checked against {@link TypeInterface::isAvailable()}. Otherwise, a user may request
      * data without provoking any violation and still get an exception because an internal
-     * check in {@link TypeInterface::getAccessCondition()} accessed a {@link TypeInterface type}
+     * check in {@link TypeInterface::getAccessConditions()} accessed a {@link TypeInterface type}
      * he doesn't have access to.
      *
      * Like with the skipped check for
      * {@link ReadableTypeInterface::getReadableProperties()} we expect the developer to know
-     * what he does when implementing {@link TypeInterface::getAccessCondition()}.
+     * what he does when implementing {@link TypeInterface::getAccessConditions()}.
      */
     public function testInternalIsAvailable(): void
     {

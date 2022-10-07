@@ -54,9 +54,9 @@ class BookType implements ReadableTypeInterface, FilterableTypeInterface, Sortab
         ];
     }
 
-    public function getAccessCondition(): PathsBasedInterface
+    public function getAccessConditions(): array
     {
-        return $this->conditionFactory->propertyHasNotSize(0, 'author', 'books');
+        return [$this->conditionFactory->propertyHasNotSize(0, 'author', 'books')];
     }
 
     public function getEntityClass(): string

@@ -42,9 +42,9 @@ class BirthType implements TypeInterface
         return true;
     }
 
-    public function getAccessCondition(): PathsBasedInterface
+    public function getAccessConditions(): array
     {
-        return $this->conditionFactory->true();
+        return [];
     }
 
     public function getAliases(): array
