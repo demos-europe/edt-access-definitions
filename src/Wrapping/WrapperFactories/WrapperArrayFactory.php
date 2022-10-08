@@ -68,7 +68,7 @@ class WrapperArrayFactory implements WrapperFactoryInterface
      * {@link ReadableTypeInterface::getReadableProperties()} are included. Relationships to
      * other types will be copied recursively in the same manner, but only if they're
      * allowed to be accessed. If they are allowed to be accessed depends on their {@link ReadableTypeInterface::isAvailable()},
-     * {@link TypeInterface::getAccessConditions()} and {@link TypeInterface::isReferencable()} methods,
+     * {@link TypeInterface::getAccessCondition()} and {@link TypeInterface::isReferencable()} methods,
      * all must return `true` for the property to be included.
      *
      * The recursion stops when the specified depth in {@link WrapperArrayFactory::$depth} is reached.
@@ -113,10 +113,10 @@ class WrapperArrayFactory implements WrapperFactoryInterface
      *
      * For each relationship the same will be done, but additionally it will be recursively
      * wrapped using this factory until $depth is reached. If access is not granted due to the
-     * settings in the corresponding {@link TypeInterface::getAccessConditions()} it will be
+     * settings in the corresponding {@link TypeInterface::getAccessCondition()} it will be
      * replaced by `null`.
      *
-     * If a to-many relationship is referenced each value will be checked using {@link TypeInterface::getAccessConditions()}
+     * If a to-many relationship is referenced each value will be checked using {@link TypeInterface::getAccessCondition()}
      * if it should be included, if so it is wrapped using this factory and included in the result.
      *
      * @param ReadableTypeInterface|null $value If not null the type must be {@link TypeInterface::isAvailable() available} and {@link TypeInterface::isReferencable() referencable}.

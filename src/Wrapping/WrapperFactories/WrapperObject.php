@@ -292,7 +292,7 @@ class WrapperObject
      * The type of the relationship is provided via `$relationship`. The value will be deemed setable if one of the following is true:
      *
      * * `$relationship` is `null`, indicating it is a non-relationship, which is not the scope of this method
-     * * the {@link TypeInterface::getAccessConditions() access conditions} of the given `$relationship` match
+     * * the {@link TypeInterface::getAccessCondition() access condition} of the given `$relationship` match
      * the given `$propertyValue`
      *
      * If the given property value is iterable, indicating a to-many relationship, then each
@@ -321,15 +321,15 @@ class WrapperObject
             return;
         }
 
-        $conditions = $relationship->getAccessConditions();
+        $condition = $relationship->getAccessCondition();
         if (is_iterable($propertyValue)) {
             // if to-many relationship prevent setting restricted items
             foreach (Iterables::asArray($propertyValue) as $key => $value) {
-                if (null === $value || !$this->conditionEvaluator->evaluateConditions($value, $conditions)) {
+                if (!$this->conditionEvaluator->evaluateCondition($value, $condition)) {
                     throw RelationshipAccessException::toManyWithRestrictedItemNotSetable($this->type, $propertyName, $deAliasedPropertyName, $relationship, $key);
                 }
             }
-        } elseif (null === $propertyValue || !$this->conditionEvaluator->evaluateConditions($propertyValue, $conditions)) {
+        } elseif (!$this->conditionEvaluator->evaluateCondition($propertyValue, $condition)) {
             // if restricted to-one relationship
             throw RelationshipAccessException::toOneWithRestrictedItemNotSetable($this->type, $propertyName, $deAliasedPropertyName, $relationship);
         }

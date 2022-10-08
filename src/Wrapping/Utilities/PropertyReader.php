@@ -49,7 +49,7 @@ class PropertyReader
      * will be used on the `$propertyValue` and the result returned.
      *
      * The {@link WrapperFactoryInterface} will only be used on a value
-     * if the {@link TypeInterface::getAccessConditions() access conditions} of the given
+     * if the {@link TypeInterface::getAccessCondition() access condition} of the given
      * `$relationship` allows the access to the value. Otherwise, for a to-many relationship
      * the value will be skipped (not wrapped or returned) and for a to-one relationship
      * instead of the wrapped value `null` will be returned.
@@ -113,12 +113,12 @@ class PropertyReader
             throw AccessException::typeNotAvailable($relationship);
         }
 
-        $conditions = $this->schemaPathProcessor->processAccessConditions($relationship);
+        $condition = $this->schemaPathProcessor->processAccessCondition($relationship);
         $sortMethods = $this->schemaPathProcessor->processDefaultSortMethods($relationship);
 
         // filter out restricted items
         $objectProvider = new PrefilledObjectProvider($this->propertyAccessor, $entities);
-        $objectsToWrap = $objectProvider->getObjects($conditions, $sortMethods);
+        $objectsToWrap = $objectProvider->getObjects([$condition], $sortMethods);
         $objectsToWrap = Iterables::asArray($objectsToWrap);
 
         return array_values($objectsToWrap);

@@ -44,7 +44,7 @@ class SchemaPathProcessor
     /**
      * Check the paths of the given conditions for availability and applies aliases using the given type.
      *
-     * Also adds the {@link ReadableTypeInterface::getAccessConditions() access conditions} of the given type.
+     * Also adds the {@link ReadableTypeInterface::getAccessCondition() access condition} of the given type.
      *
      * @template TCondition of \EDT\Querying\Contracts\PathsBasedInterface
      * @template TSorting of \EDT\Querying\Contracts\PathsBasedInterface
@@ -57,7 +57,7 @@ class SchemaPathProcessor
      * @throws PathException Thrown if {@link TypeInterface::getAliases()} returned an invalid path.
      * @throws AccessException
      *
-     * @deprecated use {@link SchemaPathProcessor::mapFilterConditions()} and {@link SchemaPathProcessor::processAccessConditions()} instead
+     * @deprecated use {@link SchemaPathProcessor::mapFilterConditions()} and {@link SchemaPathProcessor::processAccessCondition()} instead
      */
     public function mapConditions(TypeInterface $type, PathsBasedInterface ...$conditions): array
     {
@@ -75,10 +75,9 @@ class SchemaPathProcessor
         }
 
         // process the access condition too, however based on a different property set than the external conditions
-        return array_merge(
-            $conditions,
-            $this->processAccessConditions($type)
-        );
+        $conditions[] = $this->processAccessCondition($type);
+
+        return $conditions;
     }
 
     /**
@@ -206,7 +205,7 @@ class SchemaPathProcessor
     }
 
     /**
-     * Get the processed {@link ReadableTypeInterface::getAccessConditions() access conditions}
+     * Get the processed {@link ReadableTypeInterface::getAccessCondition() access condition}
      * of the given type.
      *
      * @template TCondition of \EDT\Querying\Contracts\PathsBasedInterface
@@ -214,22 +213,20 @@ class SchemaPathProcessor
      *
      * @param TypeInterface<TCondition, TSorting, object> $type
      *
-     * @return list<TCondition>
+     * @return TCondition
      *
      * @throws AccessException
      * @throws PathException
      *
      * @internal
      */
-    public function processAccessConditions(TypeInterface $type): array
+    public function processAccessCondition(TypeInterface $type): PathsBasedInterface
     {
-        $conditions = $type->getAccessConditions();
+        $condition = $type->getAccessCondition();
         $typeAccessor = new InternTypeAccessor($this->typeProvider);
         $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($typeAccessor);
-        array_map(static function (PathsBasedInterface $condition) use ($processor, $type): void {
-            $processor->processPropertyPaths($condition, $type);
-        }, $conditions);
+        $processor->processPropertyPaths($condition, $type);
 
-        return $conditions;
+        return $condition;
     }
 }

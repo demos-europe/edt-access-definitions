@@ -17,8 +17,8 @@ use EDT\Querying\Contracts\PathsBasedInterface;
 interface TypeInterface extends EntityBasedInterface
 {
     /**
-     * This is **not** a simplified version of {@link TypeInterface::getAccessConditions()}.
-     * While the conditions will prevent access to
+     * This is **not** a simplified version of {@link TypeInterface::getAccessCondition()}.
+     * While the condition will prevent access to
      * instances, this method prevents exposing the existence of this type at all.
      *
      * If for example the Types `A`, `B` and `C` have relationship to Type `X` and only specific
@@ -91,9 +91,9 @@ interface TypeInterface extends EntityBasedInterface
      * For a list query on a `CatType` the condition returned by this method must define
      * limits to only get `Animal` instances that are a `Cat`.
      *
-     * @return list<TCondition>
+     * @return TCondition
      */
-    public function getAccessConditions(): array;
+    public function getAccessCondition(): PathsBasedInterface;
 
     /**
      * Get the properties of the schema of this type that are aliases to different properties
@@ -117,7 +117,7 @@ interface TypeInterface extends EntityBasedInterface
 
     /**
      * The properties of this type that are allowed to be use in conditions returned by
-     * {@link TypeInterface::getAccessConditions()} and sort methods returned by
+     * {@link TypeInterface::getAccessCondition()} and sort methods returned by
      * {@link TypeInterface::getDefaultSortMethods()}.
      *
      * These properties are used to convert a path directed to the schema of this type
