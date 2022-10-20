@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Utilities;
 
-use EDT\Querying\Contracts\ConditionFactoryInterface;
+use EDT\ConditionFactory\PathsBasedConditionFactoryInterface;
 use EDT\Querying\Contracts\PathException;
 use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Querying\Contracts\PaginationException;
@@ -36,7 +36,7 @@ class GenericEntityFetcher
      */
     private $objectProvider;
     /**
-     * @var ConditionFactoryInterface<TCondition>
+     * @var PathsBasedConditionFactoryInterface<TCondition>
      */
     private $conditionFactory;
     /**
@@ -49,15 +49,15 @@ class GenericEntityFetcher
     private $schemaPathProcessor;
 
     /**
-     * @param ObjectProviderInterface<TCondition, TSorting, O> $objectProvider
-     * @param ConditionFactoryInterface<TCondition>     $conditionFactory
-     * @param WrapperFactoryInterface<TCondition, TSorting>    $wrapperFactory All returned instances are wrapped using the given instance.
+     * @param ObjectProviderInterface<TCondition, TSorting, O>                      $objectProvider
+     * @param \EDT\ConditionFactory\PathsBasedConditionFactoryInterface<TCondition> $conditionFactory
+     * @param WrapperFactoryInterface<TCondition, TSorting>                         $wrapperFactory All returned instances are wrapped using the given instance.
      *                                                             To avoid any wrapping simply pass an instance that returns
      *                                                             its input without wrapping.
      */
     public function __construct(
         ObjectProviderInterface $objectProvider,
-        ConditionFactoryInterface $conditionFactory,
+        PathsBasedConditionFactoryInterface $conditionFactory,
         SchemaPathProcessor $schemaPathProcessor,
         WrapperFactoryInterface $wrapperFactory
     ) {

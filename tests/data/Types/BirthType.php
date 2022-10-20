@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\data\Types;
 
-use EDT\Querying\Contracts\ConditionFactoryInterface;
+use EDT\ConditionFactory\PathsBasedConditionFactoryInterface;
 use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 use Tests\data\AdModel\Birth;
@@ -12,11 +12,11 @@ use Tests\data\AdModel\Birth;
 class BirthType implements TypeInterface
 {
     /**
-     * @var ConditionFactoryInterface
+     * @var \EDT\ConditionFactory\PathsBasedConditionFactoryInterface
      */
     private $conditionFactory;
 
-    public function __construct(ConditionFactoryInterface $conditionFactory)
+    public function __construct(PathsBasedConditionFactoryInterface $conditionFactory)
     {
         $this->conditionFactory = $conditionFactory;
     }

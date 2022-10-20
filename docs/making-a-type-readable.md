@@ -58,7 +58,7 @@ example we will simply assume that the Type instances are created on each reques
 this:
 
 ```php
-use EDT\Querying\Contracts\ConditionFactoryInterface;
+use EDT\ConditionFactory\PathsBasedConditionFactoryInterface;
 use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 /** 
  * @template-implements ReadableTypeInterface<Article>
@@ -72,7 +72,7 @@ class UserType implements ReadableTypeInterface
      */
     private $moderator;
 
-    public function __construct(ConditionFactoryInterface $conditionFactory, bool $moderator) {
+    public function __construct(PathsBasedConditionFactoryInterface $conditionFactory, bool $moderator) {
         $this->conditionFactory = $conditionFactory;
         $this->moderator = $moderator;
     }

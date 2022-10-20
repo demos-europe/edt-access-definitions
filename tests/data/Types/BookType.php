@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\data\Types;
 
-use EDT\Querying\Contracts\ConditionFactoryInterface;
+use EDT\ConditionFactory\PathsBasedConditionFactoryInterface;
 use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\Types\FilterableTypeInterface;
 use EDT\Wrapping\Contracts\Types\IdentifiableTypeInterface;
@@ -23,11 +23,11 @@ class BookType implements ReadableTypeInterface, FilterableTypeInterface, Sortab
     private $available = true;
 
     /**
-     * @var ConditionFactoryInterface
+     * @var PathsBasedConditionFactoryInterface
      */
     private $conditionFactory;
 
-    public function __construct(ConditionFactoryInterface $conditionFactory)
+    public function __construct(PathsBasedConditionFactoryInterface $conditionFactory)
     {
         $this->conditionFactory = $conditionFactory;
     }

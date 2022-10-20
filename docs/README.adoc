@@ -26,7 +26,7 @@ similar to the https://github.com/demos-europe/edt-queries[Query Component]:
 ----
 use EDT\Wrapping\Utilities\GenericEntityFetcher;
 use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
-use EDT\Querying\Contracts\ConditionFactoryInterface;
+use EDT\ConditionFactory\ConditionFactoryInterface;
 
 function getArticleType(): ReadableTypeInterface {
     // returns the Type defining limits for the access to your Article objects

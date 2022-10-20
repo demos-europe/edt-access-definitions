@@ -14,7 +14,7 @@ If you need at any point detailed information for any implemented method you can
 the documentation of the corresponding interface.
 
 ```php
-use EDT\Querying\Contracts\ConditionFactoryInterface;
+use EDT\ConditionFactory\PathsBasedConditionFactoryInterface;
 use EDT\Querying\Contracts\FunctionInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 /**
@@ -23,11 +23,11 @@ use EDT\Wrapping\Contracts\Types\TypeInterface;
 class ArticleType implements TypeInterface
 {
     /**
-     * @var ConditionFactoryInterface
+     * @var PathsBasedConditionFactoryInterface
      */
     private $conditionFactory;
 
-    public function __construct(ConditionFactoryInterface $conditionFactory) {
+    public function __construct(PathsBasedConditionFactoryInterface $conditionFactory) {
         $this->conditionFactory = $conditionFactory;
     }
 
@@ -58,7 +58,7 @@ class ArticleType implements TypeInterface
 ```
 
 ```php
-use EDT\Querying\Contracts\ConditionFactoryInterface;
+use EDT\ConditionFactory\PathsBasedConditionFactoryInterface;
 use EDT\Querying\Contracts\FunctionInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 /**
@@ -67,11 +67,11 @@ use EDT\Wrapping\Contracts\Types\TypeInterface;
 class UserType implements TypeInterface
 {
     /**
-     * @var ConditionFactoryInterface
+     * @var PathsBasedConditionFactoryInterface
      */
     private $conditionFactory;
 
-    public function __construct(ConditionFactoryInterface $conditionFactory) {
+    public function __construct(PathsBasedConditionFactoryInterface $conditionFactory) {
         $this->conditionFactory = $conditionFactory;
     }
 
@@ -141,7 +141,7 @@ Instead, you probably want to use a class like `Authorization`, `Role` or `User`
 The draft article may look like the following:
 
 ```php
-use EDT\Querying\Contracts\ConditionFactoryInterface;
+use EDT\ConditionFactory\PathsBasedConditionFactoryInterface;
 use EDT\Querying\Contracts\FunctionInterface;
 use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 /**
@@ -150,11 +150,11 @@ use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 class DraftArticleType implements ReadableTypeInterface
 {
     /**
-     * @var ConditionFactoryInterface
+     * @var PathsBasedConditionFactoryInterface
      */
     private $conditionFactory;
 
-    public function __construct(ConditionFactoryInterface $conditionFactory) {
+    public function __construct(PathsBasedConditionFactoryInterface $conditionFactory) {
         $this->conditionFactory = $conditionFactory;
     }
 
@@ -246,7 +246,7 @@ directly in `getAccessCondition()`. However, this is not recommended, as it make
 dependent on the data source the `FunctionInterface` implementation was written for and thus less reusable for other data sources.
 
 ```php
-use EDT\Querying\Contracts\ConditionFactoryInterface;
+use EDT\ConditionFactory\PathsBasedConditionFactoryInterface;
 use EDT\Querying\Contracts\FunctionInterface;
 use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 /**
@@ -255,7 +255,7 @@ use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 class DraftArticleType implements ReadableTypeInterface
 {
     /**
-     * @var ConditionFactoryInterface
+     * @var PathsBasedConditionFactoryInterface
      */
     private $conditionFactory;
     /**
@@ -324,7 +324,7 @@ non-registered users, as there is no case in which they can access one. To do so
 user is registered. Then we can disable the availability using `isAvailable()`.
 
 ```php
-use EDT\Querying\Contracts\ConditionFactoryInterface;
+use EDT\ConditionFactory\PathsBasedConditionFactoryInterface;
 use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 /**
  * @template-implements TypeInterface<DraftArticle>
@@ -332,7 +332,7 @@ use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 class DraftArticleType implements ReadableTypeInterface
 {
     /**
-     * @var ConditionFactoryInterface
+     * @var \EDT\ConditionFactory\PathsBasedConditionFactoryInterface
      */
     private $conditionFactory;
     /**
