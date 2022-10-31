@@ -56,14 +56,8 @@ class SchemaPathProcessorTest extends ModelBasedTest
     {
         $this->expectException(AccessException::class);
         $this->expectExceptionMessage("Access with the path 'foo.bar' into the type class 'Tests\data\Types\AuthorType' was denied because of the path segment 'foo'.");
-        $this->schemaPathProcessor->mapSortMethods($this->authorType, $this->sortMethodFactory->propertyAscending('foo', 'bar'));
-    }
-
-    public function testNonSortableType(): void
-    {
-        $this->expectException(AccessException::class);
-        $this->expectExceptionMessage("Methods for sorting were provided but the type class 'Tests\data\Types\BirthType' is not sortable.");
-        $this->schemaPathProcessor->mapSortMethods($this->birthType, $this->sortMethodFactory->propertyAscending('foo', 'bar'));
+        $invalidSortMethod = $this->sortMethodFactory->propertyAscending('foo', 'bar');
+        $this->schemaPathProcessor->mapSorting($this->authorType, [$invalidSortMethod]);
     }
 
     public function testEmptyPath(): void
@@ -84,6 +78,6 @@ class SchemaPathProcessorTest extends ModelBasedTest
         };
         $sortMethod = new Ascending(new Property($propertyPath));
 
-        $this->schemaPathProcessor->mapSortMethods($this->authorType, $sortMethod);
+        $this->schemaPathProcessor->mapSorting($this->authorType, [$sortMethod]);
     }
 }

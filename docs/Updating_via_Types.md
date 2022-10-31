@@ -14,11 +14,7 @@ carried over to the original entity. On the other hand `WrapperObjectFactory` wi
 wrappers that contain the original entity. Read and write accesses to the wrapper accessing
 the schema of the type will be directed to the backing entity.
 
-To get wrappers for your entities you can either:
-* pass the factory into the constructor of classes like the `GenericEntityFetcher`.
-  Its methods will automatically return the wrappers instead of the original entities.
-* invoke the factories `createWrapper` method manually with the entity to wrap, and the
-  type to use as schema.
+To get wrappers for your entities you can invoke the factory's `createWrapper` method manually with the entity to wrap, and the type to use as schema.
 
 Please note that the type should be tailored to your entity instance. Otherwise, the type
 and thus the wrapper

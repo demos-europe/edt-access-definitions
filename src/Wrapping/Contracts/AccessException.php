@@ -42,24 +42,6 @@ class AccessException extends InvalidArgumentException
         return $self;
     }
 
-    public static function typeNotSortable(TypeInterface $type): self
-    {
-        $typeClass = get_class($type);
-        $self = new self("Methods for sorting were provided but the type class '$typeClass' is not sortable.");
-        $self->typeClass = $typeClass;
-
-        return $self;
-    }
-
-    public static function typeNotFilterable(TypeInterface $type): self
-    {
-        $typeClass = get_class($type);
-        $self = new self("Conditions for filtering were provided but the type class '$typeClass' is not filterable.");
-        $self->typeClass = $typeClass;
-
-        return $self;
-    }
-
     public static function typeNotAvailable(TypeInterface $type): self
     {
         $typeClass = get_class($type);

@@ -9,7 +9,6 @@ use EDT\Querying\Contracts\PathException;
 use EDT\Querying\Contracts\PaginationException;
 use EDT\Querying\Contracts\SortException;
 use EDT\Querying\Contracts\SortMethodInterface;
-use EDT\Querying\ObjectProviders\PrefilledObjectProvider;
 use EDT\Querying\Utilities\ConditionEvaluator;
 use EDT\Querying\Utilities\Iterables;
 use EDT\Querying\Utilities\Sorter;
@@ -83,7 +82,7 @@ class PropertyReader
     {
         // if to-many relationship, wrap each available value and return them
         if (is_iterable($valueOrValues)) {
-            return $this->filter($type, Iterables::asArray($valueOrValues));
+            return $this->filterAndSort($type, Iterables::asArray($valueOrValues));
         }
 
         // if null relationship return null
@@ -92,7 +91,7 @@ class PropertyReader
         }
 
         // if to-one relationship wrap the value if available and return it, otherwise return null
-        $entitiesToWrap = $this->filter($type, [$valueOrValues]);
+        $entitiesToWrap = $this->filterAndSort($type, [$valueOrValues]);
 
         switch (count($entitiesToWrap)) {
             case 1:
@@ -118,7 +117,7 @@ class PropertyReader
      * @throws PathException
      * @throws SortException
      */
-    private function filter(ReadableTypeInterface $relationship, array $entities): array
+    private function filterAndSort(ReadableTypeInterface $relationship, array $entities): array
     {
         if (!$relationship->isAvailable()) {
             throw AccessException::typeNotAvailable($relationship);
@@ -127,11 +126,12 @@ class PropertyReader
         $condition = $this->schemaPathProcessor->processAccessCondition($relationship);
         $sortMethods = $this->schemaPathProcessor->processDefaultSortMethods($relationship);
 
-        // filter out restricted items
-        $objectProvider = new PrefilledObjectProvider($this->conditionEvaluator, $this->sorter, $entities);
-        $objectsToWrap = $objectProvider->getObjects([$condition], $sortMethods);
-        $objectsToWrap = Iterables::asArray($objectsToWrap);
+        // filter out restricted items and sort the remainders
+        $entities = $this->conditionEvaluator->filterArray($entities, $condition);
+        if ([] !== $sortMethods) {
+            $entities = $this->sorter->sortArray($entities, $sortMethods);
+        }
 
-        return array_values($objectsToWrap);
+        return array_values($entities);
     }
 }

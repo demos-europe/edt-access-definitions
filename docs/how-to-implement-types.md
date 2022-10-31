@@ -373,9 +373,8 @@ a `CommentType`. Both Types are readable, but in our example the intended proces
 is requested, which then contains all related comments. There is no case in which a list of comments,
 or a specific comment, should be able to be loaded "directly" without going through the `Article` instance.
 
-This restriction can be done by setting the return value of `CommentType::isDirectlyAccessible` to `false`.
-It will be evaluated in the `GenericEntityFetcher`, preventing access to Types that can only be read
-when included/nested in other types.
+This restriction can be done by setting the return value of `CommentType::isDirectlyAccessible` to `false` and
+evaluating it where appropriate.
 
 `isReferencable` works the other way around. Access to nested types is only allowed if it returns `true`.
 This method must be honored by all `WrapperFactoryInterface` implementations. As they are responsible
