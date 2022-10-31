@@ -6,6 +6,9 @@ namespace Tests\Wrapping\EntityFetchers;
 
 use EDT\Querying\ConditionFactories\PhpConditionFactory;
 use EDT\Querying\PropertyAccessors\ReflectionPropertyAccessor;
+use EDT\Querying\Utilities\ConditionEvaluator;
+use EDT\Querying\Utilities\Sorter;
+use EDT\Querying\Utilities\TableJoiner;
 use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 use EDT\Wrapping\Contracts\WrapperFactoryInterface;
@@ -75,7 +78,11 @@ class GenericEntityFetcherTest extends ModelBasedTest
             new BirthType($this->conditionFactory),
         ]);
         $this->propertyAccessor = new ReflectionPropertyAccessor();
-        $this->authorProvider = new PrefilledObjectProvider($this->propertyAccessor, $this->authors);
+        $this->authorProvider = new PrefilledObjectProvider(
+            new ConditionEvaluator(new TableJoiner($this->propertyAccessor)),
+            new Sorter(new TableJoiner($this->propertyAccessor)),
+            $this->authors
+        );
         $this->nonWrappingWrapperFactory = new class implements WrapperFactoryInterface {
             public function createWrapper(object $entity, ReadableTypeInterface $type): object
             {
@@ -84,7 +91,10 @@ class GenericEntityFetcherTest extends ModelBasedTest
         };
         $this->schemaPathProcessor = new SchemaPathProcessor(new PropertyPathProcessorFactory(), $this->typeProvider);
         $this->typeAccessor = new TypeAccessor($this->typeProvider);
-        $this->propertyReader = new PropertyReader($this->propertyAccessor, $this->schemaPathProcessor);
+        $tableJoiner = new TableJoiner($this->propertyAccessor);
+        $conditionEvaluator = new ConditionEvaluator($tableJoiner);
+        $sorter = new Sorter($tableJoiner);
+        $this->propertyReader = new PropertyReader($this->schemaPathProcessor, $conditionEvaluator, $sorter);
     }
 
     public function testTrue(): void

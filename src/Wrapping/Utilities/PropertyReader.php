@@ -6,12 +6,13 @@ namespace EDT\Wrapping\Utilities;
 
 use EDT\Querying\Contracts\FunctionInterface;
 use EDT\Querying\Contracts\PathException;
-use EDT\Querying\Contracts\PropertyAccessorInterface;
 use EDT\Querying\Contracts\PaginationException;
 use EDT\Querying\Contracts\SortException;
 use EDT\Querying\Contracts\SortMethodInterface;
 use EDT\Querying\ObjectProviders\PrefilledObjectProvider;
+use EDT\Querying\Utilities\ConditionEvaluator;
 use EDT\Querying\Utilities\Iterables;
+use EDT\Querying\Utilities\Sorter;
 use EDT\Wrapping\Contracts\AccessException;
 use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
@@ -25,18 +26,28 @@ use function count;
 class PropertyReader
 {
     /**
-     * @var PropertyAccessorInterface
-     */
-    private $propertyAccessor;
-    /**
      * @var SchemaPathProcessor
      */
     private $schemaPathProcessor;
 
-    public function __construct(PropertyAccessorInterface $propertyAccessor, SchemaPathProcessor $schemaPathProcessor)
-    {
-        $this->propertyAccessor = $propertyAccessor;
+    /**
+     * @var ConditionEvaluator
+     */
+    private $conditionEvaluator;
+
+    /**
+     * @var Sorter
+     */
+    private $sorter;
+
+    public function __construct(
+        SchemaPathProcessor $schemaPathProcessor,
+        ConditionEvaluator $conditionEvaluator,
+        Sorter $sorter
+    ) {
         $this->schemaPathProcessor = $schemaPathProcessor;
+        $this->conditionEvaluator = $conditionEvaluator;
+        $this->sorter = $sorter;
     }
 
     /**
@@ -117,7 +128,7 @@ class PropertyReader
         $sortMethods = $this->schemaPathProcessor->processDefaultSortMethods($relationship);
 
         // filter out restricted items
-        $objectProvider = new PrefilledObjectProvider($this->propertyAccessor, $entities);
+        $objectProvider = new PrefilledObjectProvider($this->conditionEvaluator, $this->sorter, $entities);
         $objectsToWrap = $objectProvider->getObjects([$condition], $sortMethods);
         $objectsToWrap = Iterables::asArray($objectsToWrap);
 

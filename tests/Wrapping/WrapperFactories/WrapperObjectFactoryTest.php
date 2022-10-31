@@ -7,6 +7,8 @@ namespace Tests\Wrapping\WrapperFactories;
 use EDT\Querying\ConditionFactories\PhpConditionFactory;
 use EDT\Querying\PropertyAccessors\ReflectionPropertyAccessor;
 use EDT\Querying\Utilities\ConditionEvaluator;
+use EDT\Querying\Utilities\Sorter;
+use EDT\Querying\Utilities\TableJoiner;
 use EDT\Wrapping\Contracts\AccessException;
 use EDT\Wrapping\TypeProviders\PrefilledTypeProvider;
 use EDT\Wrapping\Utilities\PropertyPathProcessorFactory;
@@ -42,11 +44,18 @@ class WrapperObjectFactoryTest extends ModelBasedTest
             new BirthType($conditionFactory),
         ]);
         $propertyAccessor = new ReflectionPropertyAccessor();
+        $tableJoiner = new TableJoiner($propertyAccessor);
+        $conditionEvaluator = new ConditionEvaluator($tableJoiner);
+        $sorter = new Sorter($tableJoiner);
         $this->factory = new WrapperObjectFactory(
             new TypeAccessor($typeProvider),
-            new PropertyReader($propertyAccessor, new SchemaPathProcessor(new PropertyPathProcessorFactory(), $typeProvider)),
+            new PropertyReader(
+                new SchemaPathProcessor(new PropertyPathProcessorFactory(), $typeProvider),
+                $conditionEvaluator,
+                $sorter
+            ),
             $propertyAccessor,
-            new ConditionEvaluator($propertyAccessor)
+            $conditionEvaluator
         );
     }
 

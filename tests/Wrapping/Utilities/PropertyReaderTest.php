@@ -7,6 +7,9 @@ namespace Tests\Wrapping\Utilities;
 use EDT\Querying\ConditionFactories\PhpConditionFactory;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
 use EDT\Querying\PropertyAccessors\ReflectionPropertyAccessor;
+use EDT\Querying\Utilities\ConditionEvaluator;
+use EDT\Querying\Utilities\Sorter;
+use EDT\Querying\Utilities\TableJoiner;
 use EDT\Wrapping\Contracts\TypeProviderInterface;
 use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 use EDT\Wrapping\Contracts\WrapperFactoryInterface;
@@ -57,9 +60,13 @@ class PropertyReaderTest extends ModelBasedTest
 
     public function testInternalConditionAliasWithoutAccess(): void
     {
+        $tableJoiner = new TableJoiner($this->propertyAccessor);
+        $conditionEvaluator = new ConditionEvaluator($tableJoiner);
+        $sorter = new Sorter($tableJoiner);
         $propertyReader = new PropertyReader(
-            $this->propertyAccessor,
-            $this->schemaPathProcessor
+            $this->schemaPathProcessor,
+            $conditionEvaluator,
+            $sorter
         );
         /** @var Person $author */
         $author = $this->authors['phen'];
@@ -71,9 +78,13 @@ class PropertyReaderTest extends ModelBasedTest
 
     public function testInternalConditionAliasWithAccess(): void
     {
+        $tableJoiner = new TableJoiner($this->propertyAccessor);
+        $conditionEvaluator = new ConditionEvaluator($tableJoiner);
+        $sorter = new Sorter($tableJoiner);
         $propertyReader = new PropertyReader(
-            $this->propertyAccessor,
-            $this->schemaPathProcessor
+            $this->schemaPathProcessor,
+            $conditionEvaluator,
+            $sorter
         );
         /** @var Person $author */
         $author = $this->authors['tolkien'];
