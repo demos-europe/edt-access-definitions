@@ -43,6 +43,7 @@ class ExternReadableProcessorConfig extends AbstractProcessorConfig
     {
         return $this->typeProvider->requestType($typeIdentifier)
             ->instanceOf(ReadableTypeInterface::class)
-            ->getTypeInstance();
+            ->exposedAsRelationship()
+            ->getInstanceOrThrow();
     }
 }

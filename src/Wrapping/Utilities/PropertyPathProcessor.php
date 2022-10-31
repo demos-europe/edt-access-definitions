@@ -12,6 +12,8 @@ use EDT\Wrapping\Contracts\AccessException;
 use EDT\Wrapping\Contracts\PropertyAccessException;
 use EDT\Wrapping\Contracts\RelationshipAccessException;
 use EDT\Wrapping\Contracts\TypeRetrievalAccessException;
+use EDT\Wrapping\Contracts\Types\AliasableTypeInterface;
+use EDT\Wrapping\Contracts\Types\ExposableRelationshipTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 use EDT\Wrapping\Utilities\TypeAccessors\AbstractProcessorConfig;
 use InvalidArgumentException;
@@ -47,8 +49,14 @@ class PropertyPathProcessor
      * Executes {@link PropertyPathProcessor::processPropertyPath} on all given paths. Will throw an
      * exception if the processing of any of the given paths fails.
      *
-     * @throws AccessException Thrown if any of the given paths can not be used because the path itself is not available (not made present via $getProperties) or the Type it leads to is not accessible (e.g. {@link TypeInterface::isAvailable()} returned `false`).
-     * @throws PathException Thrown if {@link TypeInterface::getAliases()} returned an invalid path.
+     * @throws AccessException Thrown if any of the given paths can not be used because the path
+     *                         itself is not available (not present via
+     *                         {@link AbstractProcessorConfig::getProperties()}) or, in case of a
+     *                         relationship, the
+     *                         type it leads to is not accessible
+     *                         ({@link ExposableRelationshipTypeInterface::isExposedAsRelationship()}
+     *                         returned `false`).
+     * @throws PathException Thrown if {@link AliasableTypeInterface::getAliases()} returned an invalid path.
      */
     public function processPropertyPaths(PathsBasedInterface $pathsBased): void
     {
@@ -88,7 +96,10 @@ class PropertyPathProcessor
         $propertyTypeIdentifier = $this->getPropertyTypeIdentifier($currentType, $currentPathPart);
 
         // Check if the current type needs mapping to the backing object schema, if so, apply it.
-        $pathToAdd = $this->processorConfig->getDeAliasedPath($currentType, $currentPathPart);
+        $pathToAdd = $currentType instanceof AliasableTypeInterface
+            ? $currentType->getAliases()[$currentPathPart] ?? [$currentPathPart]
+            : [$currentPathPart];
+
         // append the de-aliased path to the processed path
         $newPath = $this->appendDeAliasedPath($newPath, $pathToAdd);
 

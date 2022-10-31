@@ -19,30 +19,12 @@ abstract class AbstractTypeProvider implements TypeProviderInterface
     public function requestType(string $typeIdentifier): TypeRequirement
     {
         $type = $this->getTypeByIdentifier($typeIdentifier);
-        if (null === $type) {
-            throw TypeRetrievalAccessException::unknownTypeIdentifier($typeIdentifier, $this->getTypeIdentifiers());
-        }
 
-        return new TypeRequirement($type, $typeIdentifier);
-    }
+        $problems = null === $type
+            ? ["identifier '$typeIdentifier' not known"]
+            : [];
 
-    /**
-     * @throws TypeRetrievalAccessException
-     */
-    public function isTypeAvailable(string $typeIdentifier, string ...$implementations): bool
-    {
-        $type = $this->getTypeByIdentifier($typeIdentifier);
-        if (null === $type) {
-            return false;
-        }
-
-        foreach ($implementations as $implementation) {
-            if (!is_a($type, $implementation)) {
-                return false;
-            }
-        }
-
-        return $type->isAvailable();
+        return new TypeRequirement($type, $type, $typeIdentifier, $problems);
     }
 
     /**

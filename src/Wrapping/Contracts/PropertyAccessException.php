@@ -47,8 +47,9 @@ class PropertyAccessException extends AccessException
     }
 
     /**
-     * @param non-empty-string $property
-     * @param non-empty-string ...$availableProperties
+     * @param non-empty-string                     $property
+     * @param UpdatableTypeInterface&TypeInterface $type
+     * @param non-empty-string                     ...$availableProperties
      */
     public static function propertyNotAvailableInUpdatableType(string $property, UpdatableTypeInterface $type, string ...$availableProperties): self
     {

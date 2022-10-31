@@ -22,7 +22,7 @@ class ExternFilterableProcessorConfig extends AbstractProcessorConfig
     {
         return $this->typeProvider->requestType($typeIdentifier)
             ->instanceOf(FilterableTypeInterface::class)
-            ->available(true)
-            ->getTypeInstance();
+            ->exposedAsRelationship()
+            ->getInstanceOrThrow();
     }
 }

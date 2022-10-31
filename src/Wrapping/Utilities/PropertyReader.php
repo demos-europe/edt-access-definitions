@@ -13,6 +13,7 @@ use EDT\Querying\Utilities\ConditionEvaluator;
 use EDT\Querying\Utilities\Iterables;
 use EDT\Querying\Utilities\Sorter;
 use EDT\Wrapping\Contracts\AccessException;
+use EDT\Wrapping\Contracts\Types\ExposableRelationshipTypeInterface;
 use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 use EDT\Wrapping\Contracts\WrapperFactoryInterface;
@@ -60,7 +61,7 @@ class PropertyReader
      *
      * @template TEntity of object
      *
-     * @param ReadableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity> $type
+     * @param ReadableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity>&ExposableRelationshipTypeInterface $type
      * @param TEntity|iterable<TEntity>|null                                               $valueOrValues
      *
      * @return TEntity|list<TEntity>|null
@@ -99,7 +100,7 @@ class PropertyReader
     /**
      * @template TEntity of object
      *
-     * @param ReadableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity> $relationship
+     * @param ReadableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity>&ExposableRelationshipTypeInterface $relationship
      * @param array<int|string, TEntity>                                                   $entities
      *
      * @return list<TEntity>
@@ -110,8 +111,8 @@ class PropertyReader
      */
     private function filterAndSort(ReadableTypeInterface $relationship, array $entities): array
     {
-        if (!$relationship->isAvailable()) {
-            throw AccessException::typeNotAvailable($relationship);
+        if (!$relationship->isExposedAsRelationship()) {
+            throw AccessException::notExposedRelationship($relationship);
         }
 
         $condition = $this->schemaPathProcessor->processAccessCondition($relationship);

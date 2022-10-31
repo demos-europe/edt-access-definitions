@@ -39,20 +39,8 @@ class ArticleType implements TypeInterface
         return Article::class;
     }
 
-    public function isAvailable(): bool {
-        return true;
-    }
-
     public function getAliases() : array {
         return [];
-    }
-    
-    public function isReferencable() : bool {
-        return true;
-    }
-    
-    public function isDirectlyAccessible() : bool {
-        return true;
     }
 }
 ```
@@ -83,20 +71,8 @@ class UserType implements TypeInterface
         return User::class;
     }
 
-    public function isAvailable(): bool {
-        return true;
-    }
-    
     public function getAliases() : array {
         return [];
-    }
-        
-    public function isReferencable() : bool {
-        return true;
-    }
-    
-    public function isDirectlyAccessible() : bool {
-        return true;
     }
 }
 ```
@@ -121,9 +97,9 @@ not included in this library yet.
 
 ## Limiting access
 
-On the level of the `TypeInteface` there four ways to restrict accesses.
-* Using `isAvailable()` you can fully hide Types depending on the state of the application (e.g. authorizations of the accessing user).
-* Using `isReferencable` and `isDirectlyAccessible` you can prevent access to types similar to `isAvailable` but more fine-grained based on the nesting of Types.
+On the level of the `TypeInteface` there are four ways to restrict accesses.
+* Using `ExposableRelationshipTypeInterface::isExposedAsRelationship`
+* Using `ExposablePrimaryResourceTypeInterface::isExposedAsPrimaryResource` (in JSON:API context)
 * Using `getAccessCondition()` you can hide entity instances (not types!) depending on the state of the application.
 
 This is kept separate from more specific interfaces as these restrictions are relevant for readability, updates,
@@ -158,10 +134,6 @@ class DraftArticleType implements ReadableTypeInterface
         $this->conditionFactory = $conditionFactory;
     }
 
-    public function isAvailable(): bool {
-        return true;
-    }
-
     public function getAccessCondition(): FunctionInterface {
         return $this->conditionFactory->true();
     }
@@ -185,14 +157,6 @@ class DraftArticleType implements ReadableTypeInterface
         return $this->getReadableProperties();
     }
             
-    public function isReferencable() : bool {
-        return true;
-    }
-    
-    public function isDirectlyAccessible() : bool {
-        return true;
-    }
-
     public function getDefaultSortMethods() : array {
         return [];
     }
@@ -268,10 +232,6 @@ class DraftArticleType implements ReadableTypeInterface
         $this->currentUserAccountName = $currentUserAccountName;
     }
 
-    public function isAvailable(): bool {
-        return true;
-    }
-
     public function getAccessCondition(): FunctionInterface {
         return $this->conditionFactory->propertyHasValue(
             $this->currentUserAccountName,
@@ -316,67 +276,3 @@ Because the values returned by `getInternalProperties` are used to define the
 access condition only and can't be used for anything else (filtering, reading, sorting, updating)
 you may choose to include all properties of your entity or just the ones you actually need in
 conditions returned by `getAccessCondition` methods.
-
-### `isAvailable`
-
-Assuming only registered users can write articles we may want to hide the existence of draft articles from
-non-registered users, as there is no case in which they can access one. To do so, we need to inject into the `DraftArticleType` the information if the currently logged-in
-user is registered. Then we can disable the availability using `isAvailable()`.
-
-```php
-use EDT\ConditionFactory\PathsBasedConditionFactoryInterface;
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
-/**
- * @template-implements TypeInterface<DraftArticle>
- */
-class DraftArticleType implements ReadableTypeInterface
-{
-    /**
-     * @var \EDT\ConditionFactory\PathsBasedConditionFactoryInterface
-     */
-    private $conditionFactory;
-    /**
-     * @var string
-     */
-    private $currentUserAccountName;
-    /**
-     * @var bool
-     */
-    private $registered;
-
-    public function __construct(ConditionFactoryInterface $conditionFactory, string $currentUserAccountName, bool $registered) {
-        $this->conditionFactory = $conditionFactory;
-        $this->currentUserAccountName = $currentUserAccountName;
-        $this->registered = $registered;
-    }
-
-    public function isAvailable(): bool {
-        return $this->registered;
-    }
-
-    // ...
-}
-```
-
-By disabling the availability for non-registered users not only will access to draft articles
-be prevented but the `draft` relationship in the `ArticleType` will be hidden as well, even
-if it is returned by `getReadableProperties()`, `getFilterableProperties()` or `getSortableProperties()`.
-
-### `isDirectlyAccessible` and `isReferencable`
-
-These two methods allow more fine-grained settings than `isAvailable`. `isAvailable` still takes
-precedence, meaning if it returns `false` the return of `isDirectlyAccessible` and `isReferencable`
-does not matter.
-
-As an example we assume each `Article` can be connected to any number of comments, represented using
-a `CommentType`. Both Types are readable, but in our example the intended process is that an article
-is requested, which then contains all related comments. There is no case in which a list of comments,
-or a specific comment, should be able to be loaded "directly" without going through the `Article` instance.
-
-This restriction can be done by setting the return value of `CommentType::isDirectlyAccessible` to `false` and
-evaluating it where appropriate.
-
-`isReferencable` works the other way around. Access to nested types is only allowed if it returns `true`.
-This method must be honored by all `WrapperFactoryInterface` implementations. As they are responsible
-to restrict the access to nested types considering all authorization settings (`isAvailable`, `getAccessCondition`,
-`ReadableTypeInterface` and so on), including `isReferencable`.

@@ -22,7 +22,7 @@ class ExternSortableProcessorConfig extends AbstractProcessorConfig
     {
         return $this->typeProvider->requestType($typeIdentifier)
             ->instanceOf(SortableTypeInterface::class)
-            ->available(true)
-            ->getTypeInstance();
+            ->exposedAsRelationship()
+            ->getInstanceOrThrow();
     }
 }

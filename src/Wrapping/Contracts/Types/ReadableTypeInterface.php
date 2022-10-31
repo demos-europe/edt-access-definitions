@@ -19,7 +19,7 @@ interface ReadableTypeInterface extends TypeInterface
      * All properties of this type that are currently readable. May depend on authorizations of the accessing user.
      *
      * A restricted view on the properties of the {@link TypeInterface::getEntityClass() backing object}. Potentially
-     * mapped via {@link TypeInterface::getAliases() aliases}.
+     * mapped via {@link AliasableTypeInterface::getAliases() aliases}.
      *
      * @return array<non-empty-string, non-empty-string|null> The keys in the returned array are the names of the
      *                                   properties. Each value is the identifier of the target

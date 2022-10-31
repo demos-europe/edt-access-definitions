@@ -16,6 +16,8 @@ use EDT\Wrapping\Contracts\AccessException;
 use EDT\Wrapping\Contracts\PropertyAccessException;
 use EDT\Wrapping\Contracts\RelationshipAccessException;
 use EDT\Wrapping\Contracts\TypeRetrievalAccessException;
+use EDT\Wrapping\Contracts\Types\AliasableTypeInterface;
+use EDT\Wrapping\Contracts\Types\ExposableRelationshipTypeInterface;
 use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 use EDT\Wrapping\Contracts\Types\UpdatableTypeInterface;
@@ -34,8 +36,10 @@ use function Safe\preg_match;
  *
  * Read access will only be granted if the given {@link TypeInterface} implements {@link ReadableTypeInterface}.
  * The properties allowed to be read depend on the return of {@link ReadableTypeInterface::getReadableProperties()}.
- * Only those relationships will be readable that have an {@link TypeInterface::isAvailable() available}
- * and {@link TypeInterface::isReferencable() referencable} target type. Returned relationships will be wrapped themselves inside {@link WrapperObject} instances.
+ * Only those relationships will be readable whose target type return `true` in
+ * {@link ExposableRelationshipTypeInterface::isExposedAsRelationship()}
+ *
+ * Returned relationships will be wrapped themselves inside {@link WrapperObject} instances.
  *
  * @template TEntity of object
  */
@@ -144,10 +148,6 @@ class WrapperObject
      */
     public function __get(string $propertyName)
     {
-        if (!$this->type->isAvailable()) {
-            throw AccessException::typeNotAvailable($this->type);
-        }
-
         if (!$this->type instanceof ReadableTypeInterface) {
             throw AccessException::typeNotReadable($this->type);
         }
@@ -190,17 +190,14 @@ class WrapperObject
     /**
      * @param non-empty-string $propertyName
      * @param mixed $value The value to set. Will only be allowed if the property name matches with an allowed property
-     *                     (must be {@link UpdatableTypeInterface::getUpdatableProperties() updatable} and,
-     *                     if it is a relationship, the target type of the relationship must be {@link TypeInterface::isReferencable() referencable}
-     *                     and {@link TypeInterface::isAvailable() available}.
+     *                     (must be {@link UpdatableTypeInterface::getUpdatableProperties() updatable} and
+     *                     (if it is a relationship) the target type of the relationship returns `true` in
+     *                     {@link ExposableRelationshipTypeInterface::isExposedAsRelationship()}.
+     *
      * @throws AccessException
      */
     public function __set(string $propertyName, $value): void
     {
-        if (!$this->type->isAvailable()) {
-            throw AccessException::typeNotAvailable($this->type);
-        }
-
         if (!$this->type instanceof UpdatableTypeInterface) {
             throw AccessException::typeNotUpdatable($this->type);
         }
@@ -262,7 +259,9 @@ class WrapperObject
      */
     private function mapProperty(string $propertyName): array
     {
-        return $this->type->getAliases()[$propertyName] ?? [$propertyName];
+        return $this->type instanceof AliasableTypeInterface
+            ? $this->type->getAliases()[$propertyName] ?? [$propertyName]
+            : [$propertyName];
     }
 
     /**
@@ -289,10 +288,9 @@ class WrapperObject
      * value within this iterable will be checked against the access condition. All values must
      * match, otherwise an {@link AccessException} is thrown.
      *
-     * This method will **not** check if the given `$relationship` is
-     * {@link TypeInterface::isAvailable() available},
-     * {@link TypeInterface::isReferencable() referencable} or
-     * {@link TypeInterface::isDirectlyAccessible() directly accessible}.
+     * This method will **not** check if the given `$relationship`
+     * {@link ExposableRelationshipTypeInterface::isExposedAsRelationship() exposable as relationship}.
+     *
      * It will also **not** consider
      * information like {@link ReadableTypeInterface::getReadableProperties() readable} or
      * {@link UpdatableTypeInterface::getUpdatableProperties() updatable} properties.

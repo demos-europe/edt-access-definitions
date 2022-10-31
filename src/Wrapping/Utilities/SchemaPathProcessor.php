@@ -21,7 +21,7 @@ use EDT\Wrapping\Utilities\TypeAccessors\InternProcessorConfig;
 /**
  * Follows {@link PropertyPathAccessInterface} instances to check if access is
  * allowed in the context of a given root {@link TypeInterface} and maps
- * the paths according to the corresponding {@link TypeInterface::getAliases()} return.
+ * the paths according to the corresponding {@link AliasableTypeInterface::getAliases()} return.
  */
 class SchemaPathProcessor
 {
@@ -47,7 +47,7 @@ class SchemaPathProcessor
      * @param FilterableTypeInterface<TCondition, TSorting, object> $type
      * @param non-empty-list<TCondition>                     $conditions
      *
-     * @throws PathException Thrown if {@link TypeInterface::getAliases()} returned an invalid path.
+     * @throws PathException Thrown if {@link AliasableTypeInterface::getAliases()} returned an invalid path.
      * @throws AccessException
      */
     public function mapFilterConditions(FilterableTypeInterface $type, array $conditions): void
@@ -67,7 +67,7 @@ class SchemaPathProcessor
      * @param non-empty-list<TSorting>                   $sortMethods
      *
      * @throws AccessException
-     * @throws PathException Thrown if {@link TypeInterface::getAliases()} returned an invalid path.
+     * @throws PathException Thrown if {@link AliasableTypeInterface::getAliases()} returned an invalid path.
      */
     public function mapSorting(SortableTypeInterface $type, array $sortMethods): void
     {
@@ -105,7 +105,7 @@ class SchemaPathProcessor
      *
      * @return list<TSorting>
      *
-     * @throws PathException Thrown if {@link TypeInterface::getAliases()} returned an invalid path.
+     * @throws PathException Thrown if {@link AliasableTypeInterface::getAliases()} returned an invalid path.
      *
      * @internal
      */

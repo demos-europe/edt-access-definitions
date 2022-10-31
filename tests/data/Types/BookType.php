@@ -6,6 +6,7 @@ namespace Tests\data\Types;
 
 use EDT\ConditionFactory\PathsBasedConditionFactoryInterface;
 use EDT\Querying\Contracts\PathsBasedInterface;
+use EDT\Wrapping\Contracts\Types\ExposableRelationshipTypeInterface;
 use EDT\Wrapping\Contracts\Types\FilterableTypeInterface;
 use EDT\Wrapping\Contracts\Types\IdentifiableTypeInterface;
 use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
@@ -18,9 +19,9 @@ use Tests\data\Model\Book;
  * @template-implements FilterableTypeInterface<Book>
  * @template-implements SortableTypeInterface<Book>
  */
-class BookType implements ReadableTypeInterface, FilterableTypeInterface, SortableTypeInterface, IdentifiableTypeInterface
+class BookType implements ReadableTypeInterface, FilterableTypeInterface, SortableTypeInterface, IdentifiableTypeInterface, ExposableRelationshipTypeInterface
 {
-    private bool $available = true;
+    private bool $exposedAsRelationship = true;
 
     private PathsBasedConditionFactoryInterface $conditionFactory;
 
@@ -61,11 +62,6 @@ class BookType implements ReadableTypeInterface, FilterableTypeInterface, Sortab
         return Book::class;
     }
 
-    public function isAvailable(): bool
-    {
-        return $this->available;
-    }
-
     public function getIdentifierPropertyPath(): array
     {
         return ['title'];
@@ -76,14 +72,9 @@ class BookType implements ReadableTypeInterface, FilterableTypeInterface, Sortab
         return [];
     }
 
-    public function isReferencable(): bool
+    public function isExposedAsRelationship(): bool
     {
-        return true;
-    }
-
-    public function isDirectlyAccessible(): bool
-    {
-        return true;
+        return $this->exposedAsRelationship;
     }
 
     public function getDefaultSortMethods(): array

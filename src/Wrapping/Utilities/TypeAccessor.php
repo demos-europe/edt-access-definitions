@@ -6,10 +6,11 @@ namespace EDT\Wrapping\Utilities;
 
 use EDT\Wrapping\Contracts\TypeProviderInterface;
 use EDT\Wrapping\Contracts\TypeRetrievalAccessException;
+use EDT\Wrapping\Contracts\Types\ExposableRelationshipTypeInterface;
 use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 use EDT\Wrapping\Contracts\Types\UpdatableTypeInterface;
-use EDT\Wrapping\TypeProviders\OptionalTypeRequirementInterface;
+use EDT\Wrapping\TypeProviders\TypeRequirement;
 
 /**
  * Provides utility methods to access processed information of a given {@link TypeInterface}.
@@ -37,95 +38,71 @@ class TypeAccessor
     }
 
     /**
-     * @param TypeInterface<TCondition, TSorting, object> $type
+     * @param ReadableTypeInterface&TypeInterface<TCondition, TSorting, object> $type
      *
-     * @return array<non-empty-string, ReadableTypeInterface<TCondition, TSorting, object>|null>
+     * @return array<non-empty-string, (ExposableRelationshipTypeInterface&ReadableTypeInterface<TCondition, TSorting, object>)|null>
      *
      * @throws TypeRetrievalAccessException
      */
     public function getAccessibleReadableProperties(TypeInterface $type): array
     {
-        if (!$type instanceof ReadableTypeInterface) {
-            return [];
+        $allowedProperties = [];
+        foreach ($type->getReadableProperties() as $propertyName => $typeIdentifier) {
+            if (null === $typeIdentifier) {
+                // access to attributes is not restricted by further considerations
+                $allowedProperties[$propertyName] = null;
+            } else {
+                // access to relationships depends on readability and "exposedness"
+                $relationshipType = $this->typeProvider->requestType($typeIdentifier)
+                    ->instanceOf(ReadableTypeInterface::class)
+                    ->exposedAsRelationship()
+                    ->getInstanceOrNull();
+                if (null !== $relationshipType) {
+                    $allowedProperties[$propertyName] = $relationshipType;
+                }
+            }
         }
-        $readableProperties = $type->getReadableProperties();
-        $readableProperties = array_map([$this, 'getTypeInstanceOrNull'], $readableProperties);
-        $readableProperties = array_filter($readableProperties, [$this, 'isReadableProperty']);
 
-        return $readableProperties;
+        return $allowedProperties;
     }
 
     /**
      * Collects the properties of the given type that are updatable.
      *
-     * If the given type itself is not an instance of {@link UpdatableTypeInterface} an empty array
-     * will be returned.
-     *
      * @template TEntity of object
      *
-     * @param TypeInterface<TCondition, TSorting, TEntity> $type
-     * @param TEntity                   $updateTarget
+     * @param UpdatableTypeInterface<TEntity> $type
+     * @param TEntity                         $updateTarget
      *
-     * @return array<non-empty-string, TypeInterface<TCondition, TSorting, object>|null>
+     * @return array<non-empty-string, (ExposableRelationshipTypeInterface&TypeInterface<TCondition, TSorting, object>)|null>
      */
-    public function getAccessibleUpdatableProperties(TypeInterface $type, object $updateTarget): array
+    public function getAccessibleUpdatableProperties(UpdatableTypeInterface $type, object $updateTarget): array
     {
-        if (!$type instanceof UpdatableTypeInterface) {
-            return [];
+        $updatableProperties = [];
+        foreach ($type->getUpdatableProperties($updateTarget) as $propertyName => $relationshipTypeIdentifier) {
+            if (null === $relationshipTypeIdentifier) {
+                $updatableProperties[$propertyName] = null;
+            } else {
+                 // $relationshipType is the relationship property to set, not the type of the instance which is updated
+                 $relationshipType = $this->typeProvider->requestType($relationshipTypeIdentifier)
+                     ->exposedAsRelationship()
+                     ->getInstanceOrNull();
+                 if (null !== $relationshipType) {
+                     $updatableProperties[$propertyName] = $relationshipType;
+                 }
+            }
         }
-        $updatableProperties = $type->getUpdatableProperties($updateTarget);
-        $updatableProperties = array_map([$this, 'getTypeInstanceOrNull'], $updatableProperties);
-        return array_filter($updatableProperties, [$this, 'isUpdatableProperty']);
+
+        return $updatableProperties;
     }
 
     /**
      * @param non-empty-string $typeIdentifier
      *
-     * @return OptionalTypeRequirementInterface<TypeInterface<TCondition, TSorting, object>>
+     * @return TypeRequirement<TypeInterface<TCondition, TSorting, object>>
      */
-    public function requestType(string $typeIdentifier): OptionalTypeRequirementInterface
+    public function requestType(string $typeIdentifier): TypeRequirement
     {
         return $this->typeProvider->requestType($typeIdentifier);
-    }
-
-    /**
-     * @param TypeInterface<TCondition, TSorting, object> $type
-     */
-    private function isReadableRelationship(TypeInterface $type): bool
-    {
-        return $type->isAvailable() && $type->isReferencable() && $type instanceof ReadableTypeInterface;
-    }
-
-    /**
-     * @param non-empty-string|null $typeIdentifier
-     *
-     * @return TypeInterface<TCondition, TSorting, object>|null
-     *
-     * @throws TypeRetrievalAccessException
-     */
-    private function getTypeInstanceOrNull(?string $typeIdentifier): ?TypeInterface
-    {
-        if (null === $typeIdentifier) {
-            return null;
-        }
-
-        return $this->typeProvider->requestType($typeIdentifier)->getTypeInstance();
-    }
-
-    /**
-     * @param TypeInterface<TCondition, TSorting, object>|null $type
-     */
-    private function isReadableProperty(?TypeInterface $type): bool
-    {
-        return null === $type || $this->isReadableRelationship($type);
-    }
-
-    /**
-     * @param TypeInterface<TCondition, TSorting, object>|null $type
-     */
-    private function isUpdatableProperty(?TypeInterface $type): bool
-    {
-        // TODO: add `instanceof UpdatableTypeInterface` check?
-        return null === $type || ($type->isAvailable() && $type->isReferencable());
     }
 }

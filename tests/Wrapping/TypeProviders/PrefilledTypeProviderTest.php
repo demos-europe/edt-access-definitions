@@ -30,7 +30,7 @@ class PrefilledTypeProviderTest extends TestCase
     public function testUnknownTypeIdentifier(): void
     {
         $this->expectException(AccessException::class);
-        $this->expectExceptionMessage('Type identifier \'foobar\' not known. Known type identifiers are: Tests\data\Types\AuthorType, Tests\data\Types\BookType.');
-        $this->typeProvider->requestType('foobar');
+        $this->expectExceptionMessage("Type instance with identifier 'foobar' matching the defined criteria was not found due to the following reasons: identifier 'foobar' not known");
+        $this->typeProvider->requestType('foobar')->getInstanceOrThrow();
     }
 }

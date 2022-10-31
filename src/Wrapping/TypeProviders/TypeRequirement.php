@@ -5,19 +5,19 @@ declare(strict_types=1);
 namespace EDT\Wrapping\TypeProviders;
 
 use EDT\Wrapping\Contracts\TypeRetrievalAccessException;
+use EDT\Wrapping\Contracts\Types\ExposableRelationshipTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
+use function in_array;
 
 /**
  * @template TType of \EDT\Wrapping\Contracts\Types\TypeInterface
- *           
- * @template-implements OptionalTypeRequirementInterface<TType>
  */
-class TypeRequirement implements OptionalTypeRequirementInterface
+class TypeRequirement
 {
     /**
-     * @var TType
+     * @var TType|null
      */
-    private TypeInterface $typeInstance;
+    private ?TypeInterface $typedInstance;
 
     /**
      * @var non-empty-string
@@ -25,104 +25,107 @@ class TypeRequirement implements OptionalTypeRequirementInterface
     private string $identifier;
 
     /**
-     * @param TType            $type
-     * @param non-empty-string $identifier
+     * @var list<non-empty-string>
      */
-    public function __construct(TypeInterface $type, string $identifier)
+    private array $problems;
+
+    private ?TypeInterface $plainInstance;
+
+    /**
+     * @param TType|null             $typedInstance
+     * @param TypeInterface|null     $plainInstance
+     * @param non-empty-string       $identifier
+     * @param list<non-empty-string> $problems
+     */
+    public function __construct(?TypeInterface $typedInstance, ?TypeInterface $plainInstance, string $identifier, array $problems)
     {
-        $this->typeInstance = $type;
+        $this->typedInstance = $typedInstance;
         $this->identifier = $identifier;
+        $this->problems = $problems;
+        $this->plainInstance = $plainInstance;
     }
 
     /**
-     * @template TImpl
+     * @template TTestType
      *
-     * @param class-string<TImpl> $fqn
+     * @param class-string<TTestType> $testTypeFqn
      *
-     * @return TypeRequirement<TImpl&TType>
+     * @return TypeRequirement<TTestType&TType>
      */
-    public function instanceOf(string $fqn): TypeRequirement
+    public function instanceOf(string $testTypeFqn): TypeRequirement
     {
-        if (!is_a($this->typeInstance, $fqn)) {
-            throw TypeRetrievalAccessException::noNameWithImplementation($this->identifier, $fqn);
+        $problems = $this->problems;
+        $instance = $this->typedInstance;
+        if (null !== $instance && !is_a($instance, $testTypeFqn)) {
+            if (null !== $this->plainInstance && !is_a($this->plainInstance, $testTypeFqn)) {
+                $problems = $this->addProblem("does not implement '$testTypeFqn'");
+            }
+            $instance = null;
         }
 
-        return new TypeRequirement($this->typeInstance, $this->identifier);
+        return new self($instance, $this->plainInstance, $this->identifier, $problems);
     }
 
     /**
-     * @return $this
+     * @return TypeRequirement<ExposableRelationshipTypeInterface&TType>
      */
-    public function available(bool $available): self
+    public function exposedAsRelationship(): self
     {
-        if ($this->typeInstance->isAvailable() !== $available) {
-            throw TypeRetrievalAccessException::typeExistsButNotAvailable($this->identifier);
+        $self = $this->instanceOf(ExposableRelationshipTypeInterface::class);
+
+        if (null !== $self->typedInstance) {
+            if (!$self->typedInstance->isExposedAsRelationship()) {
+                if ($self->plainInstance instanceof ExposableRelationshipTypeInterface
+                    && !$self->plainInstance->isExposedAsRelationship()
+                ) {
+                    $self->problems = $self->addProblem('not set as exposable');
+                }
+                $self->typedInstance = null;
+            }
         }
 
-        return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    public function directlyAccessible(bool $accessible): self
-    {
-        if ($this->typeInstance->isDirectlyAccessible() !== $accessible) {
-            throw TypeRetrievalAccessException::typeExistsButNotDirectlyAccessible($this->identifier);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    public function referencable(bool $referencable): self
-    {
-        if ($this->typeInstance->isReferencable() !== $referencable) {
-            throw TypeRetrievalAccessException::typeExistsButNotReferencable($this->identifier);
-        }
-
-        return $this;
-    }
-
-    public function availableOrNull(bool $available)
-    {
-        if ($this->typeInstance->isAvailable() !== $available) {
-            return new EmptyTypeRequirement($this->typeInstance, $this->identifier);
-        }
-
-        return $this;
-    }
-
-    public function directlyAccessibleOrNull(bool $accessible)
-    {
-        if ($this->typeInstance->isDirectlyAccessible() !== $accessible) {
-            return new EmptyTypeRequirement($this->typeInstance, $this->identifier);
-        }
-
-        return $this;
-    }
-
-    public function referencableOrNull(bool $referencable)
-    {
-        if ($this->typeInstance->isReferencable() !== $referencable) {
-            return new EmptyTypeRequirement($this->typeInstance, $this->identifier);
-        }
-
-        return $this;
+        return $self;
     }
 
     /**
      * @return TType
+     *
+     * @throws TypeRetrievalAccessException
      */
-    public function getTypeInstance(): TypeInterface
+    public function getInstanceOrThrow(): TypeInterface
     {
-        return $this->typeInstance;
+        if (null === $this->typedInstance) {
+            throw TypeRetrievalAccessException::notPresent($this->identifier, $this->problems);
+        }
+
+        return $this->typedInstance;
     }
 
-    public function getTypeInstanceOrNull(): ?TypeInterface
+    /**
+     * @return TType|null
+     */
+    public function getInstanceOrNull(): ?TypeInterface
     {
-        return $this->typeInstance;
+        return $this->typedInstance;
+    }
+
+    public function isPresent(): bool
+    {
+        return null !== $this->typedInstance;
+    }
+
+    /**
+     * @param non-empty-string $value
+     *
+     * @return list<non-empty-string>
+     */
+    private function addProblem(string $value): array
+    {
+        $problems = $this->problems;
+        if (!in_array($value, $problems, true)) {
+            $problems[] = $value;
+        }
+
+        return $problems;
     }
 }

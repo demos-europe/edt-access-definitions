@@ -10,6 +10,7 @@ use EDT\Querying\Utilities\ConditionEvaluator;
 use EDT\Querying\Utilities\Sorter;
 use EDT\Querying\Utilities\TableJoiner;
 use EDT\Wrapping\Contracts\AccessException;
+use EDT\Wrapping\Contracts\Types\ExposableRelationshipTypeInterface;
 use EDT\Wrapping\Contracts\Types\FilterableTypeInterface;
 use EDT\Wrapping\Contracts\Types\IdentifiableTypeInterface;
 use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
@@ -228,26 +229,34 @@ class WrapperArrayFactoryTest extends ModelBasedTest
 
     /**
      * When {@link TypeInterface::getAccessCondition()} is processed the paths must not be
-     * checked against {@link TypeInterface::isAvailable()}. Otherwise a user may request
+     * checked against {@link ExposableRelationshipTypeInterface::isExposedAsRelationship()}.
+     * Otherwise, a user may request
      * data without provoking any violation and still get an exception because an internal
      * check in {@link TypeInterface::getAccessCondition()} accessed a {@link TypeInterface type}
      * he doesn't have access to.
      *
-     * Like with the skipped check for
-     * {@link ReadableTypeInterface::getReadableProperties()} we expect the developer to know
+     * As with the skipped {@link ReadableTypeInterface::getReadableProperties()} check
+     * we expect the developer to know
      * what he does when implementing {@link TypeInterface::getAccessCondition()}.
+     *
+     * @throws \ReflectionException
      */
-    public function testInternalIsAvailable(): void
+    public function testInternalIsExposedRelationship(): void
     {
-        // Set the return of isAvailable to `false` to simulate being able to access
+        // Set the return of `isExposedAsRelationship` to `false` to simulate being able to access
         // AuthorType but not BookType.
-        $bookType = $this->typeProvider->requestType(BookType::class)->getTypeInstance();
+        $bookType = $this->typeProvider->requestType(BookType::class)
+            ->instanceOf(BookType::class)
+            ->exposedAsRelationship()
+            ->getInstanceOrThrow();
         $bookTypeReflection = new ReflectionClass($bookType);
-        $property = $bookTypeReflection->getProperty('available');
+        $property = $bookTypeReflection->getProperty('exposedAsRelationship');
         $property->setAccessible(true);
         $property->setValue($bookType, false);
-        $type = $this->typeProvider->requestType(BookType::class)->getTypeInstance();
-        self::assertFalse($type->isAvailable());
+
+        /** @var BookType $type */
+        $type = $this->typeProvider->requestType(BookType::class)->getInstanceOrThrow();
+        self::assertFalse($type->isExposedAsRelationship());
 
         // When fetching the AuthorType::getAccessCondition method is automatically executed, in which
         // a path uses the BookType. This automatic check must not fail due to missing availability
@@ -279,10 +288,6 @@ class WrapperArrayFactoryTest extends ModelBasedTest
 
     private function listEntities(FilterableTypeInterface $type, array $conditions): array
     {
-        if (!$type->isAvailable()) {
-            throw AccessException::typeNotAvailable($type);
-        }
-
         $this->schemaPathProcessor->mapFilterConditions($type, $conditions);
         $conditions[] = $this->schemaPathProcessor->processAccessCondition($type);
 

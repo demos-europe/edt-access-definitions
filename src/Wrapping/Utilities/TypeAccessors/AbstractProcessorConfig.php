@@ -47,22 +47,6 @@ abstract class AbstractProcessorConfig
     }
 
     /**
-     * If the given property name is just an alias for a different path, then
-     * that path will be returned as array. Otherwise, an array containing only the given
-     * property name will be returned.
-     *
-     * @param non-empty-string $propertyName
-     *
-     * @return non-empty-list<non-empty-string>
-     */
-    public function getDeAliasedPath(TypeInterface $type, string $propertyName): array
-    {
-        $aliases = $type->getAliases();
-
-        return $aliases[$propertyName] ?? [$propertyName];
-    }
-
-    /**
      * Get actually available properties of the given {@link TypeInterface type}.
      *
      * @param TType $type

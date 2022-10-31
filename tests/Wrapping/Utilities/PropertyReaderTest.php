@@ -48,7 +48,6 @@ class PropertyReaderTest extends ModelBasedTest
             $conditionEvaluator,
             $sorter
         );
-        /** @var Person $author */
         $author = $this->authors['phen'];
 
         $value = $propertyReader->determineRelationshipValue($this->authorType, $author);
@@ -66,7 +65,6 @@ class PropertyReaderTest extends ModelBasedTest
             $conditionEvaluator,
             $sorter
         );
-        /** @var Person $author */
         $author = $this->authors['tolkien'];
 
         $value = $propertyReader->determineRelationshipValue($this->authorType, $author);

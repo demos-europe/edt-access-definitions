@@ -24,21 +24,6 @@ class BirthType implements TypeInterface
         return Birth::class;
     }
 
-    public function isAvailable(): bool
-    {
-        return true;
-    }
-
-    public function isReferencable(): bool
-    {
-        return true;
-    }
-
-    public function isDirectlyAccessible(): bool
-    {
-        return true;
-    }
-
     public function getAccessCondition(): PathsBasedInterface
     {
         return $this->conditionFactory->true();

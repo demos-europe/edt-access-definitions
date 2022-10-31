@@ -48,18 +48,6 @@ class PrefilledTypeProvider extends AbstractTypeProvider
     }
 
     /**
-     * @return array<non-empty-string, TypeInterface<TCondition, TSorting, object>>
-     */
-    public function getAllAvailableTypes(): array
-    {
-        return array_filter(
-            $this->typesByIdentifier,
-            [$this, 'isTypeAvailable'],
-            ARRAY_FILTER_USE_KEY
-        );
-    }
-
-    /**
      * Returns the identifier to use for the given type. Defaults to its fully qualified class name if not overridden.
      * @return non-empty-string
      */
