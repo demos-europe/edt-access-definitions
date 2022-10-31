@@ -13,10 +13,10 @@ use EDT\Wrapping\Contracts\Types\FilterableTypeInterface;
 use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 use EDT\Wrapping\Contracts\Types\SortableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
-use EDT\Wrapping\Utilities\TypeAccessors\ExternFilterableTypeAccessor;
-use EDT\Wrapping\Utilities\TypeAccessors\ExternReadableTypeAccessor;
-use EDT\Wrapping\Utilities\TypeAccessors\ExternSortableTypeAccessor;
-use EDT\Wrapping\Utilities\TypeAccessors\InternTypeAccessor;
+use EDT\Wrapping\Utilities\TypeAccessors\ExternFilterableProcessorConfig;
+use EDT\Wrapping\Utilities\TypeAccessors\ExternReadableProcessorConfig;
+use EDT\Wrapping\Utilities\TypeAccessors\ExternSortableProcessorConfig;
+use EDT\Wrapping\Utilities\TypeAccessors\InternProcessorConfig;
 
 /**
  * Follows {@link PropertyPathAccessInterface} instances to check if access is
@@ -52,11 +52,9 @@ class SchemaPathProcessor
      */
     public function mapFilterConditions(FilterableTypeInterface $type, array $conditions): void
     {
-        $typeAccessor = new ExternFilterableTypeAccessor($this->typeProvider);
-        $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($typeAccessor);
-        foreach ($conditions as $condition) {
-           $processor->processPropertyPaths($condition, $type);
-        }
+        $processorConfig = new ExternFilterableProcessorConfig($this->typeProvider, $type);
+        $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($processorConfig);
+        array_map([$processor, 'processPropertyPaths'], $conditions);
     }
 
     /**
@@ -73,11 +71,9 @@ class SchemaPathProcessor
      */
     public function mapSorting(SortableTypeInterface $type, array $sortMethods): void
     {
-        $typeAccessor = new ExternSortableTypeAccessor($this->typeProvider);
-        $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($typeAccessor);
-        foreach ($sortMethods as $sortMethod) {
-            $processor->processPropertyPaths($sortMethod, $type);
-        }
+        $processorConfig = new ExternSortableProcessorConfig($this->typeProvider, $type);
+        $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($processorConfig);
+        array_map([$processor, 'processPropertyPaths'], $sortMethods);
     }
 
     /**
@@ -89,8 +85,8 @@ class SchemaPathProcessor
      */
     public function mapExternReadablePath(ReadableTypeInterface $type, array $path, bool $allowAttribute): array
     {
-        $typeAccessor = new ExternReadableTypeAccessor($this->typeProvider, $allowAttribute);
-        $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($typeAccessor);
+        $processorConfig = new ExternReadableProcessorConfig($this->typeProvider, $type, $allowAttribute);
+        $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($processorConfig);
         try {
             return $processor->processPropertyPath($type, [], ...$path);
         } catch (PropertyAccessException $exception) {
@@ -116,11 +112,13 @@ class SchemaPathProcessor
     public function processDefaultSortMethods(TypeInterface $type): array
     {
         $sortMethods = $type->getDefaultSortMethods();
-        $typeAccessor = new InternTypeAccessor($this->typeProvider);
-        $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($typeAccessor);
-        foreach ($sortMethods as $sortMethod) {
-            $processor->processPropertyPaths($sortMethod, $type);
+        if ([] === $sortMethods) {
+            return [];
         }
+
+        $processorConfig = new InternProcessorConfig($this->typeProvider, $type);
+        $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($processorConfig);
+        array_map([$processor, 'processPropertyPaths'], $sortMethods);
 
         return $sortMethods;
     }
@@ -144,9 +142,9 @@ class SchemaPathProcessor
     public function processAccessCondition(TypeInterface $type): PathsBasedInterface
     {
         $condition = $type->getAccessCondition();
-        $typeAccessor = new InternTypeAccessor($this->typeProvider);
-        $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($typeAccessor);
-        $processor->processPropertyPaths($condition, $type);
+        $processorConfig = new InternProcessorConfig($this->typeProvider, $type);
+        $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($processorConfig);
+        $processor->processPropertyPaths($condition);
 
         return $condition;
     }

@@ -13,7 +13,7 @@ use EDT\Wrapping\Contracts\PropertyAccessException;
 use EDT\Wrapping\Contracts\RelationshipAccessException;
 use EDT\Wrapping\Contracts\TypeRetrievalAccessException;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
-use EDT\Wrapping\Utilities\TypeAccessors\AbstractTypeAccessor;
+use EDT\Wrapping\Utilities\TypeAccessors\AbstractProcessorConfig;
 use InvalidArgumentException;
 use function array_key_exists;
 
@@ -28,16 +28,16 @@ use function array_key_exists;
 class PropertyPathProcessor
 {
     /**
-     * @var AbstractTypeAccessor<TType>
+     * @var AbstractProcessorConfig<TType>
      */
-    private AbstractTypeAccessor $typeAccessor;
+    private AbstractProcessorConfig $processorConfig;
 
     /**
-     * @param AbstractTypeAccessor<TType> $typeAccessor
+     * @param AbstractProcessorConfig<TType> $processorConfig
      */
-    public function __construct(AbstractTypeAccessor $typeAccessor)
+    public function __construct(AbstractProcessorConfig $processorConfig)
     {
-        $this->typeAccessor = $typeAccessor;
+        $this->processorConfig = $processorConfig;
     }
 
     /**
@@ -47,26 +47,25 @@ class PropertyPathProcessor
      * Executes {@link PropertyPathProcessor::processPropertyPath} on all given paths. Will throw an
      * exception if the processing of any of the given paths fails.
      *
-     * @param TType $type
-     *
      * @throws AccessException Thrown if any of the given paths can not be used because the path itself is not available (not made present via $getProperties) or the Type it leads to is not accessible (e.g. {@link TypeInterface::isAvailable()} returned `false`).
      * @throws PathException Thrown if {@link TypeInterface::getAliases()} returned an invalid path.
      */
-    public function processPropertyPaths(PathsBasedInterface $pathsBased, TypeInterface $type): void
+    public function processPropertyPaths(PathsBasedInterface $pathsBased): void
     {
         // If the path is `book.author.name` and `author` needs mapping but `book` does not
         // then we get the author relationship here and map it to something like
         // `book.authoredBy.fullName` or `book.author.meta.name` depending on the
         // schema of the object class backing the type.
-        array_map(function (PropertyPathAccessInterface $propertyPath) use ($type): void {
+        array_map(function (PropertyPathAccessInterface $propertyPath): void {
             $path = $propertyPath->getAsNames();
             if ([] === $path) {
                 throw new InvalidArgumentException('Property path must not be empty.');
             }
+            $rootType = $this->processorConfig->getRootType();
             try {
-                $path = $this->processPropertyPath($type, [], ...$path);
+                $path = $this->processPropertyPath($rootType, [], ...$path);
             } catch (PropertyAccessException $exception) {
-                throw PropertyAccessException::pathDenied($type, $exception, $path);
+                throw PropertyAccessException::pathDenied($rootType, $exception, $path);
             }
             $propertyPath->setPath($path);
         }, PathInfo::getPropertyPaths($pathsBased));
@@ -75,21 +74,21 @@ class PropertyPathProcessor
     /**
      * Follows the given property path recursively and rewrites it if necessary by appending the rewritten path to the given array.
      *
-     * @param TType $type
+     * @param TType                  $currentType
      * @param list<non-empty-string> $newPath is filled with the rewritten path during the recursive execution of this method
-     * @param non-empty-string $currentPathPart
-     * @param non-empty-string ...$remainingParts
+     * @param non-empty-string       $currentPathPart
+     * @param non-empty-string       ...$remainingParts
      *
      * @return non-empty-list<non-empty-string> A list of property names denoting the processed path to a specific property.
      *
      * @throws PropertyAccessException if the property of the $currentPathPart or any of the $remainingParts is not available for some reason
      */
-    public function processPropertyPath(TypeInterface $type, array $newPath, string $currentPathPart, string ...$remainingParts): array
+    public function processPropertyPath(TypeInterface $currentType, array $newPath, string $currentPathPart, string ...$remainingParts): array
     {
-        $propertyTypeIdentifier = $this->getPropertyTypeIdentifier($type, $currentPathPart);
+        $propertyTypeIdentifier = $this->getPropertyTypeIdentifier($currentType, $currentPathPart);
 
         // Check if the current type needs mapping to the backing object schema, if so, apply it.
-        $pathToAdd = $this->typeAccessor->getDeAliasedPath($type, $currentPathPart);
+        $pathToAdd = $this->processorConfig->getDeAliasedPath($currentType, $currentPathPart);
         // append the de-aliased path to the processed path
         $newPath = $this->appendDeAliasedPath($newPath, $pathToAdd);
 
@@ -98,7 +97,7 @@ class PropertyPathProcessor
                 // even if we don't need the $nextTarget here because there may be no
                 // remaining segments, we still check with this call if the current
                 // relationship is valid in this path
-                $nextTarget = $this->typeAccessor->getType($propertyTypeIdentifier);
+                $nextTarget = $this->processorConfig->getRelationshipType($propertyTypeIdentifier);
 
                 if ([] === $remainingParts) {
                     // if no parts remain after the current relationship are done and don't need to follow the $nextTarget
@@ -108,7 +107,7 @@ class PropertyPathProcessor
                 // otherwise, we continue the mapping recursively
                 return $this->processPropertyPath($nextTarget, $newPath, ...$remainingParts);
             } catch (TypeRetrievalAccessException $exception) {
-                throw RelationshipAccessException::relationshipTypeAccess($type, $currentPathPart, $exception);
+                throw RelationshipAccessException::relationshipTypeAccess($currentType, $currentPathPart, $exception);
             }
         }
 
@@ -119,7 +118,7 @@ class PropertyPathProcessor
 
         // the current segment is an attribute followed by more segments,
         // thus we throw an exception
-        throw PropertyAccessException::nonRelationship($currentPathPart, $type);
+        throw PropertyAccessException::nonRelationship($currentPathPart, $currentType);
     }
 
     /**
@@ -130,7 +129,7 @@ class PropertyPathProcessor
      */
     protected function getPropertyTypeIdentifier(TypeInterface $type, string $pathSegment): ?string
     {
-        $availableProperties = $this->typeAccessor->getProperties($type);
+        $availableProperties = $this->processorConfig->getProperties($type);
         // abort if the (originally accessed/non-de-aliased) property is not available
         if (!array_key_exists($pathSegment, $availableProperties)) {
             $availablePropertyNames = array_keys($availableProperties);

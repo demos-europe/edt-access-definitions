@@ -10,18 +10,19 @@ use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 
 /**
- * @template-extends AbstractTypeAccessor<ReadableTypeInterface<PathsBasedInterface, PathsBasedInterface, object>>
+ * @template-extends AbstractProcessorConfig<ReadableTypeInterface<PathsBasedInterface, PathsBasedInterface, object>>
  */
-class ExternReadableTypeAccessor extends AbstractTypeAccessor
+class ExternReadableProcessorConfig extends AbstractProcessorConfig
 {
     private bool $allowAttribute;
 
     /**
-     * @param TypeProviderInterface<PathsBasedInterface, PathsBasedInterface> $typeProvider
+     * @param TypeProviderInterface<PathsBasedInterface, PathsBasedInterface>         $typeProvider
+     * @param ReadableTypeInterface<PathsBasedInterface, PathsBasedInterface, object> $rootType
      */
-    public function __construct(TypeProviderInterface $typeProvider, bool $allowAttribute)
+    public function __construct(TypeProviderInterface $typeProvider, ReadableTypeInterface $rootType, bool $allowAttribute)
     {
-        parent::__construct($typeProvider);
+        parent::__construct($typeProvider, $rootType);
         $this->allowAttribute = $allowAttribute;
     }
 
@@ -38,7 +39,7 @@ class ExternReadableTypeAccessor extends AbstractTypeAccessor
         return $properties;
     }
 
-    public function getType(string $typeIdentifier): TypeInterface
+    public function getRelationshipType(string $typeIdentifier): TypeInterface
     {
         return $this->typeProvider->requestType($typeIdentifier)
             ->instanceOf(ReadableTypeInterface::class)

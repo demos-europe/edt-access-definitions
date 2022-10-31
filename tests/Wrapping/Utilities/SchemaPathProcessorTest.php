@@ -53,7 +53,7 @@ class SchemaPathProcessorTest extends ModelBasedTest
             null,
             '',
             PropertyPathAccessInterface::UNPACK_RECURSIVE,
-            'foo'
+            ['foo']
         ) extends PropertyPath {
             public function getAsNames(): array
             {

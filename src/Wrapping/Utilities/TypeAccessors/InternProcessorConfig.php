@@ -8,16 +8,16 @@ use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 
 /**
- * @template-extends AbstractTypeAccessor<TypeInterface<PathsBasedInterface, PathsBasedInterface, object>>
+ * @template-extends AbstractProcessorConfig<TypeInterface<PathsBasedInterface, PathsBasedInterface, object>>
  */
-class InternTypeAccessor extends AbstractTypeAccessor
+class InternProcessorConfig extends AbstractProcessorConfig
 {
     public function getProperties(TypeInterface $type): array
     {
         return $type->getInternalProperties();
     }
 
-    public function getType(string $typeIdentifier): TypeInterface
+    public function getRelationshipType(string $typeIdentifier): TypeInterface
     {
         return $this->typeProvider->requestType($typeIdentifier)->getTypeInstance();
     }

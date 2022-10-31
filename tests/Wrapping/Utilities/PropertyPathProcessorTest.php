@@ -9,9 +9,8 @@ use EDT\Wrapping\Contracts\PropertyAccessException;
 use EDT\Wrapping\Contracts\RelationshipAccessException;
 use EDT\Wrapping\TypeProviders\PrefilledTypeProvider;
 use EDT\Wrapping\Utilities\PropertyPathProcessor;
-use EDT\Wrapping\Utilities\TypeAccessors\ExternFilterableTypeAccessor;
-use EDT\Wrapping\Utilities\TypeAccessors\ExternReadableTypeAccessor;
-use EDT\Wrapping\Utilities\TypeAccessors\ExternSortableTypeAccessor;
+use EDT\Wrapping\Utilities\TypeAccessors\ExternReadableProcessorConfig;
+use EDT\Wrapping\Utilities\TypeAccessors\ExternSortableProcessorConfig;
 use PHPUnit\Framework\TestCase;
 use Tests\data\Types\AuthorType;
 use Tests\data\Types\BirthType;
@@ -41,8 +40,8 @@ class PropertyPathProcessorTest extends TestCase
     public function testProcessPropertyPathWithRelationshipAfterAttribute(): void
     {
         $this->expectException(PropertyAccessException::class);
-        $typeAccessor = new ExternSortableTypeAccessor($this->typeProvider);
-        $propertyPathProcessor = new PropertyPathProcessor($typeAccessor);
+        $processorConfig = new ExternSortableProcessorConfig($this->typeProvider, $this->bookType);
+        $propertyPathProcessor = new PropertyPathProcessor($processorConfig);
         $propertyPathProcessor->processPropertyPath(
             $this->bookType,
             [],
@@ -54,8 +53,8 @@ class PropertyPathProcessorTest extends TestCase
     public function testProcessPropertyPathWithNonAvailableType(): void
     {
         $this->expectException(RelationshipAccessException::class);
-        $typeAccessor = new ExternReadableTypeAccessor($this->typeProvider, true);
-        $propertyPathProcessor = new PropertyPathProcessor($typeAccessor);
+        $processorConfig = new ExternReadableProcessorConfig($this->typeProvider, $this->authorType, true);
+        $propertyPathProcessor = new PropertyPathProcessor($processorConfig);
         $propertyPathProcessor->processPropertyPath(
             $this->authorType,
             [],
@@ -65,8 +64,8 @@ class PropertyPathProcessorTest extends TestCase
 
     public function testProcessPropertyPathWithAllowedAttribute(): void
     {
-        $typeAccessor = new ExternReadableTypeAccessor($this->typeProvider, true);
-        $propertyPathProcessor = new PropertyPathProcessor($typeAccessor);
+        $processorConfig = new ExternReadableProcessorConfig($this->typeProvider, $this->authorType, true);
+        $propertyPathProcessor = new PropertyPathProcessor($processorConfig);
         $processedPath = $propertyPathProcessor->processPropertyPath(
             $this->authorType,
             [],
@@ -79,8 +78,8 @@ class PropertyPathProcessorTest extends TestCase
     public function testProcessPropertyPathWithNonAllowedAttribute(): void
     {
         $this->expectException(PropertyAccessException::class);
-        $typeAccessor = new ExternReadableTypeAccessor($this->typeProvider, false);
-        $propertyPathProcessor = new PropertyPathProcessor($typeAccessor);
+        $processorConfig = new ExternReadableProcessorConfig($this->typeProvider, $this->authorType, false);
+        $propertyPathProcessor = new PropertyPathProcessor($processorConfig);
         $propertyPathProcessor->processPropertyPath(
             $this->authorType,
             [],

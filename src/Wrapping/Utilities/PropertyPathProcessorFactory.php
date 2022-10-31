@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Utilities;
 
-use EDT\Wrapping\Utilities\TypeAccessors\AbstractTypeAccessor;
+use EDT\Wrapping\Utilities\TypeAccessors\AbstractProcessorConfig;
 
 class PropertyPathProcessorFactory
 {
     /**
      * @template TType of \EDT\Wrapping\Contracts\Types\TypeInterface<\EDT\Querying\Contracts\PathsBasedInterface, \EDT\Querying\Contracts\PathsBasedInterface, object>
      *
-     * @param AbstractTypeAccessor<TType> $typeAccessor
+     * @param AbstractProcessorConfig<TType> $processorConfig
      *
      * @return PropertyPathProcessor<TType>
      */
-    public function createPropertyPathProcessor(AbstractTypeAccessor $typeAccessor): PropertyPathProcessor
+    public function createPropertyPathProcessor(AbstractProcessorConfig $processorConfig): PropertyPathProcessor
     {
-        return new PropertyPathProcessor($typeAccessor);
+        return new PropertyPathProcessor($processorConfig);
     }
 }

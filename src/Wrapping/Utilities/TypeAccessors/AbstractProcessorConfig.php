@@ -11,12 +11,12 @@ use EDT\Wrapping\Contracts\Types\TypeInterface;
 
 /**
  * Implementing this class allows to limit the access to properties by different
- * criteria, e.g. the {@link ExternFilterableTypeAccessor} will only allow access
+ * criteria, e.g. the {@link ExternFilterableProcessorConfig} will only allow access
  * to filterable properties and types.
  *
  * @template TType of TypeInterface<\EDT\Querying\Contracts\PathsBasedInterface, \EDT\Querying\Contracts\PathsBasedInterface, object>
  */
-abstract class AbstractTypeAccessor
+abstract class AbstractProcessorConfig
 {
     /**
      * @var TypeProviderInterface<PathsBasedInterface, PathsBasedInterface>
@@ -24,11 +24,26 @@ abstract class AbstractTypeAccessor
     protected TypeProviderInterface $typeProvider;
 
     /**
-     * @param TypeProviderInterface<PathsBasedInterface, PathsBasedInterface> $typeProvider
+     * @var TType
      */
-    public function __construct(TypeProviderInterface $typeProvider)
+    private TypeInterface $rootType;
+
+    /**
+     * @param TypeProviderInterface<PathsBasedInterface, PathsBasedInterface> $typeProvider
+     * @param TType                                                           $rootType
+     */
+    public function __construct(TypeProviderInterface $typeProvider, TypeInterface $rootType)
     {
         $this->typeProvider = $typeProvider;
+        $this->rootType = $rootType;
+    }
+
+    /**
+     * @return TType
+     */
+    public function getRootType(): TypeInterface
+    {
+        return $this->rootType;
     }
 
     /**
@@ -63,5 +78,5 @@ abstract class AbstractTypeAccessor
      *
      * @throws TypeRetrievalAccessException
      */
-    abstract public function getType(string $typeIdentifier): TypeInterface;
+    abstract public function getRelationshipType(string $typeIdentifier): TypeInterface;
 }

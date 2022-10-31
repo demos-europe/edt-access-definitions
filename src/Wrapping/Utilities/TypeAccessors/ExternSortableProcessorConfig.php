@@ -9,19 +9,20 @@ use EDT\Wrapping\Contracts\Types\SortableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 
 /**
- * @template-extends AbstractTypeAccessor<SortableTypeInterface<PathsBasedInterface, PathsBasedInterface, object>>
+ * @template-extends AbstractProcessorConfig<SortableTypeInterface<PathsBasedInterface, PathsBasedInterface, object>>
  */
-class InternSortableTypeAccessor extends AbstractTypeAccessor
+class ExternSortableProcessorConfig extends AbstractProcessorConfig
 {
     public function getProperties(TypeInterface $type): array
     {
-        return $type->getInternalProperties();
+        return $type->getSortableProperties();
     }
 
-    public function getType(string $typeIdentifier): TypeInterface
+    public function getRelationshipType(string $typeIdentifier): TypeInterface
     {
         return $this->typeProvider->requestType($typeIdentifier)
             ->instanceOf(SortableTypeInterface::class)
+            ->available(true)
             ->getTypeInstance();
     }
 }
