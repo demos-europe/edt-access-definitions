@@ -49,37 +49,25 @@ class WrapperObject
     /**
      * @var TEntity
      */
-    private $object;
+    private object $object;
 
     /**
      * @var TypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity>
      */
-    private $type;
+    private TypeInterface $type;
 
     /**
      * @var TypeAccessor<FunctionInterface<bool>, SortMethodInterface>
      */
-    private $typeAccessor;
+    private TypeAccessor $typeAccessor;
 
-    /**
-     * @var PropertyAccessorInterface
-     */
-    private $propertyAccessor;
+    private PropertyAccessorInterface $propertyAccessor;
 
-    /**
-     * @var PropertyReader
-     */
-    private $propertyReader;
+    private PropertyReader $propertyReader;
 
-    /**
-     * @var ConditionEvaluator
-     */
-    private $conditionEvaluator;
+    private ConditionEvaluator $conditionEvaluator;
 
-    /**
-     * @var WrapperObjectFactory
-     */
-    private $wrapperFactory;
+    private WrapperObjectFactory $wrapperFactory;
 
     /**
      * @param TEntity                                                              $object
@@ -190,9 +178,10 @@ class WrapperObject
 
         if (is_array($entityOrEntities)) {
             // wrap the entities
-            return array_map(function (object $objectToWrap) use ($relationship) {
-                return $this->wrapperFactory->createWrapper($objectToWrap, $relationship);
-            }, $entityOrEntities);
+            return array_map(
+                fn (object $objectToWrap) => $this->wrapperFactory->createWrapper($objectToWrap, $relationship),
+                $entityOrEntities
+            );
         }
 
         return $this->wrapperFactory->createWrapper($entityOrEntities, $relationship);
@@ -279,7 +268,8 @@ class WrapperObject
     /**
      * Set the value into the given object
      *
-     * @param mixed|null $value
+     * @param non-empty-string $propertyName
+     * @param mixed|null       $value
      */
     protected function setUnrestricted(string $propertyName, object $target, $value): void
     {

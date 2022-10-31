@@ -16,12 +16,12 @@ class EmptyTypeRequirement implements OptionalTypeRequirementInterface
     /**
      * @var non-empty-string
      */
-    protected $identifier;
+    protected string $identifier;
 
     /**
-     * @var TType&TypeInterface
+     * @var TType
      */
-    protected $initialType;
+    protected TypeInterface $initialType;
 
     /**
      * @param non-empty-string $identifier

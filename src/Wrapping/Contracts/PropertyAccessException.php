@@ -14,7 +14,7 @@ class PropertyAccessException extends AccessException
     /**
      * @var non-empty-string
      */
-    protected $propertyName;
+    protected string $propertyName;
 
     /**
      * @param non-empty-string $property

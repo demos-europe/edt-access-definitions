@@ -24,25 +24,19 @@ use function is_array;
  */
 class WrapperArrayFactory implements WrapperFactoryInterface
 {
-    /**
-     * @var PropertyAccessorInterface
-     */
-    private $propertyAccessor;
+    private PropertyAccessorInterface $propertyAccessor;
 
     /**
      * @var int<0, max>
      */
-    private $depth;
+    private int $depth;
 
     /**
      * @var TypeAccessor<FunctionInterface<bool>, SortMethodInterface>
      */
-    private $typeAccessor;
+    private TypeAccessor $typeAccessor;
 
-    /**
-     * @var PropertyReader
-     */
-    private $propertyReader;
+    private PropertyReader $propertyReader;
 
     /**
      * @param TypeAccessor<FunctionInterface<bool>, SortMethodInterface> $typeAccessor
@@ -149,9 +143,10 @@ class WrapperArrayFactory implements WrapperFactoryInterface
                 $value = null;
             } elseif (is_array($entityOrEntities)) {
                 // wrap the entities
-                $value = array_map(static function (object $objectToWrap) use ($wrapperFactory, $value) {
-                    return $wrapperFactory->createWrapper($objectToWrap, $value);
-                }, $entityOrEntities);
+                $value = array_map(
+                    static fn (object $objectToWrap) => $wrapperFactory->createWrapper($objectToWrap, $value),
+                    $entityOrEntities
+                );
             } else {
                 $value = $wrapperFactory->createWrapper($entityOrEntities, $value);
             }

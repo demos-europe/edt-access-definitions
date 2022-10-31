@@ -21,7 +21,7 @@ abstract class AbstractTypeAccessor
     /**
      * @var TypeProviderInterface<PathsBasedInterface, PathsBasedInterface>
      */
-    protected $typeProvider;
+    protected TypeProviderInterface $typeProvider;
 
     /**
      * @param TypeProviderInterface<PathsBasedInterface, PathsBasedInterface> $typeProvider

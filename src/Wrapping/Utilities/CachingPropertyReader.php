@@ -17,7 +17,7 @@ class CachingPropertyReader extends PropertyReader
     /**
      * @var array<non-empty-string, mixed>
      */
-    private $valueCache = [];
+    private array $valueCache = [];
 
     public function determineRelationshipValue(ReadableTypeInterface $type, $valueOrValues)
     {

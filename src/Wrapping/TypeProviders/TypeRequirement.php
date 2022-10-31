@@ -15,20 +15,20 @@ use EDT\Wrapping\Contracts\Types\TypeInterface;
 class TypeRequirement implements OptionalTypeRequirementInterface
 {
     /**
-     * @var TType&TypeInterface
+     * @var TType
      */
-    private $typeInstance;
+    private TypeInterface $typeInstance;
 
     /**
      * @var non-empty-string
      */
-    private $identifier;
+    private string $identifier;
 
     /**
-     * @param TType                $type
+     * @param TType            $type
      * @param non-empty-string $identifier
      */
-    public function __construct(object $type, string $identifier)
+    public function __construct(TypeInterface $type, string $identifier)
     {
         $this->typeInstance = $type;
         $this->identifier = $identifier;

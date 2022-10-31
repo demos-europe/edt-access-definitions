@@ -14,10 +14,7 @@ use EDT\Wrapping\Contracts\Types\TypeInterface;
  */
 class ExternReadableTypeAccessor extends AbstractTypeAccessor
 {
-    /**
-     * @var bool
-     */
-    private $allowAttribute;
+    private bool $allowAttribute;
 
     /**
      * @param TypeProviderInterface<PathsBasedInterface, PathsBasedInterface> $typeProvider
@@ -34,9 +31,7 @@ class ExternReadableTypeAccessor extends AbstractTypeAccessor
         if (!$this->allowAttribute) {
             $properties = array_filter(
                 $properties,
-                static function (?string $property): bool {
-                    return null !== $property;
-                }
+                static fn (?string $property): bool => null !== $property
             );
         }
 

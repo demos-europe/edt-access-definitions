@@ -10,9 +10,6 @@ use EDT\Querying\PropertyAccessors\ReflectionPropertyAccessor;
 use EDT\Querying\Utilities\ConditionEvaluator;
 use EDT\Querying\Utilities\Sorter;
 use EDT\Querying\Utilities\TableJoiner;
-use EDT\Wrapping\Contracts\TypeProviderInterface;
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
-use EDT\Wrapping\Contracts\WrapperFactoryInterface;
 use EDT\Wrapping\TypeProviders\PrefilledTypeProvider;
 use EDT\Wrapping\Utilities\PropertyPathProcessorFactory;
 use EDT\Wrapping\Utilities\PropertyReader;
@@ -24,25 +21,11 @@ use Tests\ModelBasedTest;
 
 class PropertyReaderTest extends ModelBasedTest
 {
-    /**
-     * @var AuthorType
-     */
-    private $authorType;
+    private AuthorType $authorType;
 
-    /**
-     * @var PropertyAccessorInterface
-     */
-    private $propertyAccessor;
+    private PropertyAccessorInterface $propertyAccessor;
 
-    /**
-     * @var TypeProviderInterface
-     */
-    private $typeProvider;
-
-    /**
-     * @var SchemaPathProcessor
-     */
-    private $schemaPathProcessor;
+    private SchemaPathProcessor $schemaPathProcessor;
 
     protected function setUp(): void
     {
@@ -51,11 +34,8 @@ class PropertyReaderTest extends ModelBasedTest
         $this->authorType = new AuthorType($conditionFactory);
         $bookType = new BookType($conditionFactory);
         $this->propertyAccessor = new ReflectionPropertyAccessor();
-        $this->typeProvider = new PrefilledTypeProvider([
-            $this->authorType,
-            $bookType,
-        ]);
-        $this->schemaPathProcessor = new SchemaPathProcessor(new PropertyPathProcessorFactory(), $this->typeProvider);
+        $typeProvider = new PrefilledTypeProvider([$this->authorType, $bookType]);
+        $this->schemaPathProcessor = new SchemaPathProcessor(new PropertyPathProcessorFactory(), $typeProvider);
     }
 
     public function testInternalConditionAliasWithoutAccess(): void

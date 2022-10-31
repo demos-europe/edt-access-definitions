@@ -30,7 +30,7 @@ class PropertyPathProcessor
     /**
      * @var AbstractTypeAccessor<TType>
      */
-    private $typeAccessor;
+    private AbstractTypeAccessor $typeAccessor;
 
     /**
      * @param AbstractTypeAccessor<TType> $typeAccessor

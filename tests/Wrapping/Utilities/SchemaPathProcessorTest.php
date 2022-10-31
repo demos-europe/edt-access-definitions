@@ -16,28 +16,15 @@ use EDT\Wrapping\Utilities\PropertyPathProcessorFactory;
 use EDT\Wrapping\Utilities\SchemaPathProcessor;
 use InvalidArgumentException;
 use Tests\data\Types\AuthorType;
-use Tests\data\Types\BirthType;
 use Tests\ModelBasedTest;
 
 class SchemaPathProcessorTest extends ModelBasedTest
 {
-    /**
-     * @var SchemaPathProcessor
-     */
-    private $schemaPathProcessor;
-    /**
-     * @var AuthorType
-     */
-    private $authorType;
-    /**
-     * @var PhpSortMethodFactory
-     */
-    private $sortMethodFactory;
+    private SchemaPathProcessor $schemaPathProcessor;
 
-    /**
-     * @var BirthType
-     */
-    private $birthType;
+    private AuthorType $authorType;
+
+    private PhpSortMethodFactory $sortMethodFactory;
 
     protected function setUp(): void
     {
@@ -45,10 +32,7 @@ class SchemaPathProcessorTest extends ModelBasedTest
         $conditionFactory = new PhpConditionFactory();
         $this->sortMethodFactory = new PhpSortMethodFactory();
         $this->authorType = new AuthorType($conditionFactory);
-        $this->birthType = new BirthType($conditionFactory);
-        $typeProvider = new PrefilledTypeProvider([
-            $this->authorType,
-        ]);
+        $typeProvider = new PrefilledTypeProvider([$this->authorType]);
         $this->schemaPathProcessor = new SchemaPathProcessor(new PropertyPathProcessorFactory(), $typeProvider);
     }
 

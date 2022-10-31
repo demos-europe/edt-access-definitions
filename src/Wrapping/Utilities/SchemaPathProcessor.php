@@ -28,12 +28,9 @@ class SchemaPathProcessor
     /**
      * @var TypeProviderInterface<PathsBasedInterface, PathsBasedInterface>
      */
-    private $typeProvider;
+    private TypeProviderInterface $typeProvider;
 
-    /**
-     * @var PropertyPathProcessorFactory
-     */
-    private $propertyPathProcessorFactory;
+    private PropertyPathProcessorFactory $propertyPathProcessorFactory;
 
     public function __construct(PropertyPathProcessorFactory $propertyPathProcessorFactory, TypeProviderInterface $typeProvider)
     {

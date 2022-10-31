@@ -20,12 +20,9 @@ use Tests\data\Model\Book;
  */
 class BookType implements ReadableTypeInterface, FilterableTypeInterface, SortableTypeInterface, IdentifiableTypeInterface
 {
-    private $available = true;
+    private bool $available = true;
 
-    /**
-     * @var PathsBasedConditionFactoryInterface
-     */
-    private $conditionFactory;
+    private PathsBasedConditionFactoryInterface $conditionFactory;
 
     public function __construct(PathsBasedConditionFactoryInterface $conditionFactory)
     {

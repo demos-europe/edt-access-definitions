@@ -21,10 +21,7 @@ use Tests\data\Model\Person;
  */
 class AuthorType implements ReadableTypeInterface, FilterableTypeInterface, SortableTypeInterface, IdentifiableTypeInterface, UpdatableTypeInterface
 {
-    /**
-     * @var PathsBasedConditionFactoryInterface
-     */
-    private $conditionFactory;
+    private PathsBasedConditionFactoryInterface $conditionFactory;
 
     public function __construct(PathsBasedConditionFactoryInterface $conditionFactory)
     {

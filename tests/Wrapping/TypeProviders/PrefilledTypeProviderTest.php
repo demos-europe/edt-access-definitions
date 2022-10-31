@@ -13,10 +13,7 @@ use Tests\data\Types\BookType;
 
 class PrefilledTypeProviderTest extends TestCase
 {
-    /**
-     * @var PrefilledTypeProvider
-     */
-    protected $typeProvider;
+    protected PrefilledTypeProvider $typeProvider;
 
     protected function setUp(): void
     {

@@ -24,14 +24,9 @@ use Tests\ModelBasedTest;
 
 class WrapperObjectFactoryTest extends ModelBasedTest
 {
-    /**
-     * @var AuthorType
-     */
-    private $authorType;
-    /**
-     * @var WrapperObjectFactory
-     */
-    private $factory;
+    private AuthorType $authorType;
+
+    private WrapperObjectFactory $factory;
 
     protected function setUp(): void
     {

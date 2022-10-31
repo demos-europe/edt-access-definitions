@@ -26,7 +26,7 @@ class TypeAccessor
     /**
      * @var TypeProviderInterface<TCondition, TSorting>
      */
-    private $typeProvider;
+    private TypeProviderInterface $typeProvider;
 
     /**
      * @param TypeProviderInterface<TCondition, TSorting> $typeProvider

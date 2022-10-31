@@ -22,7 +22,7 @@ interface SortableTypeInterface extends TypeInterface
      * at all. You may also want to allow more properties for sorting than you allowed for reading,
      * but be careful as this may allow guessing values of non-readable properties.
      *
-     * @return array<non-empty-string,non-empty-string|null> The keys in the returned array are the names of the
+     * @return array<non-empty-string, non-empty-string|null> The keys in the returned array are the names of the
      *                                   properties. Each value is the identifier of the target
      *                                   {@link TypeInterface} (by which it can be requested from your
      *                                   {@link TypeProviderInterface}), or `null` if the

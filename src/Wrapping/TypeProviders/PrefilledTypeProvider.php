@@ -26,7 +26,7 @@ class PrefilledTypeProvider extends AbstractTypeProvider
     /**
      * @var array<non-empty-string, TypeInterface<TCondition, TSorting, object>>
      */
-    protected $typesByIdentifier = [];
+    protected array $typesByIdentifier = [];
 
     /**
      * @param iterable<TypeInterface<TCondition, TSorting, object>> $types The types this instance is able to provide.

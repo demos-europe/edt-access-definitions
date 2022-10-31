@@ -11,10 +11,7 @@ use Tests\data\AdModel\Birth;
 
 class BirthType implements TypeInterface
 {
-    /**
-     * @var \EDT\ConditionFactory\PathsBasedConditionFactoryInterface
-     */
-    private $conditionFactory;
+    private PathsBasedConditionFactoryInterface $conditionFactory;
 
     public function __construct(PathsBasedConditionFactoryInterface $conditionFactory)
     {

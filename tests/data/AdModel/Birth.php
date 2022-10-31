@@ -6,30 +6,17 @@ namespace Tests\data\AdModel;
 
 class Birth
 {
-    /**
-     * @var string
-     */
-    private $country;
-    /**
-     * @var string|null
-     */
-    private $region;
-    /**
-     * @var string
-     */
-    private $locality;
-    /**
-     * @var int
-     */
-    private $day;
-    /**
-     * @var int
-     */
-    private $month;
-    /**
-     * @var int
-     */
-    private $year;
+    private string $country;
+
+    private ?string $region;
+
+    private string $locality;
+
+    private int $day;
+
+    private int $month;
+
+    private int $year;
 
     public function __construct(string $country, ?string $region, string $locality, int $y, int $m, int $d)
     {

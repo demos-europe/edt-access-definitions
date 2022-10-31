@@ -21,22 +21,13 @@ class WrapperObjectFactory implements WrapperFactoryInterface
     /**
      * @var TypeAccessor<FunctionInterface<bool>, SortMethodInterface>
      */
-    private $typeAccessor;
+    private TypeAccessor $typeAccessor;
 
-    /**
-     * @var PropertyAccessorInterface
-     */
-    private $propertyAccessor;
+    private PropertyAccessorInterface $propertyAccessor;
 
-    /**
-     * @var PropertyReader
-     */
-    private $propertyReader;
+    private PropertyReader $propertyReader;
 
-    /**
-     * @var ConditionEvaluator
-     */
-    private $conditionEvaluator;
+    private ConditionEvaluator $conditionEvaluator;
 
     /**
      * @param TypeAccessor<FunctionInterface<bool>, SortMethodInterface> $typeAccessor

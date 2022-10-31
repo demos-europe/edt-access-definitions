@@ -19,25 +19,11 @@ use Tests\data\Types\BookType;
 
 class PropertyPathProcessorTest extends TestCase
 {
-    /**
-     * @var BookType
-     */
-    private $bookType;
+    private BookType $bookType;
 
-    /**
-     * @var PropertyPathProcessor
-     */
-    private $propertyPathProcessor;
+    private AuthorType $authorType;
 
-    /**
-     * @var AuthorType
-     */
-    private $authorType;
-
-    /**
-     * @var PrefilledTypeProvider
-     */
-    private $typeProvider;
+    private PrefilledTypeProvider $typeProvider;
 
     protected function setUp(): void
     {

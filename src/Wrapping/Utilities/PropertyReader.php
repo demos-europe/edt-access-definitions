@@ -24,20 +24,11 @@ use function count;
  */
 class PropertyReader
 {
-    /**
-     * @var SchemaPathProcessor
-     */
-    private $schemaPathProcessor;
+    private SchemaPathProcessor $schemaPathProcessor;
 
-    /**
-     * @var ConditionEvaluator
-     */
-    private $conditionEvaluator;
+    private ConditionEvaluator $conditionEvaluator;
 
-    /**
-     * @var Sorter
-     */
-    private $sorter;
+    private Sorter $sorter;
 
     public function __construct(
         SchemaPathProcessor $schemaPathProcessor,
