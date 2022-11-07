@@ -42,48 +42,39 @@ class PropertyReader
     }
 
     /**
-     * If the given `$propertyValue` is iterable then we
-     * assume the relationship is a to-many. In this case every item in the iterable `$propertyValue`
-     * will be wrapped using the given {@link WrapperFactoryInterface} and the resulting array returned.
-     *
-     * If the given `$propertyValue` is not iterable then
-     * we assume the relationship is a to-one. In this case the given {@link WrapperFactoryInterface}
-     * will be used on the `$propertyValue` and the result returned.
+     * The given {@link WrapperFactoryInterface} will be used on the given `$value` and the result
+     * returned.
      *
      * The {@link WrapperFactoryInterface} will only be used on a value
      * if the {@link TypeInterface::getAccessCondition() access condition} of the given
-     * `$relationship` allows the access to the value. Otherwise, for a to-many relationship
-     * the value will be skipped (not wrapped or returned) and for a to-one relationship
-     * instead of the wrapped value `null` will be returned.
+     * `$relationshipType` allows the access to the value. Otherwise, instead of the wrapped value
+     * `null` will be returned.
      *
      * In case of a to-many relationship the entities will be sorted according to the definition
      * of {@link TypeInterface::getDefaultSortMethods()} of the relationship.
      *
      * @template TEntity of object
      *
-     * @param ReadableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity>&ExposableRelationshipTypeInterface $type
-     * @param TEntity|iterable<TEntity>|null                                               $valueOrValues
+     * @param ReadableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity>&ExposableRelationshipTypeInterface $relationshipType
+     * @param TEntity|null                                                                                                    $value
      *
-     * @return TEntity|list<TEntity>|null
+     * @return TEntity|null
      *
      * @throws PathException
-     * @throws PaginationException
-     * @throws SortException
      */
-    public function determineRelationshipValue(ReadableTypeInterface $type, $valueOrValues)
+    public function determineToOneRelationshipValue(ReadableTypeInterface $relationshipType, ?object $value): ?object
     {
-        // if to-many relationship, wrap each available value and return them
-        if (is_iterable($valueOrValues)) {
-            return $this->filterAndSort($type, Iterables::asArray($valueOrValues));
+        if (!$relationshipType->isExposedAsRelationship()) {
+            throw AccessException::notExposedRelationship($relationshipType);
         }
 
         // if null relationship return null
-        if (null === $valueOrValues) {
+        if (null === $value) {
             return null;
         }
 
         // if to-one relationship wrap the value if available and return it, otherwise return null
-        $entitiesToWrap = $this->filterAndSort($type, [$valueOrValues]);
+        $entitiesToWrap = $this->filter($relationshipType, [$value]);
 
         switch (count($entitiesToWrap)) {
             case 1:
@@ -98,31 +89,59 @@ class PropertyReader
     }
 
     /**
+     * Each value in `$values` will be wrapped using the given {@link WrapperFactoryInterface} and
+     * the resulting array is returned.
+     *
+     * The {@link WrapperFactoryInterface} will only be used on a value
+     * if the {@link TypeInterface::getAccessCondition() access condition} of the given
+     * `$relationship` allows the access to the value. Otherwise, the value will be skipped
+     * (not wrapped or returned).
+     *
+     * The entities will be sorted according to the definition of
+     * {@link TypeInterface::getDefaultSortMethods()} of the relationship.
+     *
      * @template TEntity of object
      *
-     * @param ReadableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity>&ExposableRelationshipTypeInterface $relationship
-     * @param array<int|string, TEntity>                                                   $entities
+     * @param ReadableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity>&ExposableRelationshipTypeInterface $relationshipType
+     * @param iterable<TEntity>                                                                                               $values
      *
      * @return list<TEntity>
      *
-     * @throws PaginationException
      * @throws PathException
      * @throws SortException
      */
-    private function filterAndSort(ReadableTypeInterface $relationship, array $entities): array
+    public function determineToManyRelationshipValue(ReadableTypeInterface $relationshipType, iterable $values): array
     {
-        if (!$relationship->isExposedAsRelationship()) {
-            throw AccessException::notExposedRelationship($relationship);
+        if (!$relationshipType->isExposedAsRelationship()) {
+            throw AccessException::notExposedRelationship($relationshipType);
         }
 
-        $condition = $this->schemaPathProcessor->processAccessCondition($relationship);
-        $sortMethods = $this->schemaPathProcessor->processDefaultSortMethods($relationship);
+        $entities = $this->filter($relationshipType, Iterables::asArray($values));
 
-        // filter out restricted items and sort the remainders
-        $entities = $this->conditionEvaluator->filterArray($entities, $condition);
+        $sortMethods = $this->schemaPathProcessor->processDefaultSortMethods($relationshipType);
         if ([] !== $sortMethods) {
             $entities = $this->sorter->sortArray($entities, $sortMethods);
         }
+
+        return $entities;
+    }
+
+    /**
+     * @template TEntity of object
+     *
+     * @param ReadableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity>&ExposableRelationshipTypeInterface $relationship
+     * @param array<int|string, TEntity>                                                                                      $entities
+     *
+     * @return list<TEntity>
+     *
+     * @throws PathException
+     */
+    private function filter(TypeInterface $relationship, array $entities): array
+    {
+        $condition = $this->schemaPathProcessor->processAccessCondition($relationship);
+
+        // filter out restricted items and sort the remainders
+        $entities = $this->conditionEvaluator->filterArray($entities, $condition);
 
         return array_values($entities);
     }

@@ -50,7 +50,7 @@ class PropertyReaderTest extends ModelBasedTest
         );
         $author = $this->authors['phen'];
 
-        $value = $propertyReader->determineRelationshipValue($this->authorType, $author);
+        $value = $propertyReader->determineToOneRelationshipValue($this->authorType, $author);
 
         self::assertNull($value);
     }
@@ -67,7 +67,7 @@ class PropertyReaderTest extends ModelBasedTest
         );
         $author = $this->authors['tolkien'];
 
-        $value = $propertyReader->determineRelationshipValue($this->authorType, $author);
+        $value = $propertyReader->determineToOneRelationshipValue($this->authorType, $author);
 
         self::assertSame($author, $value);
     }

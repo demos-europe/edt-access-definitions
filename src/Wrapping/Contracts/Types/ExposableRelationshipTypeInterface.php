@@ -21,6 +21,8 @@ interface ExposableRelationshipTypeInterface
      * If this method returns false all relationships to the type will be hidden and no
      * access to them will be possible via any other type. This does not affect direct
      * accesses but relationships only.
+     *
+     * @deprecated will be removed to reduce usage complexity, evaluate the conditions when returning relationships in methods like {@link ReadableTypeInterface::getReadableProperties()} instead
      */
     public function isExposedAsRelationship(): bool;
 }

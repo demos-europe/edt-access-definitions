@@ -15,19 +15,39 @@ use function is_object;
 class CachingPropertyReader extends PropertyReader
 {
     /**
-     * @var array<non-empty-string, mixed>
+     * @var array<non-empty-string, object|null>
      */
-    private array $valueCache = [];
+    private array $toOneValueCache = [];
 
-    public function determineRelationshipValue(ReadableTypeInterface $type, $valueOrValues)
+    /**
+     * @var array<non-empty-string, list<object>>
+     */
+    private array $toManyValueCache = [];
+
+    public function determineToOneRelationshipValue(ReadableTypeInterface $relationshipType, ?object $value): ?object
     {
-        $hash = $this->createHash($type, $valueOrValues);
-        if (!array_key_exists($hash, $this->valueCache)) {
-            $value = parent::determineRelationshipValue($type, $valueOrValues);
-            $this->valueCache[$hash] = $value;
+        $hash = $this->createHash($relationshipType, $value);
+        if (!array_key_exists($hash, $this->toOneValueCache)) {
+            $value = parent::determineToOneRelationshipValue($relationshipType, $value);
+            $this->toOneValueCache[$hash] = $value;
+
+            return $value;
         }
 
-        return $this->valueCache[$hash];
+        return $this->toOneValueCache[$hash];
+    }
+
+    public function determineToManyRelationshipValue(ReadableTypeInterface $relationshipType, iterable $values): array
+    {
+        $hash = $this->createHash($relationshipType, $values);
+        if (!array_key_exists($hash, $this->toManyValueCache)) {
+            $values =  parent::determineToManyRelationshipValue($relationshipType, $values);
+            $this->toManyValueCache[$hash] = $values;
+
+            return $values;
+        }
+
+        return $this->toManyValueCache[$hash];
     }
 
     /**
