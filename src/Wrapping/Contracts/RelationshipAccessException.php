@@ -39,14 +39,12 @@ class RelationshipAccessException extends PropertyAccessException
      * @param non-empty-string $propertyName
      * @param int|string       $key
      */
-    public static function toManyWithRestrictedItemNotSetable(TypeInterface $type, string $propertyName, string $deAliasedPropertyName, TypeInterface $relationshipType, $key): self
+    public static function toManyWithRestrictedItemNotSetable(TypeInterface $type, string $propertyName, string $deAliasedPropertyName, $key): self
     {
-        $relationshipTypeClass = get_class($relationshipType);
         $typeClass = get_class($type);
         $self = new self("Can't set a list into the to-many relationship '$propertyName' (de-aliased to '$deAliasedPropertyName') in type class '$typeClass' if said list contains a non-accessible (due to their type class '$typeClass') items stored under the key '$key'.");
         $self->propertyName = $propertyName;
         $self->typeClass = $typeClass;
-        $self->relationshipTypeIdentifier = $relationshipTypeClass;
 
         return $self;
     }
@@ -55,14 +53,21 @@ class RelationshipAccessException extends PropertyAccessException
      * @param non-empty-string $propertyName
      * @param non-empty-string $deAliasedPropertyName
      */
-    public static function toOneWithRestrictedItemNotSetable(TypeInterface $type, string $propertyName, string $deAliasedPropertyName, TypeInterface $relationshipType): self
+    public static function toOneWithRestrictedItemNotSetable(TypeInterface $type, string $propertyName, string $deAliasedPropertyName): self
     {
-        $relationshipTypeClass = get_class($relationshipType);
         $typeClass = get_class($type);
         $self = new self("Can't set an object into the to-one relationship '$propertyName' (de-aliased to '$deAliasedPropertyName') in type class '$typeClass' if said object is non-accessible due to its type class '$typeClass'.");
         $self->propertyName = $propertyName;
         $self->typeClass = $typeClass;
-        $self->relationshipTypeIdentifier = $relationshipTypeClass;
+
+        return $self;
+    }
+
+    public static function notExposedRelationship(TypeInterface $type): self
+    {
+        $typeClass = get_class($type);
+        $self = new self("The type class you try to access is not exposed as relationship: $typeClass");
+        $self->typeClass = $typeClass;
 
         return $self;
     }

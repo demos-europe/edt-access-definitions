@@ -17,12 +17,4 @@ class ExternFilterableProcessorConfig extends AbstractProcessorConfig
     {
         return $type->getFilterableProperties();
     }
-
-    public function getRelationshipType(string $typeIdentifier): TypeInterface
-    {
-        return $this->typeProvider->requestType($typeIdentifier)
-            ->instanceOf(FilterableTypeInterface::class)
-            ->exposedAsRelationship()
-            ->getInstanceOrThrow();
-    }
 }

@@ -6,15 +6,12 @@ namespace EDT\Wrapping\Utilities;
 
 use EDT\Querying\Contracts\FunctionInterface;
 use EDT\Querying\Contracts\PathException;
-use EDT\Querying\Contracts\PaginationException;
 use EDT\Querying\Contracts\SortException;
 use EDT\Querying\Contracts\SortMethodInterface;
 use EDT\Querying\Utilities\ConditionEvaluator;
 use EDT\Querying\Utilities\Iterables;
 use EDT\Querying\Utilities\Sorter;
-use EDT\Wrapping\Contracts\AccessException;
-use EDT\Wrapping\Contracts\Types\ExposableRelationshipTypeInterface;
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 use EDT\Wrapping\Contracts\WrapperFactoryInterface;
 use Exception;
@@ -55,19 +52,15 @@ class PropertyReader
      *
      * @template TEntity of object
      *
-     * @param ReadableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity>&ExposableRelationshipTypeInterface $relationshipType
-     * @param TEntity|null                                                                                                    $value
+     * @param TransferableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity> $relationshipType
+     * @param TEntity|null                                                                     $value
      *
      * @return TEntity|null
      *
      * @throws PathException
      */
-    public function determineToOneRelationshipValue(ReadableTypeInterface $relationshipType, ?object $value): ?object
+    public function determineToOneRelationshipValue(TransferableTypeInterface $relationshipType, ?object $value): ?object
     {
-        if (!$relationshipType->isExposedAsRelationship()) {
-            throw AccessException::notExposedRelationship($relationshipType);
-        }
-
         // if null relationship return null
         if (null === $value) {
             return null;
@@ -102,20 +95,16 @@ class PropertyReader
      *
      * @template TEntity of object
      *
-     * @param ReadableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity>&ExposableRelationshipTypeInterface $relationshipType
-     * @param iterable<TEntity>                                                                                               $values
+     * @param TransferableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity> $relationshipType
+     * @param iterable<TEntity>                                                                $values
      *
      * @return list<TEntity>
      *
      * @throws PathException
      * @throws SortException
      */
-    public function determineToManyRelationshipValue(ReadableTypeInterface $relationshipType, iterable $values): array
+    public function determineToManyRelationshipValue(TransferableTypeInterface $relationshipType, iterable $values): array
     {
-        if (!$relationshipType->isExposedAsRelationship()) {
-            throw AccessException::notExposedRelationship($relationshipType);
-        }
-
         $entities = $this->filter($relationshipType, Iterables::asArray($values));
 
         $sortMethods = $this->schemaPathProcessor->processDefaultSortMethods($relationshipType);
@@ -129,8 +118,8 @@ class PropertyReader
     /**
      * @template TEntity of object
      *
-     * @param ReadableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity>&ExposableRelationshipTypeInterface $relationship
-     * @param array<int|string, TEntity>                                                                                      $entities
+     * @param TransferableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity> $relationship
+     * @param array<int|string, TEntity>                                                       $entities
      *
      * @return list<TEntity>
      *

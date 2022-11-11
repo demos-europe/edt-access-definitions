@@ -26,7 +26,7 @@ similar to the https://github.com/demos-europe/edt-queries[Query Component]:
 
 [source,php]
 ----
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\ConditionFactory\ConditionFactoryInterface;
 
 function getArticleType(): ArticleType {
@@ -63,7 +63,7 @@ The three helper function are left empty because their implementation depends on
 actual use case:
 
 1. `getArticleType` returns your `ArticleType` which you can implement by extending
-`ReadableTypeInterface`
+`TransferableTypeInterface`
 and instantiate in your favorite style (manually, as Symfony Service, loaded by configuration, ...).
 An overview for the different interfaces available and how to implement them is shown in https://github.com/demos-europe/edt-access-definitions/blob/main/docs/how-to-implement-types.md[How to implement types].
 2. The instances returned by `getEntityProvider` and `getConditionFactory` depend on your

@@ -27,12 +27,12 @@ For example if your `Author` class has a property `name` but you want to use `fu
 property in your Type schema instead you can add `fullName` to the return of `getPropertyAliases` with
 the value `['name']`. The method will be invoked
 automatically by the library to apply the mapping.
-In combination with other methods like `ReadableTypeInterface::getReadableProperties` you
+In combination with other methods like `TransferableTypeInterface::getReadableProperties` you
 can either support both `fullName` and `name` in the Type or just one of them.
 
 ```php
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
-class AuthorType implements ReadableTypeInterface
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
+class AuthorType implements TransferableTypeInterface
 {
     // ...
 
@@ -57,8 +57,8 @@ object exists it is still possible to create an `AuthorType` by adding an alias 
 as shown below:
 
 ```php
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
-class BookType implements ReadableTypeInterface
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
+class BookType implements TransferableTypeInterface
 {
     // ...
 
@@ -79,8 +79,8 @@ class BookType implements ReadableTypeInterface
 The `AuthorType` will then access the `Book` object to access the properties:
 
 ```php
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
-class AuthorType implements ReadableTypeInterface
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
+class AuthorType implements TransferableTypeInterface
 {
     // ...
     
@@ -116,8 +116,8 @@ may not be necessary, and you may want to make its properties available directly
 on your `AuthorType`.
 
 ```php
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
-class AuthorType implements ReadableTypeInterface
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
+class AuthorType implements TransferableTypeInterface
 {
     // ...
 
@@ -146,8 +146,8 @@ If you want to expose them as separate Types you can use a filter accessing draf
 
 ```php
 use EDT\Querying\Contracts\FunctionInterface;
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
-class DraftArticleType implements ReadableTypeInterface
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
+class DraftArticleType implements TransferableTypeInterface
 {
     // ...
 
@@ -163,8 +163,8 @@ class DraftArticleType implements ReadableTypeInterface
 
 ```php
 use EDT\Querying\Contracts\FunctionInterface;
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
-class ArticleType implements ReadableTypeInterface
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
+class ArticleType implements TransferableTypeInterface
 {
     // ...
 

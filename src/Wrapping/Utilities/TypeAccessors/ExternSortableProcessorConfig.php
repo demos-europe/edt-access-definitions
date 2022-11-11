@@ -17,12 +17,4 @@ class ExternSortableProcessorConfig extends AbstractProcessorConfig
     {
         return $type->getSortableProperties();
     }
-
-    public function getRelationshipType(string $typeIdentifier): TypeInterface
-    {
-        return $this->typeProvider->requestType($typeIdentifier)
-            ->instanceOf(SortableTypeInterface::class)
-            ->exposedAsRelationship()
-            ->getInstanceOrThrow();
-    }
 }

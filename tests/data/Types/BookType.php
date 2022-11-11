@@ -6,40 +6,55 @@ namespace Tests\data\Types;
 
 use EDT\ConditionFactory\PathsBasedConditionFactoryInterface;
 use EDT\Querying\Contracts\PathsBasedInterface;
+use EDT\Wrapping\Contracts\TypeProviderInterface;
 use EDT\Wrapping\Contracts\Types\ExposableRelationshipTypeInterface;
 use EDT\Wrapping\Contracts\Types\FilterableTypeInterface;
 use EDT\Wrapping\Contracts\Types\IdentifiableTypeInterface;
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\Contracts\Types\SortableTypeInterface;
 use Tests\data\Model\Book;
 
 /**
- * @template-implements ReadableTypeInterface<Book>
+ * @template-implements TransferableTypeInterface<Book>
  * @template-implements IdentifiableTypeInterface<Book>
  * @template-implements FilterableTypeInterface<Book>
  * @template-implements SortableTypeInterface<Book>
  */
-class BookType implements ReadableTypeInterface, FilterableTypeInterface, SortableTypeInterface, IdentifiableTypeInterface, ExposableRelationshipTypeInterface
+class BookType implements
+    TransferableTypeInterface,
+    FilterableTypeInterface,
+    SortableTypeInterface,
+    IdentifiableTypeInterface,
+    ExposableRelationshipTypeInterface
 {
     private bool $exposedAsRelationship = true;
 
     private PathsBasedConditionFactoryInterface $conditionFactory;
 
-    public function __construct(PathsBasedConditionFactoryInterface $conditionFactory)
-    {
+    protected TypeProviderInterface $typeProvider;
+
+    public function __construct(
+        PathsBasedConditionFactoryInterface $conditionFactory,
+        TypeProviderInterface $typeProvider
+    ) {
         $this->conditionFactory = $conditionFactory;
+        $this->typeProvider = $typeProvider;
     }
 
     public function getReadableProperties(): array
     {
-        return $this->getFilterableProperties();
+        return [
+            'title' => null,
+            'author' => $this->typeProvider->requestType(AuthorType::class)->getInstanceOrThrow(),
+            'tags' => null,
+        ];
     }
 
     public function getFilterableProperties(): array
     {
         return [
             'title' => null,
-            'author' => AuthorType::class,
+            'author' => $this->typeProvider->requestType(AuthorType::class)->getInstanceOrThrow(),
             'tags' => null,
         ];
     }
@@ -48,7 +63,7 @@ class BookType implements ReadableTypeInterface, FilterableTypeInterface, Sortab
     {
         return [
             'title' => null,
-            'author' => AuthorType::class,
+            'author' => $this->typeProvider->requestType(AuthorType::class)->getInstanceOrThrow(),
         ];
     }
 
@@ -86,8 +101,13 @@ class BookType implements ReadableTypeInterface, FilterableTypeInterface, Sortab
     {
         return [
             'title' => null,
-            'author' => AuthorType::class,
+            'author' => $this->typeProvider->requestType(AuthorType::class)->getInstanceOrThrow(),
             'tags' => null,
         ];
+    }
+
+    public function getUpdatableProperties(object $updateTarget): array
+    {
+        return [];
     }
 }

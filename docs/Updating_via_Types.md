@@ -1,6 +1,6 @@
 # Updating via Types
 
-To allow updates using a type it needs to implement the `UpdatableTypeInterface` to return
+To allow updates using a type it needs to implement the `TransferableTypeInterface` to return
 the property names that are allowed to be updated in the `getUpdatableProperties` method.
 
 As with similar methods the returned array defines the property names as key and

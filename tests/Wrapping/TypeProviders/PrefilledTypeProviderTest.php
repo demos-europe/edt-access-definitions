@@ -6,6 +6,7 @@ namespace Tests\Wrapping\TypeProviders;
 
 use EDT\Querying\ConditionFactories\PhpConditionFactory;
 use EDT\Wrapping\Contracts\AccessException;
+use EDT\Wrapping\TypeProviders\LazyTypeProvider;
 use EDT\Wrapping\TypeProviders\PrefilledTypeProvider;
 use PHPUnit\Framework\TestCase;
 use Tests\data\Types\AuthorType;
@@ -18,13 +19,16 @@ class PrefilledTypeProviderTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
         $conditionFactory = new PhpConditionFactory();
-        $authorType = new AuthorType($conditionFactory);
-        $bookType = new BookType($conditionFactory);
+        $lazyTypeProvider = new LazyTypeProvider();
+        $authorType = new AuthorType($conditionFactory, $lazyTypeProvider);
+        $bookType = new BookType($conditionFactory, $lazyTypeProvider);
         $this->typeProvider = new PrefilledTypeProvider([
             $authorType,
             $bookType,
         ]);
+        $lazyTypeProvider->setAllTypes($this->typeProvider);
     }
 
     public function testUnknownTypeIdentifier(): void

@@ -10,6 +10,7 @@ use EDT\Querying\PropertyAccessors\ReflectionPropertyAccessor;
 use EDT\Querying\Utilities\ConditionEvaluator;
 use EDT\Querying\Utilities\Sorter;
 use EDT\Querying\Utilities\TableJoiner;
+use EDT\Wrapping\TypeProviders\LazyTypeProvider;
 use EDT\Wrapping\TypeProviders\PrefilledTypeProvider;
 use EDT\Wrapping\Utilities\PropertyPathProcessorFactory;
 use EDT\Wrapping\Utilities\PropertyReader;
@@ -31,10 +32,12 @@ class PropertyReaderTest extends ModelBasedTest
     {
         parent::setUp();
         $conditionFactory = new PhpConditionFactory();
-        $this->authorType = new AuthorType($conditionFactory);
-        $bookType = new BookType($conditionFactory);
+        $lazyTypeProvider = new LazyTypeProvider();
+        $this->authorType = new AuthorType($conditionFactory, $lazyTypeProvider);
+        $bookType = new BookType($conditionFactory, $lazyTypeProvider);
         $this->propertyAccessor = new ReflectionPropertyAccessor();
         $typeProvider = new PrefilledTypeProvider([$this->authorType, $bookType]);
+        $lazyTypeProvider->setAllTypes($typeProvider);
         $this->schemaPathProcessor = new SchemaPathProcessor(new PropertyPathProcessorFactory(), $typeProvider);
     }
 

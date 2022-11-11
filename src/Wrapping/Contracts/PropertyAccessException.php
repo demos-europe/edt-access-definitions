@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Contracts;
 
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
-use EDT\Wrapping\Contracts\Types\UpdatableTypeInterface;
 use function get_class;
 
 class PropertyAccessException extends AccessException
@@ -35,7 +34,7 @@ class PropertyAccessException extends AccessException
      * @param non-empty-string $property
      * @param non-empty-string ...$availableProperties
      */
-    public static function propertyNotAvailableInReadableType(string $property, ReadableTypeInterface $type, string ...$availableProperties): self
+    public static function propertyNotAvailableInReadableType(string $property, TransferableTypeInterface $type, string ...$availableProperties): self
     {
         $typeClass = get_class($type);
         $propertyList = implode(', ', $availableProperties);
@@ -47,11 +46,11 @@ class PropertyAccessException extends AccessException
     }
 
     /**
-     * @param non-empty-string                     $property
-     * @param UpdatableTypeInterface&TypeInterface $type
-     * @param non-empty-string                     ...$availableProperties
+     * @param non-empty-string          $property
+     * @param TransferableTypeInterface $type
+     * @param non-empty-string          ...$availableProperties
      */
-    public static function propertyNotAvailableInUpdatableType(string $property, UpdatableTypeInterface $type, string ...$availableProperties): self
+    public static function propertyNotAvailableInUpdatableType(string $property, TransferableTypeInterface $type, string ...$availableProperties): self
     {
         $typeClass = get_class($type);
         $propertyList = implode(', ', $availableProperties);

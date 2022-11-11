@@ -10,7 +10,7 @@ use EDT\Wrapping\Contracts\AccessException;
 use EDT\Wrapping\Contracts\PropertyAccessException;
 use EDT\Wrapping\Contracts\TypeProviderInterface;
 use EDT\Wrapping\Contracts\Types\FilterableTypeInterface;
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\Contracts\Types\SortableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 use EDT\Wrapping\Utilities\TypeAccessors\ExternFilterableProcessorConfig;
@@ -83,7 +83,7 @@ class SchemaPathProcessor
      *
      * @throws PropertyAccessException
      */
-    public function mapExternReadablePath(ReadableTypeInterface $type, array $path, bool $allowAttribute): array
+    public function mapExternReadablePath(TransferableTypeInterface $type, array $path, bool $allowAttribute): array
     {
         $processorConfig = new ExternReadableProcessorConfig($this->typeProvider, $type, $allowAttribute);
         $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($processorConfig);
@@ -124,7 +124,7 @@ class SchemaPathProcessor
     }
 
     /**
-     * Get the processed {@link ReadableTypeInterface::getAccessCondition() access condition}
+     * Get the processed {@link TransferableTypeInterface::getAccessCondition() access condition}
      * of the given type.
      *
      * @template TCondition of \EDT\Querying\Contracts\PathsBasedInterface

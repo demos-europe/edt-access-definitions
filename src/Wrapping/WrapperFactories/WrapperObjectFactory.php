@@ -8,37 +8,26 @@ use EDT\Querying\Contracts\FunctionInterface;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
 use EDT\Querying\Contracts\SortMethodInterface;
 use EDT\Querying\Utilities\ConditionEvaluator;
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\Contracts\WrapperFactoryInterface;
 use EDT\Wrapping\Utilities\PropertyReader;
-use EDT\Wrapping\Utilities\TypeAccessor;
 
 /**
  * @template-implements WrapperFactoryInterface<FunctionInterface<bool>, SortMethodInterface>
  */
 class WrapperObjectFactory implements WrapperFactoryInterface
 {
-    /**
-     * @var TypeAccessor<FunctionInterface<bool>, SortMethodInterface>
-     */
-    private TypeAccessor $typeAccessor;
-
     private PropertyAccessorInterface $propertyAccessor;
 
     private PropertyReader $propertyReader;
 
     private ConditionEvaluator $conditionEvaluator;
 
-    /**
-     * @param TypeAccessor<FunctionInterface<bool>, SortMethodInterface> $typeAccessor
-     */
     public function __construct(
-        TypeAccessor $typeAccessor,
         PropertyReader $propertyReader,
         PropertyAccessorInterface $propertyAccessor,
         ConditionEvaluator $conditionEvaluator
     ) {
-        $this->typeAccessor = $typeAccessor;
         $this->propertyAccessor = $propertyAccessor;
         $this->propertyReader = $propertyReader;
         $this->conditionEvaluator = $conditionEvaluator;
@@ -47,18 +36,17 @@ class WrapperObjectFactory implements WrapperFactoryInterface
     /**
      * @template TEntity of object
      *
-     * @param TEntity                                                                      $entity
-     * @param ReadableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity> $type
+     * @param TEntity                                                                          $entity
+     * @param TransferableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity> $type
      *
      * @return WrapperObject<TEntity>
      */
-    public function createWrapper(object $entity, ReadableTypeInterface $type): WrapperObject
+    public function createWrapper(object $entity, TransferableTypeInterface $type): WrapperObject
     {
         return new WrapperObject(
             $entity,
             $this->propertyReader,
             $type,
-            $this->typeAccessor,
             $this->propertyAccessor,
             $this->conditionEvaluator,
             $this

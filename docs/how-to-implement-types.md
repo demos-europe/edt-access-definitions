@@ -119,11 +119,11 @@ The draft article may look like the following:
 ```php
 use EDT\ConditionFactory\PathsBasedConditionFactoryInterface;
 use EDT\Querying\Contracts\FunctionInterface;
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 /**
- * @template-implements ReadableTypeInterface<DraftArticle>
+ * @template-implements TransferableTypeInterface<DraftArticle>
  */
-class DraftArticleType implements ReadableTypeInterface
+class DraftArticleType implements TransferableTypeInterface
 {
     /**
      * @var PathsBasedConditionFactoryInterface
@@ -174,11 +174,11 @@ class DraftArticleType implements ReadableTypeInterface
 The `ArticleType` stays the same except that we added the relationship.
 
 ```php
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 /** 
- * @template-implements ReadableTypeInterface<Article>
+ * @template-implements TransferableTypeInterface<Article>
  */
-class ArticleType implements ReadableTypeInterface
+class ArticleType implements TransferableTypeInterface
 {
     // ...
 
@@ -212,11 +212,11 @@ dependent on the data source the `FunctionInterface` implementation was written 
 ```php
 use EDT\ConditionFactory\PathsBasedConditionFactoryInterface;
 use EDT\Querying\Contracts\FunctionInterface;
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 /**
  * @template-implements TypeInterface<DraftArticle>
  */
-class DraftArticleType implements ReadableTypeInterface
+class DraftArticleType implements TransferableTypeInterface
 {
     /**
      * @var PathsBasedConditionFactoryInterface
@@ -258,7 +258,7 @@ As it is a non-relationship the value is set to `null`, which means no path segm
 follow when `accountName` is used in a property path.
 
 ```php
-class AuthorType implements ReadableTypeInterface
+class AuthorType implements \EDT\Wrapping\Contracts\Types\TransferableTypeInterface
 {
     // ...
     

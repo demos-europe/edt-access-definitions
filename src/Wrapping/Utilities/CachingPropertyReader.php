@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace EDT\Wrapping\Utilities;
 
 use EDT\Querying\Utilities\Iterables;
-use EDT\Wrapping\Contracts\WrapperFactoryInterface;
 use InvalidArgumentException;
 use function array_key_exists;
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use function gettype;
 use function is_object;
 
@@ -24,7 +23,7 @@ class CachingPropertyReader extends PropertyReader
      */
     private array $toManyValueCache = [];
 
-    public function determineToOneRelationshipValue(ReadableTypeInterface $relationshipType, ?object $value): ?object
+    public function determineToOneRelationshipValue(TransferableTypeInterface $relationshipType, ?object $value): ?object
     {
         $hash = $this->createHash($relationshipType, $value);
         if (!array_key_exists($hash, $this->toOneValueCache)) {
@@ -37,7 +36,7 @@ class CachingPropertyReader extends PropertyReader
         return $this->toOneValueCache[$hash];
     }
 
-    public function determineToManyRelationshipValue(ReadableTypeInterface $relationshipType, iterable $values): array
+    public function determineToManyRelationshipValue(TransferableTypeInterface $relationshipType, iterable $values): array
     {
         $hash = $this->createHash($relationshipType, $values);
         if (!array_key_exists($hash, $this->toManyValueCache)) {
@@ -57,7 +56,7 @@ class CachingPropertyReader extends PropertyReader
      *
      * @return non-empty-string
      */
-    private function createHash(ReadableTypeInterface $relationship, $propertyValue): string
+    private function createHash(TransferableTypeInterface $relationship, $propertyValue): string
     {
         $hashRelationship = spl_object_hash($relationship);
 

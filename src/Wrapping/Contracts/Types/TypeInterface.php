@@ -21,10 +21,10 @@ interface TypeInterface extends EntityBasedInterface
      * corresponding to this type.
      *
      * The returned condition is applied to the schema of this type and **not** the schema of
-     * the {@link TypeInterface::getEntityClass() entity}. To not restrict your condition
-     * building to the properties available to users you need to define all properties
-     * used in these conditions in the {@link TypeInterface::getInternalProperties()} method
-     * of the types corresponding to your path segments.
+     * the {@link TypeInterface::getEntityClass() entity}. To enable the engine to resolve aliases
+     * you need to define all properties used in these conditions in the
+     * {@link TypeInterface::getInternalProperties()} method of the types corresponding to your
+     * path segments.
      *
      * This allows you to access internal properties not exposed in any way. Aliases will
      * be applied to the paths used in the returned condition, meaning you can define
@@ -62,8 +62,8 @@ interface TypeInterface extends EntityBasedInterface
      * into the schema of the backing object. Any aliasing defined by {@link AliasableTypeInterface::getAliases()}
      * will be applied automatically.
      *
-     * @return array<non-empty-string, non-empty-string|null> The mapping from property name (in the schema of this type)
-     *                                   to the identifier of the target type of the relationship,
+     * @return array<non-empty-string, TypeInterface<TCondition, TSorting, object>|null> The mapping from property name (in the schema of this type)
+     *                                   to the target type of the relationship,
      *                                   or `null` if the property is a non-relationship.
      */
     public function getInternalProperties(): array;

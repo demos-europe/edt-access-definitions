@@ -11,6 +11,7 @@ use EDT\Querying\PropertyPaths\PropertyPath;
 use EDT\Querying\SortMethodFactories\PhpSortMethodFactory;
 use EDT\Querying\SortMethods\Ascending;
 use EDT\Wrapping\Contracts\AccessException;
+use EDT\Wrapping\TypeProviders\LazyTypeProvider;
 use EDT\Wrapping\TypeProviders\PrefilledTypeProvider;
 use EDT\Wrapping\Utilities\PropertyPathProcessorFactory;
 use EDT\Wrapping\Utilities\SchemaPathProcessor;
@@ -31,8 +32,10 @@ class SchemaPathProcessorTest extends ModelBasedTest
         parent::setUp();
         $conditionFactory = new PhpConditionFactory();
         $this->sortMethodFactory = new PhpSortMethodFactory();
-        $this->authorType = new AuthorType($conditionFactory);
+        $lazyTypeProvider = new LazyTypeProvider();
+        $this->authorType = new AuthorType($conditionFactory, $lazyTypeProvider);
         $typeProvider = new PrefilledTypeProvider([$this->authorType]);
+        $lazyTypeProvider->setAllTypes($typeProvider);
         $this->schemaPathProcessor = new SchemaPathProcessor(new PropertyPathProcessorFactory(), $typeProvider);
     }
 

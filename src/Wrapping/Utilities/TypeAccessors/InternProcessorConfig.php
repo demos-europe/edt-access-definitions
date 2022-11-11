@@ -16,9 +16,4 @@ class InternProcessorConfig extends AbstractProcessorConfig
     {
         return $type->getInternalProperties();
     }
-
-    public function getRelationshipType(string $typeIdentifier): TypeInterface
-    {
-        return $this->typeProvider->requestType($typeIdentifier)->getInstanceOrThrow();
-    }
 }

@@ -7,6 +7,7 @@ namespace Tests\Wrapping\Utilities;
 use EDT\Querying\ConditionFactories\PhpConditionFactory;
 use EDT\Wrapping\Contracts\PropertyAccessException;
 use EDT\Wrapping\Contracts\RelationshipAccessException;
+use EDT\Wrapping\TypeProviders\LazyTypeProvider;
 use EDT\Wrapping\TypeProviders\PrefilledTypeProvider;
 use EDT\Wrapping\Utilities\PropertyPathProcessor;
 use EDT\Wrapping\Utilities\TypeAccessors\ExternReadableProcessorConfig;
@@ -28,13 +29,15 @@ class PropertyPathProcessorTest extends TestCase
     {
         parent::setUp();
         $conditionFactory = new PhpConditionFactory();
-        $this->bookType = new BookType($conditionFactory);
-        $this->authorType = new AuthorType($conditionFactory);
+        $lazyTypeProvider = new LazyTypeProvider();
+        $this->bookType = new BookType($conditionFactory, $lazyTypeProvider);
+        $this->authorType = new AuthorType($conditionFactory, $lazyTypeProvider);
         $this->typeProvider = new PrefilledTypeProvider([
             $this->bookType,
             $this->authorType,
             new BirthType($conditionFactory),
         ]);
+        $lazyTypeProvider->setAllTypes($this->typeProvider);
      }
 
     public function testProcessPropertyPathWithRelationshipAfterAttribute(): void
@@ -47,18 +50,6 @@ class PropertyPathProcessorTest extends TestCase
             [],
             'title',
             'foobar'
-        );
-    }
-
-    public function testProcessPropertyPathWithNonAvailableType(): void
-    {
-        $this->expectException(RelationshipAccessException::class);
-        $processorConfig = new ExternReadableProcessorConfig($this->typeProvider, $this->authorType, true);
-        $propertyPathProcessor = new PropertyPathProcessor($processorConfig);
-        $propertyPathProcessor->processPropertyPath(
-            $this->authorType,
-            [],
-            'birth',
         );
     }
 

@@ -10,15 +10,13 @@ use EDT\Querying\Utilities\ConditionEvaluator;
 use EDT\Querying\Utilities\Sorter;
 use EDT\Querying\Utilities\TableJoiner;
 use EDT\Wrapping\Contracts\AccessException;
-use EDT\Wrapping\Contracts\Types\ExposableRelationshipTypeInterface;
 use EDT\Wrapping\Contracts\Types\FilterableTypeInterface;
 use EDT\Wrapping\Contracts\Types\IdentifiableTypeInterface;
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
-use EDT\Wrapping\Contracts\Types\TypeInterface;
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
+use EDT\Wrapping\TypeProviders\LazyTypeProvider;
 use EDT\Wrapping\Utilities\PropertyPathProcessorFactory;
 use EDT\Wrapping\Utilities\PropertyReader;
 use EDT\Wrapping\Utilities\SchemaPathProcessor;
-use EDT\Wrapping\Utilities\TypeAccessor;
 use EDT\Wrapping\WrapperFactories\WrapperArrayFactory;
 use EDT\Querying\ObjectProviders\PrefilledObjectProvider;
 use EDT\Wrapping\TypeProviders\PrefilledTypeProvider;
@@ -46,21 +44,21 @@ class WrapperArrayFactoryTest extends ModelBasedTest
 
     private SchemaPathProcessor $schemaPathProcessor;
 
-    private TypeAccessor $typeAccessor;
-
     private PropertyReader $propertyReader;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->conditionFactory = new PhpConditionFactory();
-        $this->authorType = new AuthorType($this->conditionFactory);
-        $bookType = new BookType($this->conditionFactory);
+        $lazyTypeProvider = new LazyTypeProvider();
+        $this->authorType = new AuthorType($this->conditionFactory, $lazyTypeProvider);
+        $bookType = new BookType($this->conditionFactory, $lazyTypeProvider);
         $this->typeProvider = new PrefilledTypeProvider([
             $this->authorType,
             $bookType,
             new BirthType($this->conditionFactory),
         ]);
+        $lazyTypeProvider->setAllTypes($this->typeProvider);
         $this->propertyAccessor = new ReflectionPropertyAccessor();
         $this->authorProvider = new PrefilledObjectProvider(
             new ConditionEvaluator(new TableJoiner($this->propertyAccessor)),
@@ -68,7 +66,6 @@ class WrapperArrayFactoryTest extends ModelBasedTest
             $this->authors
         );
         $this->schemaPathProcessor = new SchemaPathProcessor(new PropertyPathProcessorFactory(), $this->typeProvider);
-        $this->typeAccessor = new TypeAccessor($this->typeProvider);
         $tableJoiner = new TableJoiner($this->propertyAccessor);
         $conditionEvaluator = new ConditionEvaluator($tableJoiner);
         $sorter = new Sorter($tableJoiner);
@@ -227,54 +224,9 @@ class WrapperArrayFactoryTest extends ModelBasedTest
         self::assertSame($this->authors['tolkien'], $fetchedAuthor);
     }
 
-    /**
-     * When {@link TypeInterface::getAccessCondition()} is processed the paths must not be
-     * checked against {@link ExposableRelationshipTypeInterface::isExposedAsRelationship()}.
-     * Otherwise, a user may request
-     * data without provoking any violation and still get an exception because an internal
-     * check in {@link TypeInterface::getAccessCondition()} accessed a {@link TypeInterface type}
-     * he doesn't have access to.
-     *
-     * As with the skipped {@link ReadableTypeInterface::getReadableProperties()} check
-     * we expect the developer to know
-     * what he does when implementing {@link TypeInterface::getAccessCondition()}.
-     *
-     * @throws \ReflectionException
-     */
-    public function testInternalIsExposedRelationship(): void
-    {
-        // Set the return of `isExposedAsRelationship` to `false` to simulate being able to access
-        // AuthorType but not BookType.
-        $bookType = $this->typeProvider->requestType(BookType::class)
-            ->instanceOf(BookType::class)
-            ->exposedAsRelationship()
-            ->getInstanceOrThrow();
-        $bookTypeReflection = new ReflectionClass($bookType);
-        $property = $bookTypeReflection->getProperty('exposedAsRelationship');
-        $property->setAccessible(true);
-        $property->setValue($bookType, false);
-
-        /** @var BookType $type */
-        $type = $this->typeProvider->requestType(BookType::class)->getInstanceOrThrow();
-        self::assertFalse($type->isExposedAsRelationship());
-
-        // When fetching the AuthorType::getAccessCondition method is automatically executed, in which
-        // a path uses the BookType. This automatic check must not fail due to missing availability
-        // of the BookType for the requesting user.
-        $fetchedAuthor = $this->getEntityByIdentifier($this->authorType,'John Ronald Reuel Tolkien');
-
-        $expected = [
-            'name'         => 'John Ronald Reuel Tolkien',
-            'pseudonym'    => null,
-            'birthCountry' => 'Oranje-Freistaat',
-        ];
-
-        self::assertEquals($expected, $fetchedAuthor);
-    }
-
     private function createWrapperArrayFactory(int $depth): WrapperArrayFactory
     {
-        return new WrapperArrayFactory($this->propertyAccessor, $this->propertyReader, $this->typeAccessor, $depth);
+        return new WrapperArrayFactory($this->propertyAccessor, $this->propertyReader, $depth);
     }
 
     private function createArrayWrappers(array $entities, $type, int $depth): array
@@ -295,8 +247,8 @@ class WrapperArrayFactoryTest extends ModelBasedTest
     }
 
     /**
-     * @param IdentifiableTypeInterface&ReadableTypeInterface $type
-     * @param non-empty-string $identifier
+     * @param IdentifiableTypeInterface&TransferableTypeInterface $type
+     * @param non-empty-string                                    $identifier
      */
     public function getEntityByIdentifier(IdentifiableTypeInterface $type, string $identifier, bool $wrap = true)
     {

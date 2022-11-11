@@ -10,11 +10,11 @@ use EDT\Querying\Utilities\ConditionEvaluator;
 use EDT\Querying\Utilities\Sorter;
 use EDT\Querying\Utilities\TableJoiner;
 use EDT\Wrapping\Contracts\AccessException;
+use EDT\Wrapping\TypeProviders\LazyTypeProvider;
 use EDT\Wrapping\TypeProviders\PrefilledTypeProvider;
 use EDT\Wrapping\Utilities\PropertyPathProcessorFactory;
 use EDT\Wrapping\Utilities\PropertyReader;
 use EDT\Wrapping\Utilities\SchemaPathProcessor;
-use EDT\Wrapping\Utilities\TypeAccessor;
 use EDT\Wrapping\WrapperFactories\WrapperObject;
 use EDT\Wrapping\WrapperFactories\WrapperObjectFactory;
 use Tests\data\Types\AuthorType;
@@ -32,18 +32,19 @@ class WrapperObjectFactoryTest extends ModelBasedTest
     {
         parent::setUp();
         $conditionFactory = new PhpConditionFactory();
-        $this->authorType = new AuthorType($conditionFactory);
+        $lazyTypeProvider = new LazyTypeProvider();
+        $this->authorType = new AuthorType($conditionFactory, $lazyTypeProvider);
         $typeProvider = new PrefilledTypeProvider([
             $this->authorType,
-            new BookType($conditionFactory),
+            new BookType($conditionFactory, $lazyTypeProvider),
             new BirthType($conditionFactory),
         ]);
+        $lazyTypeProvider->setAllTypes($typeProvider);
         $propertyAccessor = new ReflectionPropertyAccessor();
         $tableJoiner = new TableJoiner($propertyAccessor);
         $conditionEvaluator = new ConditionEvaluator($tableJoiner);
         $sorter = new Sorter($tableJoiner);
         $this->factory = new WrapperObjectFactory(
-            new TypeAccessor($typeProvider),
             new PropertyReader(
                 new SchemaPathProcessor(new PropertyPathProcessorFactory(), $typeProvider),
                 $conditionEvaluator,

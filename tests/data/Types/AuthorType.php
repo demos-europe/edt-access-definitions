@@ -6,44 +6,49 @@ namespace Tests\data\Types;
 
 use EDT\ConditionFactory\PathsBasedConditionFactoryInterface;
 use EDT\Querying\Contracts\PathsBasedInterface;
+use EDT\Wrapping\Contracts\TypeProviderInterface;
 use EDT\Wrapping\Contracts\Types\AliasableTypeInterface;
 use EDT\Wrapping\Contracts\Types\ExposableRelationshipTypeInterface;
 use EDT\Wrapping\Contracts\Types\FilterableTypeInterface;
 use EDT\Wrapping\Contracts\Types\IdentifiableTypeInterface;
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\Contracts\Types\SortableTypeInterface;
-use EDT\Wrapping\Contracts\Types\UpdatableTypeInterface;
 use Tests\data\Model\Person;
 
 /**
- * @template-implements ReadableTypeInterface<Person>
+ * @template-implements TransferableTypeInterface<Person>
  * @template-implements IdentifiableTypeInterface<Person>
  * @template-implements FilterableTypeInterface<Person>
  * @template-implements SortableTypeInterface<Person>
- * @template-implements UpdatableTypeInterface<Person>
  */
 class AuthorType implements
-    ReadableTypeInterface,
+    TransferableTypeInterface,
     FilterableTypeInterface,
     SortableTypeInterface,
     IdentifiableTypeInterface,
-    UpdatableTypeInterface,
     ExposableRelationshipTypeInterface,
     AliasableTypeInterface
 {
     private PathsBasedConditionFactoryInterface $conditionFactory;
 
-    public function __construct(PathsBasedConditionFactoryInterface $conditionFactory)
-    {
+    protected TypeProviderInterface $typeProvider;
+
+    public function __construct(
+        PathsBasedConditionFactoryInterface $conditionFactory,
+        TypeProviderInterface $typeProvider
+    ) {
         $this->conditionFactory = $conditionFactory;
+        $this->typeProvider = $typeProvider;
     }
 
     public function getReadableProperties(): array
     {
-        $properties = $this->getFilterableProperties();
-        $properties['birth'] = BirthType::class;
-
-        return $properties;
+        return [
+            'name' => null,
+            'pseudonym' => null,
+            'books' => $this->typeProvider->requestType(BookType::class)->getInstanceOrThrow(),
+            'birthCountry' => null,
+        ];
     }
 
     public function getFilterableProperties(): array
@@ -51,7 +56,7 @@ class AuthorType implements
         return [
             'name' => null,
             'pseudonym' => null,
-            'books' => BookType::class,
+            'books' => $this->typeProvider->requestType(BookType::class)->getInstanceOrThrow(),
             'birthCountry' => null,
         ];
     }
@@ -104,17 +109,17 @@ class AuthorType implements
     public function getUpdatableProperties(object $updateTarget): array
     {
         return [
-            'name' => null,
-            'birthCountry' => null,
-            'books' => BookType::class,
+            'name' => [],
+            'birthCountry' => [],
+            'books' => [$this->typeProvider->requestType(BookType::class)->getInstanceOrThrow()->getAccessCondition()],
         ];
     }
 
     public function getInternalProperties(): array
     {
         return [
-            'books' => BookType::class,
-            'writtenBooks' => BookType::class,
+            'books' => $this->typeProvider->requestType(BookType::class)->getInstanceOrThrow(),
+            'writtenBooks' => $this->typeProvider->requestType(BookType::class)->getInstanceOrThrow(),
             'name' => null,
             'birthCountry' => null,
             'pseudonym' => null,

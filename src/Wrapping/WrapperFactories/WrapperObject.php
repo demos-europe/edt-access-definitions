@@ -18,15 +18,12 @@ use EDT\Wrapping\Contracts\RelationshipAccessException;
 use EDT\Wrapping\Contracts\TypeRetrievalAccessException;
 use EDT\Wrapping\Contracts\Types\AliasableTypeInterface;
 use EDT\Wrapping\Contracts\Types\ExposableRelationshipTypeInterface;
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
-use EDT\Wrapping\Contracts\Types\UpdatableTypeInterface;
 use EDT\Wrapping\Utilities\PropertyReader;
-use EDT\Wrapping\Utilities\TypeAccessor;
 use InvalidArgumentException;
 use function array_key_exists;
 use function count;
-use function is_array;
 use function Safe\preg_match;
 
 /**
@@ -34,8 +31,8 @@ use function Safe\preg_match;
  *
  * Instances will provide read and write access to specific properties of the given object.
  *
- * Read access will only be granted if the given {@link TypeInterface} implements {@link ReadableTypeInterface}.
- * The properties allowed to be read depend on the return of {@link ReadableTypeInterface::getReadableProperties()}.
+ * Read access will only be granted if the given {@link TypeInterface} implements {@link TransferableTypeInterface}.
+ * The properties allowed to be read depend on the return of {@link TransferableTypeInterface::getReadableProperties()}.
  * Only those relationships will be readable whose target type return `true` in
  * {@link ExposableRelationshipTypeInterface::isExposedAsRelationship()}
  *
@@ -56,14 +53,9 @@ class WrapperObject
     private object $object;
 
     /**
-     * @var TypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity>
+     * @var TransferableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity>
      */
-    private TypeInterface $type;
-
-    /**
-     * @var TypeAccessor<FunctionInterface<bool>, SortMethodInterface>
-     */
-    private TypeAccessor $typeAccessor;
+    private TransferableTypeInterface $type;
 
     private PropertyAccessorInterface $propertyAccessor;
 
@@ -74,22 +66,19 @@ class WrapperObject
     private WrapperObjectFactory $wrapperFactory;
 
     /**
-     * @param TEntity                                                              $object
-     * @param TypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity> $type
-     * @param TypeAccessor<FunctionInterface<bool>, SortMethodInterface>     $typeAccessor
+     * @param TEntity                                                                          $object
+     * @param TransferableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity> $type
      */
     public function __construct(
         object                    $object,
         PropertyReader            $propertyReader,
-        TypeInterface             $type,
-        TypeAccessor              $typeAccessor,
+        TransferableTypeInterface $type,
         PropertyAccessorInterface $propertyAccessor,
         ConditionEvaluator        $conditionEvaluator,
         WrapperObjectFactory      $wrapperFactory
     ) {
         $this->object = $object;
         $this->type = $type;
-        $this->typeAccessor = $typeAccessor;
         $this->propertyAccessor = $propertyAccessor;
         $this->propertyReader = $propertyReader;
         $this->conditionEvaluator = $conditionEvaluator;
@@ -148,12 +137,8 @@ class WrapperObject
      */
     public function __get(string $propertyName)
     {
-        if (!$this->type instanceof ReadableTypeInterface) {
-            throw AccessException::typeNotReadable($this->type);
-        }
-
         // we allow reading of properties that are actually accessible
-        $readableProperties = $this->typeAccessor->getAccessibleReadableProperties($this->type);
+        $readableProperties = $this->type->getReadableProperties();
         if (!array_key_exists($propertyName, $readableProperties)) {
             throw PropertyAccessException::propertyNotAvailableInReadableType($propertyName, $this->type, ...array_keys($readableProperties));
         }
@@ -189,7 +174,7 @@ class WrapperObject
     /**
      * @param non-empty-string $propertyName
      * @param mixed $value The value to set. Will only be allowed if the property name matches with an allowed property
-     *                     (must be {@link UpdatableTypeInterface::getUpdatableProperties() updatable} and
+     *                     (must be {@link TransferableTypeInterface::getUpdatableProperties() updatable} and
      *                     (if it is a relationship) the target type of the relationship returns `true` in
      *                     {@link ExposableRelationshipTypeInterface::isExposedAsRelationship()}.
      *
@@ -197,17 +182,13 @@ class WrapperObject
      */
     public function __set(string $propertyName, $value): void
     {
-        if (!$this->type instanceof UpdatableTypeInterface) {
-            throw AccessException::typeNotUpdatable($this->type);
-        }
-
         // we allow writing of properties that are actually accessible
-        $updatableProperties = $this->typeAccessor->getAccessibleUpdatableProperties($this->type, $this->object);
+        $updatableProperties = $this->type->getUpdatableProperties($this->object);
         if (!array_key_exists($propertyName, $updatableProperties)) {
             throw PropertyAccessException::propertyNotAvailableInUpdatableType($propertyName, $this->type, ...array_keys($updatableProperties));
         }
 
-        $relationship = $updatableProperties[$propertyName];
+        $setabilityCondition = $updatableProperties[$propertyName];
         $propertyPath = $this->mapProperty($propertyName);
 
         // follow the path to get the actual target in which a property is to be set
@@ -218,7 +199,7 @@ class WrapperObject
 
         // at this point we ensured the relationship type is available and referencable but still
         // need to check the access conditions
-        $this->throwIfNotSetable($relationship, $propertyName, $deAliasedPropertyName, $value);
+        $this->throwIfNotSetable($setabilityCondition, $propertyName, $deAliasedPropertyName, $value);
         $this->setUnrestricted($deAliasedPropertyName, $target, $value);
     }
 
@@ -293,34 +274,32 @@ class WrapperObject
      * {@link ExposableRelationshipTypeInterface::isExposedAsRelationship() exposable as relationship}.
      *
      * It will also **not** consider
-     * information like {@link ReadableTypeInterface::getReadableProperties() readable} or
-     * {@link UpdatableTypeInterface::getUpdatableProperties() updatable} properties.
+     * information like {@link TransferableTypeInterface::getReadableProperties() readable} or
+     * {@link TransferableTypeInterface::getUpdatableProperties() updatable} properties.
      *
-     * @param TypeInterface<FunctionInterface<bool>, SortMethodInterface, object>|null $relationship
-     * @param non-empty-string                                    $propertyName
-     * @param non-empty-string                                    $deAliasedPropertyName
-     * @param mixed                                               $propertyValue         A single value of some type or an iterable.
+     * @param list<FunctionInterface<bool>> $setabilityConditions
+     * @param non-empty-string              $propertyName
+     * @param non-empty-string              $deAliasedPropertyName
+     * @param mixed                         $propertyValue         A single value of some type or an iterable.
      *
      * @throws AccessException
      */
-    protected function throwIfNotSetable(?TypeInterface $relationship, string $propertyName, string $deAliasedPropertyName, $propertyValue): void
+    protected function throwIfNotSetable(array $setabilityConditions, string $propertyName, string $deAliasedPropertyName, $propertyValue): void
     {
-        if (null === $relationship) {
-            // if non-relationship we do not restrict
+        if ([] === $setabilityConditions) {
             return;
         }
 
-        $condition = $relationship->getAccessCondition();
         if (is_iterable($propertyValue)) {
             // if to-many relationship prevent setting restricted items
             foreach (Iterables::asArray($propertyValue) as $key => $value) {
-                if (!$this->conditionEvaluator->evaluateCondition($value, $condition)) {
-                    throw RelationshipAccessException::toManyWithRestrictedItemNotSetable($this->type, $propertyName, $deAliasedPropertyName, $relationship, $key);
+                if (!$this->conditionEvaluator->evaluateConditions($value, $setabilityConditions)) {
+                    throw RelationshipAccessException::toManyWithRestrictedItemNotSetable($this->type, $propertyName, $deAliasedPropertyName, $key);
                 }
             }
-        } elseif (!$this->conditionEvaluator->evaluateCondition($propertyValue, $condition)) {
+        } elseif (!$this->conditionEvaluator->evaluateConditions($propertyValue, $setabilityConditions)) {
             // if restricted to-one relationship
-            throw RelationshipAccessException::toOneWithRestrictedItemNotSetable($this->type, $propertyName, $deAliasedPropertyName, $relationship);
+            throw RelationshipAccessException::toOneWithRestrictedItemNotSetable($this->type, $propertyName, $deAliasedPropertyName);
         }
     }
 

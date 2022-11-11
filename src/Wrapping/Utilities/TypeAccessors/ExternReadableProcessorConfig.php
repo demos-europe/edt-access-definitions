@@ -6,21 +6,21 @@ namespace EDT\Wrapping\Utilities\TypeAccessors;
 
 use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\TypeProviderInterface;
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 
 /**
- * @template-extends AbstractProcessorConfig<ReadableTypeInterface<PathsBasedInterface, PathsBasedInterface, object>>
+ * @template-extends AbstractProcessorConfig<TransferableTypeInterface<PathsBasedInterface, PathsBasedInterface, object>>
  */
 class ExternReadableProcessorConfig extends AbstractProcessorConfig
 {
     private bool $allowAttribute;
 
     /**
-     * @param TypeProviderInterface<PathsBasedInterface, PathsBasedInterface>         $typeProvider
-     * @param ReadableTypeInterface<PathsBasedInterface, PathsBasedInterface, object> $rootType
+     * @param TypeProviderInterface<PathsBasedInterface, PathsBasedInterface>             $typeProvider
+     * @param TransferableTypeInterface<PathsBasedInterface, PathsBasedInterface, object> $rootType
      */
-    public function __construct(TypeProviderInterface $typeProvider, ReadableTypeInterface $rootType, bool $allowAttribute)
+    public function __construct(TypeProviderInterface $typeProvider, TransferableTypeInterface $rootType, bool $allowAttribute)
     {
         parent::__construct($typeProvider, $rootType);
         $this->allowAttribute = $allowAttribute;
@@ -28,22 +28,11 @@ class ExternReadableProcessorConfig extends AbstractProcessorConfig
 
     public function getProperties(TypeInterface $type): array
     {
-        $properties = $type->getReadableProperties();
-        if (!$this->allowAttribute) {
-            $properties = array_filter(
-                $properties,
-                static fn (?string $property): bool => null !== $property
+        return $this->allowAttribute
+            ? $type->getReadableProperties()
+            : array_filter(
+                $type->getReadableProperties(),
+                static fn (?TypeInterface $property): bool => null !== $property
             );
-        }
-
-        return $properties;
-    }
-
-    public function getRelationshipType(string $typeIdentifier): TypeInterface
-    {
-        return $this->typeProvider->requestType($typeIdentifier)
-            ->instanceOf(ReadableTypeInterface::class)
-            ->exposedAsRelationship()
-            ->getInstanceOrThrow();
     }
 }

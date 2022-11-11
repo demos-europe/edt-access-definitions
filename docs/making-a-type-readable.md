@@ -1,7 +1,7 @@
 ## Making a Type readable
 
 A Type that should be avaiable for reading, filtering and sorting needs to implement
-`ReadableTypeInterface`.
+`TransferableTypeInterface`, `FilterableTypeInterface` and `SortableTypeInterface` respectively.
 We continue the implementation from [how to implement types](how-to-implement-types.md)
 and add the three methods needed for overall readability.
 
@@ -19,11 +19,11 @@ Because multiple Types can exist for a single backing class we also set the rela
 As `title`, `text` and are non-relationships we can simply set `null`.
 
 ```php
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 /** 
- * @template-implements ReadableTypeInterface<Article>
+ * @template-implements TransferableTypeInterface<Article>
  */
-class ArticleType implements ReadableTypeInterface
+class ArticleType implements TransferableTypeInterface
 {
     // ...
 
@@ -59,11 +59,11 @@ this:
 
 ```php
 use EDT\ConditionFactory\PathsBasedConditionFactoryInterface;
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 /** 
- * @template-implements ReadableTypeInterface<Article>
+ * @template-implements TransferableTypeInterface<Article>
  */
-class UserType implements ReadableTypeInterface
+class UserType implements TransferableTypeInterface
 {
     // ...
 

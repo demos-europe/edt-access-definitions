@@ -6,7 +6,7 @@ namespace EDT\Wrapping\WrapperFactories;
 
 use EDT\Querying\Contracts\FunctionInterface;
 use EDT\Querying\Contracts\SortMethodInterface;
-use EDT\Wrapping\Contracts\Types\ReadableTypeInterface;
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\Contracts\WrapperFactoryInterface;
 
 /**
@@ -18,7 +18,7 @@ class ArrayEndWrapperFactory implements WrapperFactoryInterface
     /**
      * @return null
      */
-    public function createWrapper(object $entity, ReadableTypeInterface $type)
+    public function createWrapper(object $entity, TransferableTypeInterface $type)
     {
         return null;
     }
