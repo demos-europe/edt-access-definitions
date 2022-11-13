@@ -13,7 +13,6 @@ use EDT\Wrapping\Contracts\PropertyAccessException;
 use EDT\Wrapping\Contracts\Types\AliasableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 use EDT\Wrapping\Utilities\TypeAccessors\AbstractProcessorConfig;
-use InvalidArgumentException;
 
 /**
  * Instances of this class can be used to convert the property paths in a {@link PathsBasedInterface}
@@ -58,9 +57,6 @@ class PropertyPathProcessor
         // schema of the object class backing the type.
         array_map(function (PropertyPathAccessInterface $propertyPath): void {
             $path = $propertyPath->getAsNames();
-            if ([] === $path) {
-                throw new InvalidArgumentException('Property path must not be empty.');
-            }
             $rootType = $this->processorConfig->getRootType();
             try {
                 $path = $this->processPropertyPath($rootType, [], ...$path);

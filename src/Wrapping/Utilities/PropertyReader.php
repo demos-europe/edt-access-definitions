@@ -66,19 +66,12 @@ class PropertyReader
             return null;
         }
 
-        // if to-one relationship wrap the value if available and return it, otherwise return null
-        $entitiesToWrap = $this->filter($relationshipType, [$value]);
+        $condition = $this->schemaPathProcessor->processAccessCondition($relationshipType);
 
-        switch (count($entitiesToWrap)) {
-            case 1:
-                // if available to-one relationship return the wrapped object
-                return array_pop($entitiesToWrap);
-            case 0:
-                // if restricted to-one relationship use null instead
-                return null;
-            default:
-                throw new Exception('Unexpected count: '.count($entitiesToWrap));
-        }
+        // if to-one relationship: if available return the value to wrap, otherwise return null
+        return $this->conditionEvaluator->evaluateCondition($value, $condition)
+            ? $value
+            : null;
     }
 
     /**
@@ -129,7 +122,7 @@ class PropertyReader
     {
         $condition = $this->schemaPathProcessor->processAccessCondition($relationship);
 
-        // filter out restricted items and sort the remainders
+        // filter out restricted items
         $entities = $this->conditionEvaluator->filterArray($entities, $condition);
 
         return array_values($entities);

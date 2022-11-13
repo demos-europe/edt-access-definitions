@@ -13,6 +13,7 @@ use EDT\Wrapping\Contracts\Types\FilterableTypeInterface;
 use EDT\Wrapping\Contracts\Types\IdentifiableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\Contracts\Types\SortableTypeInterface;
+use EDT\Wrapping\Properties\UpdatableRelationship;
 use Tests\data\Model\Person;
 
 /**
@@ -109,9 +110,13 @@ class AuthorType implements
     public function getUpdatableProperties(object $updateTarget): array
     {
         return [
-            'name' => [],
-            'birthCountry' => [],
-            'books' => [$this->typeProvider->requestType(BookType::class)->getInstanceOrThrow()->getAccessCondition()],
+            'name' => null,
+            'birthCountry' => null,
+            'books' => new UpdatableRelationship([
+                $this->typeProvider->requestType(BookType::class)
+                    ->getInstanceOrThrow()
+                    ->getAccessCondition()
+            ]),
         ];
     }
 

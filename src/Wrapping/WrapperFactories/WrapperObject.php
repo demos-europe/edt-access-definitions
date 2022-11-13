@@ -20,6 +20,7 @@ use EDT\Wrapping\Contracts\Types\AliasableTypeInterface;
 use EDT\Wrapping\Contracts\Types\ExposableRelationshipTypeInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
+use EDT\Wrapping\Properties\UpdatableRelationship;
 use EDT\Wrapping\Utilities\PropertyReader;
 use InvalidArgumentException;
 use function array_key_exists;
@@ -188,7 +189,7 @@ class WrapperObject
             throw PropertyAccessException::propertyNotAvailableInUpdatableType($propertyName, $this->type, ...array_keys($updatableProperties));
         }
 
-        $setabilityCondition = $updatableProperties[$propertyName];
+        $updatableRelationship = $updatableProperties[$propertyName];
         $propertyPath = $this->mapProperty($propertyName);
 
         // follow the path to get the actual target in which a property is to be set
@@ -199,7 +200,7 @@ class WrapperObject
 
         // at this point we ensured the relationship type is available and referencable but still
         // need to check the access conditions
-        $this->throwIfNotSetable($setabilityCondition, $propertyName, $deAliasedPropertyName, $value);
+        $this->throwIfNotSetable($updatableRelationship, $propertyName, $deAliasedPropertyName, $value);
         $this->setUnrestricted($deAliasedPropertyName, $target, $value);
     }
 
@@ -277,27 +278,33 @@ class WrapperObject
      * information like {@link TransferableTypeInterface::getReadableProperties() readable} or
      * {@link TransferableTypeInterface::getUpdatableProperties() updatable} properties.
      *
-     * @param list<FunctionInterface<bool>> $setabilityConditions
+     * @param UpdatableRelationship<FunctionInterface<bool>>|null $updatableRelationship
      * @param non-empty-string              $propertyName
      * @param non-empty-string              $deAliasedPropertyName
      * @param mixed                         $propertyValue         A single value of some type or an iterable.
      *
      * @throws AccessException
      */
-    protected function throwIfNotSetable(array $setabilityConditions, string $propertyName, string $deAliasedPropertyName, $propertyValue): void
-    {
-        if ([] === $setabilityConditions) {
+    protected function throwIfNotSetable(
+        ?UpdatableRelationship $updatableRelationship,
+        string $propertyName,
+        string $deAliasedPropertyName,
+        $propertyValue
+    ): void {
+        if (null === $updatableRelationship) {
             return;
         }
+
+        $relationshipConditions = $updatableRelationship->getRelationshipConditions();
 
         if (is_iterable($propertyValue)) {
             // if to-many relationship prevent setting restricted items
             foreach (Iterables::asArray($propertyValue) as $key => $value) {
-                if (!$this->conditionEvaluator->evaluateConditions($value, $setabilityConditions)) {
+                if (!$this->conditionEvaluator->evaluateConditions($value, $relationshipConditions)) {
                     throw RelationshipAccessException::toManyWithRestrictedItemNotSetable($this->type, $propertyName, $deAliasedPropertyName, $key);
                 }
             }
-        } elseif (!$this->conditionEvaluator->evaluateConditions($propertyValue, $setabilityConditions)) {
+        } elseif (!$this->conditionEvaluator->evaluateConditions($propertyValue, $relationshipConditions)) {
             // if restricted to-one relationship
             throw RelationshipAccessException::toOneWithRestrictedItemNotSetable($this->type, $propertyName, $deAliasedPropertyName);
         }

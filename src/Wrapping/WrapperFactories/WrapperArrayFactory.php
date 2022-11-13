@@ -18,7 +18,6 @@ use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 use EDT\Wrapping\Utilities\PropertyReader;
 use InvalidArgumentException;
-use function is_array;
 
 /**
  * @template-implements WrapperFactoryInterface<FunctionInterface<bool>, SortMethodInterface>

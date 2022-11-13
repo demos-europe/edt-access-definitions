@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Contracts\Types;
 
-use EDT\Wrapping\Contracts\TypeProviderInterface;
+use EDT\Wrapping\Properties\UpdatableRelationship;
 
 /**
  * @template TCondition of \EDT\Querying\Contracts\PathsBasedInterface
@@ -29,9 +29,9 @@ interface TransferableTypeInterface extends TypeInterface
     public function getReadableProperties(): array;
 
     /**
-     * @param TEntity $updateTarget
+     * TODO: add `UpdatableRelationship::getEntityConditions` and thus remove `$updateTarget` parameter
      *
-     * @return array<non-empty-string, list<TCondition>>
+     * @return array<non-empty-string, UpdatableRelationship<TCondition>|null>
      */
     public function getUpdatableProperties(object $updateTarget): array;
 }

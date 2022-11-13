@@ -47,24 +47,14 @@ class SchemaPathProcessorTest extends ModelBasedTest
         $this->schemaPathProcessor->mapSorting($this->authorType, [$invalidSortMethod]);
     }
 
-    public function testEmptyPath(): void
+    public function testMapSorting(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Property path must not be empty.');
-
-        $propertyPath = new class(
-            null,
-            '',
-            PropertyPathAccessInterface::UNPACK_RECURSIVE,
-            ['foo']
-        ) extends PropertyPath {
-            public function getAsNames(): array
-            {
-                return [];
-            }
-        };
+        $propertyPath = new PropertyPath(null, '', PropertyPathAccessInterface::UNPACK_RECURSIVE, ['name']);
         $sortMethod = new Ascending(new Property($propertyPath));
-
         $this->schemaPathProcessor->mapSorting($this->authorType, [$sortMethod]);
+        $paths = $sortMethod->getPropertyPaths();
+        self::assertCount(1, $paths);
+        $path = array_pop($paths);
+        self::assertSame(['name'], $path->getPath()->getAsNames());
     }
 }
