@@ -43,7 +43,7 @@ class SchemaPathProcessorTest extends ModelBasedTest
     {
         $this->expectException(AccessException::class);
         $this->expectExceptionMessage("Access with the path 'foo.bar' into the type class 'Tests\data\Types\AuthorType' was denied because of the path segment 'foo'.");
-        $invalidSortMethod = $this->sortMethodFactory->propertyAscending('foo', 'bar');
+        $invalidSortMethod = $this->sortMethodFactory->propertyAscending(['foo', 'bar']);
         $this->schemaPathProcessor->mapSorting($this->authorType, [$invalidSortMethod]);
     }
 

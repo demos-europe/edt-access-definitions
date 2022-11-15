@@ -69,7 +69,7 @@ class BookType implements
 
     public function getAccessCondition(): PathsBasedInterface
     {
-        return $this->conditionFactory->propertyHasNotSize(0, 'author', 'books');
+        return $this->conditionFactory->propertyHasNotSize(0, ['author', 'books']);
     }
 
     public function getEntityClass(): string

@@ -74,8 +74,8 @@ class AuthorType implements
     public function getAccessCondition(): PathsBasedInterface
     {
         return $this->conditionFactory->allConditionsApply(
-            $this->conditionFactory->propertyHasNotSize(0, 'books'),
-            $this->conditionFactory->propertyHasNotSize(0, 'writtenBooks')
+            $this->conditionFactory->propertyHasNotSize(0, ['books']),
+            $this->conditionFactory->propertyHasNotSize(0, ['writtenBooks'])
         );
     }
 

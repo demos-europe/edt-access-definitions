@@ -79,7 +79,7 @@ class WrapperArrayFactoryTest extends ModelBasedTest
 
     public function testListBackingObjectsUnrestricted(): void
     {
-        $hasString = $this->conditionFactory->propertyHasStringContainingCaseInsensitiveValue('man', 'pseudonym');
+        $hasString = $this->conditionFactory->propertyHasStringContainingCaseInsensitiveValue('man', ['pseudonym']);
         $filteredAuthors = $this->listEntities($this->authorType, [$hasString]);
         self::assertCount(1, $filteredAuthors);
         $author = array_pop($filteredAuthors);
@@ -88,7 +88,7 @@ class WrapperArrayFactoryTest extends ModelBasedTest
 
     public function testListWrappersDepthZero(): void
     {
-        $hasString = $this->conditionFactory->propertyHasStringContainingCaseInsensitiveValue('man', 'pseudonym');
+        $hasString = $this->conditionFactory->propertyHasStringContainingCaseInsensitiveValue('man', ['pseudonym']);
         $filteredAuthors = $this->listEntities($this->authorType, [$hasString]);
         $filteredAuthors = $this->createArrayWrappers($filteredAuthors, $this->authorType, 0);
 
@@ -108,7 +108,7 @@ class WrapperArrayFactoryTest extends ModelBasedTest
 
     public function testListWrappersDepthOne(): void
     {
-        $hasString = $this->conditionFactory->propertyHasStringContainingCaseInsensitiveValue('man', 'pseudonym');
+        $hasString = $this->conditionFactory->propertyHasStringContainingCaseInsensitiveValue('man', ['pseudonym']);
         $filteredAuthors = $this->listEntities($this->authorType, [$hasString]);
         $filteredAuthors = $this->createArrayWrappers($filteredAuthors, $this->authorType, 1);
 
@@ -132,7 +132,7 @@ class WrapperArrayFactoryTest extends ModelBasedTest
 
     public function testListWrappersDepthNegative(): void
     {
-        $hasString = $this->conditionFactory->propertyHasStringContainingCaseInsensitiveValue('man', 'pseudonym');
+        $hasString = $this->conditionFactory->propertyHasStringContainingCaseInsensitiveValue('man', ['pseudonym']);
         $filteredAuthors = $this->listEntities($this->authorType, [$hasString]);
         $filteredAuthors = $this->createArrayWrappers($filteredAuthors, $this->authorType, -1);
 
@@ -152,7 +152,7 @@ class WrapperArrayFactoryTest extends ModelBasedTest
 
     public function testListWrappersDepthTwo(): void
     {
-        $hasString = $this->conditionFactory->propertyHasStringContainingCaseInsensitiveValue('man', 'pseudonym');
+        $hasString = $this->conditionFactory->propertyHasStringContainingCaseInsensitiveValue('man', ['pseudonym']);
         $filteredAuthors = $this->listEntities($this->authorType, [$hasString]);
         $filteredAuthors = $this->createArrayWrappers($filteredAuthors, $this->authorType, 2);
 
@@ -183,7 +183,7 @@ class WrapperArrayFactoryTest extends ModelBasedTest
 
     public function testListWrappersWithMapping(): void
     {
-        $hasString = $this->conditionFactory->propertyHasStringContainingCaseInsensitiveValue('Oranje', 'birthCountry');
+        $hasString = $this->conditionFactory->propertyHasStringContainingCaseInsensitiveValue('Oranje', ['birthCountry']);
         $filteredAuthors = $this->listEntities($this->authorType, [$hasString]);
         $filteredAuthors = $this->createArrayWrappers($filteredAuthors, $this->authorType, 0);
 
@@ -253,7 +253,7 @@ class WrapperArrayFactoryTest extends ModelBasedTest
     public function getEntityByIdentifier(IdentifiableTypeInterface $type, string $identifier, bool $wrap = true)
     {
         $identifierPath = $type->getIdentifierPropertyPath();
-        $identifierCondition = $this->conditionFactory->propertyHasValue($identifier, ...$identifierPath);
+        $identifierCondition = $this->conditionFactory->propertyHasValue($identifier, $identifierPath);
         $entities = $this->listEntities($type, [$identifierCondition]);
         if ($wrap) {
             $entities = $this->createArrayWrappers($entities, $type, 0);
