@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace EDT\Wrapping\Contracts\Types;
 
 use EDT\Querying\Contracts\EntityBasedInterface;
+use EDT\Querying\Contracts\PathsBasedInterface;
+use EDT\Wrapping\Properties\Initializability;
 
 /**
- * @template TCondition of \EDT\Querying\Contracts\PathsBasedInterface
+ * @template TCondition of PathsBasedInterface
  */
 interface CreatableTypeInterface
 {
@@ -15,17 +17,11 @@ interface CreatableTypeInterface
      * The return defines what properties are allowed to be set when a new instance of
      * the {@link EntityBasedInterface::getEntityClass() backing class} is created.
      *
-     * Each entry consists of the name of the property as key and conditions
-     * as value. The conditions will be used to determine if a value is allowed to be set. (TODO: not implemented yet)
+     * Each entry consists of the name of the property as key and config data as value.
      *
-     * @return array<non-empty-string, list<TCondition>>
+     * @return array<non-empty-string, Initializability<TCondition>>
      */
     public function getInitializableProperties(): array;
-
-    /**
-     * @return list<non-empty-string>
-     */
-    public function getPropertiesRequiredForCreation(): array;
 
     /**
      * Controls if the implementing instance can be used to create resources of the corresponding

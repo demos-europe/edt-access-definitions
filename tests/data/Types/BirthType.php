@@ -11,12 +11,9 @@ use Tests\data\AdModel\Birth;
 
 class BirthType implements TypeInterface
 {
-    private PathsBasedConditionFactoryInterface $conditionFactory;
-
-    public function __construct(PathsBasedConditionFactoryInterface $conditionFactory)
-    {
-        $this->conditionFactory = $conditionFactory;
-    }
+    public function __construct(
+        private readonly PathsBasedConditionFactoryInterface $conditionFactory
+    ) {}
 
 
     public function getEntityClass(): string

@@ -1,3 +1,5 @@
+Allows fine-grained definitions how entities and their properties are allowed to be accessed in CRUD applications.
+
 Provides PHP classes that build upon the https://github.com/demos-europe/edt-queries[query component] to provide
 the means to enforce access limitation and simple aliasing from the wrapper schema
 to the schema of your backing object. The https://github.com/demos-europe/edt-paths[path-building] component can optionally be used
@@ -105,7 +107,7 @@ $wrappedEntities = array_map(function (Article $articleEntity) use ($articleType
 
 Also note that the restrictions of `Types` are in place no matter how they are accessed. For example
 when you've restricted access to the internal e-mail address of your users using a `UserType` then it does not matter
-if the wrapper of the `User` object was received via a relationship from an wrapped `Article``,
+if the wrapper of the `User` object was received via a relationship from a wrapped `Article``,
 a wrapped `Comment` or wrapped manually, the restriction will always be applied.
 
 == Credits and acknowledgements

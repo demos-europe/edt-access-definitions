@@ -15,29 +15,18 @@ use function array_key_exists;
  * criteria, e.g. the {@link ExternFilterableProcessorConfig} will only allow access
  * to filterable properties and types.
  *
- * @template TType of TypeInterface<\EDT\Querying\Contracts\PathsBasedInterface, \EDT\Querying\Contracts\PathsBasedInterface, object>
+ * @template TType of TypeInterface<PathsBasedInterface, PathsBasedInterface, object>
  */
 abstract class AbstractProcessorConfig
 {
     /**
-     * @var TypeProviderInterface<PathsBasedInterface, PathsBasedInterface>
-     */
-    protected TypeProviderInterface $typeProvider;
-
-    /**
-     * @var TType
-     */
-    private TypeInterface $rootType;
-
-    /**
      * @param TypeProviderInterface<PathsBasedInterface, PathsBasedInterface> $typeProvider
      * @param TType                                                           $rootType
      */
-    public function __construct(TypeProviderInterface $typeProvider, TypeInterface $rootType)
-    {
-        $this->typeProvider = $typeProvider;
-        $this->rootType = $rootType;
-    }
+    public function __construct(
+        protected readonly TypeProviderInterface $typeProvider,
+        private readonly TypeInterface $rootType
+    ) {}
 
     /**
      * @return TType

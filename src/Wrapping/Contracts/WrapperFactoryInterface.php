@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Contracts;
 
+use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 
@@ -12,8 +13,8 @@ use EDT\Wrapping\Contracts\Types\TypeInterface;
  * Implementations can be tailored for a specific object class (specified via the template parameter `O`)
  * or be more generic and create wrappers suitable for different kinds of objects.
  *
- * @template TCondition of \EDT\Querying\Contracts\PathsBasedInterface
- * @template TSorting of \EDT\Querying\Contracts\PathsBasedInterface
+ * @template TCondition of PathsBasedInterface
+ * @template TSorting of PathsBasedInterface
  *
  * TODO: check if usages can be replaced with {@link WrapperObjectFactory} and remove interface
  */
@@ -29,5 +30,5 @@ interface WrapperFactoryInterface
      *
      * @throws AccessException
      */
-    public function createWrapper(object $entity, TransferableTypeInterface $type);
+    public function createWrapper(object $entity, TransferableTypeInterface $type): array|object|null;
 }

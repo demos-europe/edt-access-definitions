@@ -18,6 +18,8 @@ The `getReadableProperties()` method defines only which properties of the backin
 Because multiple Types can exist for a single backing class we also set the relationship for each property.  
 As `title`, `text` and are non-relationships we can simply set `null`.
 
+TODO: EXAMPLE OUT OF DATE, NEEDS TO BE UPDATED
+
 ```php
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 /** 
@@ -56,6 +58,8 @@ this is done depends heavily on the implementation of authorizations in your app
 example we will simply assume that the Type instances are created on each request and the
 `UserType` receives a `moderator` boolean on instantiation. The result may look something like
 this:
+
+TODO: EXAMPLE OUT OF DATE, NEEDS TO BE UPDATED
 
 ```php
 use EDT\ConditionFactory\PathsBasedConditionFactoryInterface;

@@ -116,6 +116,8 @@ Instead, you probably want to use a class like `Authorization`, `Role` or `User`
 
 The draft article may look like the following:
 
+TODO: EXAMPLE OUT OF DATE, NEEDS TO BE UPDATED
+
 ```php
 use EDT\ConditionFactory\PathsBasedConditionFactoryInterface;
 use EDT\Querying\Contracts\FunctionInterface;
@@ -172,6 +174,8 @@ class DraftArticleType implements TransferableTypeInterface
 ```
 
 The `ArticleType` stays the same except that we added the relationship.
+
+TODO: EXAMPLE OUT OF DATE, NEEDS TO BE UPDATED
 
 ```php
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;

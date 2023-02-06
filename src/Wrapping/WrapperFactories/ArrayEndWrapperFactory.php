@@ -15,10 +15,7 @@ use EDT\Wrapping\Contracts\WrapperFactoryInterface;
  */
 class ArrayEndWrapperFactory implements WrapperFactoryInterface
 {
-    /**
-     * @return null
-     */
-    public function createWrapper(object $entity, TransferableTypeInterface $type)
+    public function createWrapper(object $entity, TransferableTypeInterface $type): array|object|null
     {
         return null;
     }

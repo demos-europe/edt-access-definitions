@@ -6,14 +6,22 @@ namespace EDT\Wrapping\Contracts;
 
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
-use function get_class;
+use Throwable;
 
 class PropertyAccessException extends AccessException
 {
     /**
-     * @var non-empty-string
+     * @param non-empty-string $propertyName
+     * @param non-empty-string $message
      */
-    protected string $propertyName;
+    protected function __construct(
+        protected string $propertyName,
+        string $message,
+        int $code = 0,
+        Throwable $previous = null
+    ) {
+        parent::__construct($message, $code, $previous);
+    }
 
     /**
      * @param non-empty-string $property
@@ -21,10 +29,9 @@ class PropertyAccessException extends AccessException
      */
     public static function propertyNotAvailableInType(string $property, TypeInterface $type, string ...$availableProperties): self
     {
-        $typeClass = get_class($type);
+        $typeClass = $type::class;
         $propertyList = implode(', ', $availableProperties);
-        $self = new self("No property '$property' is available in the type class '$typeClass'. Available properties are: $propertyList");
-        $self->propertyName = $property;
+        $self = new self($property, "No property '$property' is available in the type class '$typeClass'. Available properties are: $propertyList");
         $self->typeClass = $typeClass;
 
         return $self;
@@ -36,10 +43,9 @@ class PropertyAccessException extends AccessException
      */
     public static function propertyNotAvailableInReadableType(string $property, TransferableTypeInterface $type, string ...$availableProperties): self
     {
-        $typeClass = get_class($type);
+        $typeClass = $type::class;
         $propertyList = implode(', ', $availableProperties);
-        $self = new self("No property '$property' is available in the readable type class '$typeClass'. Available properties are: $propertyList");
-        $self->propertyName = $property;
+        $self = new self($property, "No property '$property' is available in the readable type class '$typeClass'. Available properties are: $propertyList");
         $self->typeClass = $typeClass;
 
         return $self;
@@ -52,10 +58,9 @@ class PropertyAccessException extends AccessException
      */
     public static function propertyNotAvailableInUpdatableType(string $property, TransferableTypeInterface $type, string ...$availableProperties): self
     {
-        $typeClass = get_class($type);
+        $typeClass = $type::class;
         $propertyList = implode(', ', $availableProperties);
-        $self = new self("No property '$property' is available in the updatable type class '$typeClass'. Available properties are: $propertyList");
-        $self->propertyName = $property;
+        $self = new self($property, "No property '$property' is available in the updatable type class '$typeClass'. Available properties are: $propertyList");
         $self->typeClass = $typeClass;
 
         return $self;
@@ -66,9 +71,8 @@ class PropertyAccessException extends AccessException
      */
     public static function nonRelationship(string $property, TypeInterface $type): self
     {
-        $typeClass = get_class($type);
-        $self = new self("The property '$property' exists in the type class '$typeClass' but it is not a relationship and the path continues after it. Check your access to the schema of the type.");
-        $self->propertyName = $property;
+        $typeClass = $type::class;
+        $self = new self($property, "The property '$property' exists in the type class '$typeClass' but it is not a relationship and the path continues after it. Check your access to the schema of the type.");
         $self->typeClass = $typeClass;
 
         return $self;
@@ -81,11 +85,10 @@ class PropertyAccessException extends AccessException
     public static function pathDenied(TypeInterface $type, PropertyAccessException $previous, array $path): self
     {
         $pathString = implode('.', $path);
-        $typeClass = get_class($type);
+        $typeClass = $type::class;
         $propertyName = $previous->getPropertyName();
-        $self = new self("Access with the path '$pathString' into the type class '$typeClass' was denied because of the path segment '$propertyName'.", 0, $previous);
+        $self = new self($propertyName, "Access with the path '$pathString' into the type class '$typeClass' was denied because of the path segment '$propertyName'.", 0, $previous);
         $self->typeClass = $typeClass;
-        $self->propertyName = $propertyName;
 
         return $self;
     }

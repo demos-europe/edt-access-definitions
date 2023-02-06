@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\TypeProviders;
 
+use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\TypeProviderInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 
 /**
- * @template TCondition of \EDT\Querying\Contracts\PathsBasedInterface
- * @template TSorting of \EDT\Querying\Contracts\PathsBasedInterface
+ * @template TCondition of PathsBasedInterface
+ * @template TSorting of PathsBasedInterface
  *
  * @template-extends AbstractTypeProvider<TCondition, TSorting>
  */
@@ -22,7 +23,7 @@ class LazyTypeProvider extends AbstractTypeProvider
 
     protected function getTypeByIdentifier(string $typeIdentifier): ?TypeInterface
     {
-        return $this->types[$typeIdentifier];
+        return $this->types[$typeIdentifier] ?? null;
     }
 
     public function getTypeIdentifiers(): array

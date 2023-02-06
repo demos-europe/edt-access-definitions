@@ -20,7 +20,6 @@ use EDT\Wrapping\Utilities\SchemaPathProcessor;
 use EDT\Wrapping\WrapperFactories\WrapperArrayFactory;
 use EDT\Querying\ObjectProviders\PrefilledObjectProvider;
 use EDT\Wrapping\TypeProviders\PrefilledTypeProvider;
-use ReflectionClass;
 use Tests\data\Model\Person;
 use Tests\data\Types\BirthType;
 use Tests\ModelBasedTest;
@@ -229,7 +228,7 @@ class WrapperArrayFactoryTest extends ModelBasedTest
         return new WrapperArrayFactory($this->propertyAccessor, $this->propertyReader, $depth);
     }
 
-    private function createArrayWrappers(array $entities, $type, int $depth): array
+    private function createArrayWrappers(array $entities, TransferableTypeInterface $type, int $depth): array
     {
         $wrapper = $this->createWrapperArrayFactory($depth);
         return array_values(array_map(

@@ -10,40 +10,22 @@ use EDT\Wrapping\Contracts\Types\TypeInterface;
 use function in_array;
 
 /**
- * @template TType of \EDT\Wrapping\Contracts\Types\TypeInterface
+ * @template TType of TypeInterface
  */
 class TypeRequirement
 {
-    /**
-     * @var TType|null
-     */
-    private ?TypeInterface $typedInstance;
-
-    /**
-     * @var non-empty-string
-     */
-    private string $identifier;
-
-    /**
-     * @var list<non-empty-string>
-     */
-    private array $problems;
-
-    private ?TypeInterface $plainInstance;
-
     /**
      * @param TType|null             $typedInstance
      * @param TypeInterface|null     $plainInstance
      * @param non-empty-string       $identifier
      * @param list<non-empty-string> $problems
      */
-    public function __construct(?TypeInterface $typedInstance, ?TypeInterface $plainInstance, string $identifier, array $problems)
-    {
-        $this->typedInstance = $typedInstance;
-        $this->identifier = $identifier;
-        $this->problems = $problems;
-        $this->plainInstance = $plainInstance;
-    }
+    public function __construct(
+        private ?TypeInterface $typedInstance,
+        private readonly ?TypeInterface $plainInstance,
+        private readonly string $identifier,
+        private array $problems
+    ) {}
 
     /**
      * @template TTestType
@@ -56,8 +38,8 @@ class TypeRequirement
     {
         $problems = $this->problems;
         $instance = $this->typedInstance;
-        if (null !== $instance && !is_a($instance, $testTypeFqn)) {
-            if (null !== $this->plainInstance && !is_a($this->plainInstance, $testTypeFqn)) {
+        if (null !== $instance && !$instance instanceof $testTypeFqn) {
+            if (null !== $this->plainInstance && !$this->plainInstance instanceof $testTypeFqn) {
                 $problems = $this->addProblem("does not implement '$testTypeFqn'");
             }
             $instance = null;
@@ -73,15 +55,13 @@ class TypeRequirement
     {
         $self = $this->instanceOf(ExposableRelationshipTypeInterface::class);
 
-        if (null !== $self->typedInstance) {
-            if (!$self->typedInstance->isExposedAsRelationship()) {
-                if ($self->plainInstance instanceof ExposableRelationshipTypeInterface
-                    && !$self->plainInstance->isExposedAsRelationship()
-                ) {
-                    $self->problems = $self->addProblem('not set as exposable');
-                }
-                $self->typedInstance = null;
+        if (null !== $self->typedInstance && !$self->typedInstance->isExposedAsRelationship()) {
+            if ($self->plainInstance instanceof ExposableRelationshipTypeInterface
+                && !$self->plainInstance->isExposedAsRelationship()
+            ) {
+                $self->problems = $self->addProblem('not set as exposable');
             }
+            $self->typedInstance = null;
         }
 
         return $self;

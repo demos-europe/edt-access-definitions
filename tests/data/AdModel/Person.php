@@ -6,24 +6,15 @@ namespace Tests\data\AdModel;
 
 class Person
 {
-    protected string $name;
-
-    protected ?string $pseudonym = null;
-
-    protected Birth $birth;
-
     /**
-     * @var list<Book>
+     * @param list<Book> $books
      */
-    protected array $books;
-
-    public function __construct(string $name, ?string $pseudonym, Birth $birth)
-    {
-        $this->name = $name;
-        $this->pseudonym = $pseudonym;
-        $this->birth = $birth;
-        $this->books = [];
-    }
+    public function __construct(
+        protected string $name,
+        protected ?string $pseudonym,
+        protected Birth $birth,
+        protected array $books = []
+    ) {}
 
     public function addBook(Book $book): void
     {

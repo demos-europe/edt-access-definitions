@@ -26,23 +26,18 @@ use EDT\Wrapping\Utilities\TypeAccessors\InternProcessorConfig;
 class SchemaPathProcessor
 {
     /**
-     * @var TypeProviderInterface<PathsBasedInterface, PathsBasedInterface>
+     * @param TypeProviderInterface<PathsBasedInterface, PathsBasedInterface> $typeProvider
      */
-    private TypeProviderInterface $typeProvider;
-
-    private PropertyPathProcessorFactory $propertyPathProcessorFactory;
-
-    public function __construct(PropertyPathProcessorFactory $propertyPathProcessorFactory, TypeProviderInterface $typeProvider)
-    {
-        $this->typeProvider = $typeProvider;
-        $this->propertyPathProcessorFactory = $propertyPathProcessorFactory;
-    }
+    public function __construct(
+        private readonly PropertyPathProcessorFactory $propertyPathProcessorFactory,
+        private readonly TypeProviderInterface $typeProvider
+    ) {}
 
     /**
      * Check the paths of the given conditions for availability and applies aliases using the given type.
      *
-     * @template TCondition of \EDT\Querying\Contracts\PathsBasedInterface
-     * @template TSorting of \EDT\Querying\Contracts\PathsBasedInterface
+     * @template TCondition of PathsBasedInterface
+     * @template TSorting of PathsBasedInterface
      *
      * @param FilterableTypeInterface<TCondition, TSorting, object> $type
      * @param non-empty-list<TCondition>                     $conditions
@@ -60,8 +55,8 @@ class SchemaPathProcessor
     /**
      * Check the paths of the given sort methods for availability and aliases using the given type.
      *
-     * @template TCondition of \EDT\Querying\Contracts\PathsBasedInterface
-     * @template TSorting of \EDT\Querying\Contracts\PathsBasedInterface
+     * @template TCondition of PathsBasedInterface
+     * @template TSorting of PathsBasedInterface
      *
      * @param SortableTypeInterface<TCondition, TSorting, object> $type
      * @param non-empty-list<TSorting>                   $sortMethods
@@ -98,8 +93,8 @@ class SchemaPathProcessor
      * Check if all properties used in the sort methods are available
      * and map the paths to be applied to the schema of the backing class.
      *
-     * @template TCondition of \EDT\Querying\Contracts\PathsBasedInterface
-     * @template TSorting of \EDT\Querying\Contracts\PathsBasedInterface
+     * @template TCondition of PathsBasedInterface
+     * @template TSorting of PathsBasedInterface
      *
      * @param TypeInterface<TCondition, TSorting, object> $type
      *
@@ -127,8 +122,8 @@ class SchemaPathProcessor
      * Get the processed {@link TransferableTypeInterface::getAccessCondition() access condition}
      * of the given type.
      *
-     * @template TCondition of \EDT\Querying\Contracts\PathsBasedInterface
-     * @template TSorting of \EDT\Querying\Contracts\PathsBasedInterface
+     * @template TCondition of PathsBasedInterface
+     * @template TSorting of PathsBasedInterface
      *
      * @param TypeInterface<TCondition, TSorting, object> $type
      *

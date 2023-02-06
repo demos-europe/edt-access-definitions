@@ -11,32 +11,21 @@ use EDT\Querying\Contracts\SortMethodInterface;
 use EDT\Querying\Utilities\ConditionEvaluator;
 use EDT\Querying\Utilities\Iterables;
 use EDT\Querying\Utilities\Sorter;
+use EDT\Wrapping\Contracts\RelationshipAccessException;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 use EDT\Wrapping\Contracts\WrapperFactoryInterface;
-use Exception;
-use function count;
 
 /**
  * Provides helper methods to determine the access rights to properties of an entity based on the implementation of a given {@link TypeInterface}.
  */
 class PropertyReader
 {
-    private SchemaPathProcessor $schemaPathProcessor;
-
-    private ConditionEvaluator $conditionEvaluator;
-
-    private Sorter $sorter;
-
     public function __construct(
-        SchemaPathProcessor $schemaPathProcessor,
-        ConditionEvaluator $conditionEvaluator,
-        Sorter $sorter
-    ) {
-        $this->schemaPathProcessor = $schemaPathProcessor;
-        $this->conditionEvaluator = $conditionEvaluator;
-        $this->sorter = $sorter;
-    }
+        private readonly SchemaPathProcessor $schemaPathProcessor,
+        private readonly ConditionEvaluator $conditionEvaluator,
+        private readonly Sorter $sorter
+    ) {}
 
     /**
      * The given {@link WrapperFactoryInterface} will be used on the given `$value` and the result
@@ -53,24 +42,19 @@ class PropertyReader
      * @template TEntity of object
      *
      * @param TransferableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity> $relationshipType
-     * @param TEntity|null                                                                     $value
+     * @param TEntity $relationshipEntity
      *
      * @return TEntity|null
      *
      * @throws PathException
      */
-    public function determineToOneRelationshipValue(TransferableTypeInterface $relationshipType, ?object $value): ?object
+    public function determineToOneRelationshipValue(TransferableTypeInterface $relationshipType, object $relationshipEntity): ?object
     {
-        // if null relationship return null
-        if (null === $value) {
-            return null;
-        }
-
         $condition = $this->schemaPathProcessor->processAccessCondition($relationshipType);
 
         // if to-one relationship: if available return the value to wrap, otherwise return null
-        return $this->conditionEvaluator->evaluateCondition($value, $condition)
-            ? $value
+        return $this->conditionEvaluator->evaluateCondition($relationshipEntity, $condition)
+            ? $relationshipEntity
             : null;
     }
 
@@ -89,16 +73,16 @@ class PropertyReader
      * @template TEntity of object
      *
      * @param TransferableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity> $relationshipType
-     * @param iterable<TEntity>                                                                $values
+     * @param list<TEntity> $relationshipEntities
      *
      * @return list<TEntity>
      *
      * @throws PathException
      * @throws SortException
      */
-    public function determineToManyRelationshipValue(TransferableTypeInterface $relationshipType, iterable $values): array
+    public function determineToManyRelationshipValue(TransferableTypeInterface $relationshipType, array $relationshipEntities): array
     {
-        $entities = $this->filter($relationshipType, Iterables::asArray($values));
+        $entities = $this->filter($relationshipType, $relationshipEntities);
 
         $sortMethods = $this->schemaPathProcessor->processDefaultSortMethods($relationshipType);
         if ([] !== $sortMethods) {
@@ -106,6 +90,32 @@ class PropertyReader
         }
 
         return $entities;
+    }
+
+    /**
+     * @template TEntity of object
+     *
+     * @param non-empty-string $propertyName
+     * @param class-string<TEntity> $entityClass
+     *
+     * @return list<TEntity>
+     */
+    public function verifyToManyIterable(mixed $supposedIterable, string $propertyName, string $entityClass): array
+    {
+        if (!is_iterable($supposedIterable)) {
+            throw RelationshipAccessException::toManyNotIterable($propertyName);
+        }
+
+        return array_map(
+            static function (mixed $relationshipValue) use ($propertyName, $entityClass): object {
+                if (!$relationshipValue instanceof $entityClass) {
+                    throw RelationshipAccessException::toManyIterableInvalidEntity($propertyName, $entityClass);
+                }
+
+                return $relationshipValue;
+            },
+            array_values(Iterables::asArray($supposedIterable))
+        );
     }
 
     /**

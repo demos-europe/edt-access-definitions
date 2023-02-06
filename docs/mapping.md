@@ -30,6 +30,8 @@ automatically by the library to apply the mapping.
 In combination with other methods like `TransferableTypeInterface::getReadableProperties` you
 can either support both `fullName` and `name` in the Type or just one of them.
 
+TODO: EXAMPLE OUT OF DATE, NEEDS TO BE UPDATED
+
 ```php
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 class AuthorType implements TransferableTypeInterface
@@ -56,6 +58,8 @@ E.g. a `Book` object may contain properties like `booksAuthorName`, `booksAuthor
 object exists it is still possible to create an `AuthorType` by adding an alias to the `BookType` with an empty target
 as shown below:
 
+TODO: EXAMPLE OUT OF DATE, NEEDS TO BE UPDATED
+
 ```php
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 class BookType implements TransferableTypeInterface
@@ -77,6 +81,8 @@ class BookType implements TransferableTypeInterface
 ```
 
 The `AuthorType` will then access the `Book` object to access the properties:
+
+TODO: EXAMPLE OUT OF DATE, NEEDS TO BE UPDATED
 
 ```php
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;

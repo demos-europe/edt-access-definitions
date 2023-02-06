@@ -17,21 +17,11 @@ use EDT\Wrapping\Utilities\PropertyReader;
  */
 class WrapperObjectFactory implements WrapperFactoryInterface
 {
-    private PropertyAccessorInterface $propertyAccessor;
-
-    private PropertyReader $propertyReader;
-
-    private ConditionEvaluator $conditionEvaluator;
-
     public function __construct(
-        PropertyReader $propertyReader,
-        PropertyAccessorInterface $propertyAccessor,
-        ConditionEvaluator $conditionEvaluator
-    ) {
-        $this->propertyAccessor = $propertyAccessor;
-        $this->propertyReader = $propertyReader;
-        $this->conditionEvaluator = $conditionEvaluator;
-    }
+        private readonly PropertyReader $propertyReader,
+        private readonly PropertyAccessorInterface $propertyAccessor,
+        private readonly ConditionEvaluator $conditionEvaluator
+    ) {}
 
     /**
      * @template TEntity of object

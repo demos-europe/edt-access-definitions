@@ -20,11 +20,15 @@ use EDT\Wrapping\Contracts\Types\AliasableTypeInterface;
 use EDT\Wrapping\Contracts\Types\ExposableRelationshipTypeInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
-use EDT\Wrapping\Properties\UpdatableRelationship;
+use EDT\Wrapping\Properties\AttributeUpdatability;
+use EDT\Wrapping\Properties\ToManyRelationshipUpdatability;
+use EDT\Wrapping\Properties\ToOneRelationshipUpdatability;
+use EDT\Wrapping\Properties\AbstractUpdatability;
 use EDT\Wrapping\Utilities\PropertyReader;
 use InvalidArgumentException;
 use function array_key_exists;
 use function count;
+use function is_object;
 use function Safe\preg_match;
 
 /**
@@ -49,42 +53,17 @@ class WrapperObject
     private const METHOD_PATTERN = '/(get|set)([A-Z_]\w*)/';
 
     /**
-     * @var TEntity
-     */
-    private object $object;
-
-    /**
-     * @var TransferableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity>
-     */
-    private TransferableTypeInterface $type;
-
-    private PropertyAccessorInterface $propertyAccessor;
-
-    private PropertyReader $propertyReader;
-
-    private ConditionEvaluator $conditionEvaluator;
-
-    private WrapperObjectFactory $wrapperFactory;
-
-    /**
-     * @param TEntity                                                                          $object
+     * @param TEntity $entity
      * @param TransferableTypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity> $type
      */
     public function __construct(
-        object                    $object,
-        PropertyReader            $propertyReader,
-        TransferableTypeInterface $type,
-        PropertyAccessorInterface $propertyAccessor,
-        ConditionEvaluator        $conditionEvaluator,
-        WrapperObjectFactory      $wrapperFactory
-    ) {
-        $this->object = $object;
-        $this->type = $type;
-        $this->propertyAccessor = $propertyAccessor;
-        $this->propertyReader = $propertyReader;
-        $this->conditionEvaluator = $conditionEvaluator;
-        $this->wrapperFactory = $wrapperFactory;
-    }
+        private readonly object $entity,
+        private readonly PropertyReader $propertyReader,
+        private readonly TransferableTypeInterface $type,
+        private readonly PropertyAccessorInterface $propertyAccessor,
+        private readonly ConditionEvaluator $conditionEvaluator,
+        private readonly WrapperObjectFactory $wrapperFactory
+    ) {}
 
     /**
      * @return TypeInterface<FunctionInterface<bool>, SortMethodInterface, TEntity>
@@ -95,8 +74,8 @@ class WrapperObject
     }
 
     /**
-     * @param non-empty-string         $methodName
-     * @param array<int|string, mixed> $arguments
+     * @param non-empty-string $methodName
+     * @param array<int|string, array<int|string, mixed>|simple_primitive|object|null> $arguments
      *
      * @return mixed|null|void If no parameters given:<ul>
      *   <li>In case of a relationship: an array, {@link WrapperObject} or <code>null</code>.
@@ -140,78 +119,107 @@ class WrapperObject
     {
         // we allow reading of properties that are actually accessible
         $readableProperties = $this->type->getReadableProperties();
-        if (!array_key_exists($propertyName, $readableProperties)) {
-            throw PropertyAccessException::propertyNotAvailableInReadableType($propertyName, $this->type, ...array_keys($readableProperties));
-        }
-
-        // Get the potentially wrapped value for the requested property
-        $relationship = $readableProperties[$propertyName];
         $propertyPath = $this->mapProperty($propertyName);
-        $propertyValue = $this->propertyAccessor->getValueByPropertyPath($this->object, ...$propertyPath);
 
-        if (null === $relationship) {
+        // TODO: respect readability settings at least partially
+
+        if (array_key_exists($propertyName, $readableProperties[0])) {
+            $readability = $readableProperties[0][$propertyName];
+            $propertyValue = $this->propertyAccessor->getValueByPropertyPath($this->entity, ...$propertyPath);
+
             // if non-relationship, simply use the value read from the target
+            // TODO: validate property type
             return $propertyValue;
         }
 
-        if (is_iterable($propertyValue)) {
-            $entities = $this->propertyReader->determineToManyRelationshipValue($relationship, $propertyValue);
+        if (array_key_exists($propertyName, $readableProperties[1])) {
+            $readability = $readableProperties[2][$propertyName];
+            $propertyValue = $this->propertyAccessor->getValueByPropertyPath($this->entity, ...$propertyPath);
+            $relationshipType = $readability->getRelationshipType();
+            $relationshipEntityClass = $relationshipType->getEntityClass();
+
+            if (null === $propertyValue) {
+                return null;
+            }
+
+            if (!$propertyValue instanceof $relationshipEntityClass) {
+                throw RelationshipAccessException::toOneNeitherObjectNorNull($propertyName);
+            }
+
+            $relationshipEntity = $this->propertyReader->determineToOneRelationshipValue($relationshipType, $propertyValue);
+            if (null === $relationshipEntity) {
+                return null;
+            }
+
+            return $this->wrapperFactory->createWrapper($relationshipEntity, $relationshipType);
+        }
+
+        if (array_key_exists($propertyName, $readableProperties[2])) {
+            $readability = $readableProperties[2][$propertyName];
+            $propertyValue = $this->propertyAccessor->getValueByPropertyPath($this->entity, ...$propertyPath);
+            $relationshipType = $readability->getRelationshipType();
+
+            $relationshipValues = $this->propertyReader->verifyToManyIterable($propertyValue, $propertyName, $relationshipType->getEntityClass());
+            $entities = $this->propertyReader->determineToManyRelationshipValue($relationshipType, $relationshipValues);
 
             // wrap the entities
             return array_map(
-                fn (object $objectToWrap) => $this->wrapperFactory->createWrapper($objectToWrap, $relationship),
+                fn (object $objectToWrap) => $this->wrapperFactory->createWrapper($objectToWrap, $relationshipType),
                 $entities
             );
         }
 
-        $entity = $this->propertyReader->determineToOneRelationshipValue($relationship, $propertyValue);
-        if (null === $entity) {
-            return null;
-        }
-
-        return $this->wrapperFactory->createWrapper($entity, $relationship);
+        throw PropertyAccessException::propertyNotAvailableInReadableType(
+            $propertyName,
+            $this->type,
+            ...array_keys(array_merge(...$readableProperties))
+        );
     }
 
     /**
+     * @param AbstractUpdatability<FunctionInterface<bool>> $updatability
+     */
+    protected function isAllowedByEntityConditions(AbstractUpdatability $updatability): bool
+    {
+        return $this->conditionEvaluator->evaluateConditions(
+            $this->entity,
+            $updatability->getEntityConditions()
+        );
+    }
+    /**
      * @param non-empty-string $propertyName
-     * @param mixed $value The value to set. Will only be allowed if the property name matches with an allowed property
+     * @param array<int|string, mixed>|simple_primitive|object|null $value The value to set. Will only be allowed if the property name matches with an allowed property
      *                     (must be {@link TransferableTypeInterface::getUpdatableProperties() updatable} and
      *                     (if it is a relationship) the target type of the relationship returns `true` in
      *                     {@link ExposableRelationshipTypeInterface::isExposedAsRelationship()}.
      *
      * @throws AccessException
      */
-    public function __set(string $propertyName, $value): void
+    public function __set(string $propertyName, array|string|int|float|bool|object|null $value): void
     {
         // we allow writing of properties that are actually accessible
-        $updatableProperties = $this->type->getUpdatableProperties($this->object);
-        if (!array_key_exists($propertyName, $updatableProperties)) {
-            throw PropertyAccessException::propertyNotAvailableInUpdatableType($propertyName, $this->type, ...array_keys($updatableProperties));
+        $nestedUpdatabilities = $this->type->getUpdatableProperties();
+        $nestedUpdatabilities = [
+            array_filter($nestedUpdatabilities[0], [$this, 'isAllowedByEntityConditions']),
+            array_filter($nestedUpdatabilities[1], [$this, 'isAllowedByEntityConditions']),
+            array_filter($nestedUpdatabilities[2], [$this, 'isAllowedByEntityConditions']),
+        ];
+        $updatabilities = array_merge(...$nestedUpdatabilities);
+        if (!array_key_exists($propertyName, $updatabilities)) {
+            throw PropertyAccessException::propertyNotAvailableInUpdatableType($propertyName, $this->type, ...array_keys($updatabilities));
         }
-
-        $updatableRelationship = $updatableProperties[$propertyName];
-        $propertyPath = $this->mapProperty($propertyName);
-
-        // follow the path to get the actual target in which a property is to be set
-        $deAliasedPropertyName = array_pop($propertyPath);
-        $target = [] === $propertyPath
-            ? $this->object
-            : $this->propertyAccessor->getValueByPropertyPath($this->object, ...$propertyPath);
 
         // at this point we ensured the relationship type is available and referencable but still
         // need to check the access conditions
-        $this->throwIfNotSetable($updatableRelationship, $propertyName, $deAliasedPropertyName, $value);
-        $this->setUnrestricted($deAliasedPropertyName, $target, $value);
+        $this->setOrThrowIfNotSetable($nestedUpdatabilities, $propertyName, $value);
     }
 
     /**
      * @param non-empty-string $propertyName
      *
-     * @return mixed|null
-     *
      * @throws AccessException
      */
-    public function getPropertyValue(string $propertyName)
+    public function getPropertyValue(string $propertyName): mixed
     {
         return $this->__get($propertyName);
     }
@@ -248,17 +256,6 @@ class WrapperObject
     }
 
     /**
-     * Set the value into the given object
-     *
-     * @param non-empty-string $propertyName
-     * @param mixed|null       $value
-     */
-    protected function setUnrestricted(string $propertyName, object $target, $value): void
-    {
-        $this->propertyAccessor->setValue($target, $value, $propertyName);
-    }
-
-    /**
      * This method will prevent access to relationship values that should not be accessible.
      *
      * The type of the relationship is provided via `$relationship`. The value will be deemed setable if one of the following is true:
@@ -278,36 +275,100 @@ class WrapperObject
      * information like {@link TransferableTypeInterface::getReadableProperties() readable} or
      * {@link TransferableTypeInterface::getUpdatableProperties() updatable} properties.
      *
-     * @param UpdatableRelationship<FunctionInterface<bool>>|null $updatableRelationship
-     * @param non-empty-string              $propertyName
-     * @param non-empty-string              $deAliasedPropertyName
-     * @param mixed                         $propertyValue         A single value of some type or an iterable.
+     * @param array{0: array<non-empty-string, AttributeUpdatability<FunctionInterface<bool>, TEntity>>, 1: array<non-empty-string, ToOneRelationshipUpdatability<FunctionInterface<bool>, SortMethodInterface, TEntity, object>>, 2: array<non-empty-string, ToManyRelationshipUpdatability<FunctionInterface<bool>, SortMethodInterface, TEntity, object>>} $updatabilities
+     * @param non-empty-string $propertyName
+     * @param array<int|string, mixed>|simple_primitive|object|null $propertyValue A single value of some type or an iterable.
      *
      * @throws AccessException
      */
-    protected function throwIfNotSetable(
-        ?UpdatableRelationship $updatableRelationship,
+    protected function setOrThrowIfNotSetable(
+        array $updatabilities,
         string $propertyName,
-        string $deAliasedPropertyName,
-        $propertyValue
+        array|string|int|float|bool|object|null $propertyValue
     ): void {
-        if (null === $updatableRelationship) {
-            return;
-        }
+        $propertyPath = $this->mapProperty($propertyName);
 
-        $relationshipConditions = $updatableRelationship->getRelationshipConditions();
+        // follow the path to get the actual target in which a property is to be set
+        $deAliasedPropertyName = array_pop($propertyPath);
 
-        if (is_iterable($propertyValue)) {
+        if (array_key_exists($propertyName, $updatabilities[2])) {
+            $updatability = $updatabilities[2][$propertyName];
+            if (!is_iterable($propertyValue)) {
+                throw RelationshipAccessException::toManyNotIterable($propertyName);
+            }
+            $entityClass = $updatability->getRelationshipType()->getEntityClass();
             // if to-many relationship prevent setting restricted items
             foreach (Iterables::asArray($propertyValue) as $key => $value) {
-                if (!$this->conditionEvaluator->evaluateConditions($value, $relationshipConditions)) {
+                if (!$value instanceof $entityClass) {
+                    throw new InvalidArgumentException('Tried setting a value with the wrong entity type into a to-many relationship.');
+                }
+                if (!$this->conditionEvaluator->evaluateConditions($value, $updatability->getValueConditions())) {
                     throw RelationshipAccessException::toManyWithRestrictedItemNotSetable($this->type, $propertyName, $deAliasedPropertyName, $key);
                 }
             }
-        } elseif (!$this->conditionEvaluator->evaluateConditions($propertyValue, $relationshipConditions)) {
-            // if restricted to-one relationship
-            throw RelationshipAccessException::toOneWithRestrictedItemNotSetable($this->type, $propertyName, $deAliasedPropertyName);
+
+            $customWrite = $updatability->getCustomWriteFunction();
+            if (null !== $customWrite) {
+                $customWrite($this->entity, $propertyValue);
+
+                return;
+            }
         }
+
+        if (array_key_exists($propertyName, $updatabilities[1])) {
+            $updatability = $updatabilities[1][$propertyName];
+            $entityClass = $updatability->getRelationshipType()->getEntityClass();
+            if (!$propertyValue instanceof $entityClass) {
+                throw new InvalidArgumentException('Tried setting a value with the wrong entity type into a to-one relationship property.');
+            }
+
+            if (!$this->conditionEvaluator->evaluateConditions($propertyValue, $updatability->getValueConditions())) {
+                // if restricted to-one relationship
+                throw RelationshipAccessException::toOneWithRestrictedItemNotSetable($this->type, $propertyName, $deAliasedPropertyName);
+            }
+
+            $customWrite = $updatability->getCustomWriteFunction();
+            if (null !== $customWrite) {
+                $customWrite($this->entity, $propertyValue);
+
+                return;
+            }
+        }
+
+        if (array_key_exists($propertyName, $updatabilities[0])) {
+            $updatability = $updatabilities[0][$propertyName];
+            // TODO: add value type validation
+            // TODO: add support for value conditions evaluating non-objects
+            if (is_object($propertyValue) && !$this->conditionEvaluator->evaluateConditions($propertyValue, $updatability->getValueConditions())) {
+                throw new InvalidArgumentException('Value to set into attribute is not allowed by value conditions.');
+            }
+
+            $customWrite = $updatability->getCustomWriteFunction();
+            if (null !== $customWrite) {
+                $customWrite($this->entity, $propertyValue);
+
+                return;
+            }
+        }
+
+        // set via propertyAccessor if there was no custom-write function
+        $target = [] === $propertyPath
+            ? $this->entity
+            : $this->propertyAccessor->getValueByPropertyPath($this->entity, ...$propertyPath);
+        $this->propertyAccessor->setValue($target, $propertyValue, $deAliasedPropertyName);
+    }
+
+    /**
+     * @return TEntity
+     *
+     * @internal Warning: exposing the backing object is dangerous, as it allows to read values
+     * unrestricted not only from the returned object but all its relationships.
+     *
+     * @deprecated use {@link self::getEntity} instead
+     */
+    public function getObject(): object
+    {
+        return $this->entity;
     }
 
     /**
@@ -316,8 +377,8 @@ class WrapperObject
      * @internal Warning: exposing the backing object is dangerous, as it allows to read values
      * unrestricted not only from the returned object but all its relationships.
      */
-    public function getObject(): object
+    public function getEntity(): object
     {
-        return $this->object;
+        return $this->entity;
     }
 }

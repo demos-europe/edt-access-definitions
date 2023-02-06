@@ -16,26 +16,20 @@ use EDT\Wrapping\Utilities\TypeAccessors\AbstractProcessorConfig;
 
 /**
  * Instances of this class can be used to convert the property paths in a {@link PathsBasedInterface}
- * to their de-aliased version. During the conversion the path will  be automatically checked
+ * to their de-aliased version. During the conversion the path will be automatically checked
  * for property access violations, depending on the context (readability/sortability/...).
  * The context is set on instantiation by using providers that limit the access accordingly.
  *
- * @template TType of TypeInterface<\EDT\Querying\Contracts\PathsBasedInterface, \EDT\Querying\Contracts\PathsBasedInterface, object>
+ * @template TType of TypeInterface<PathsBasedInterface, PathsBasedInterface, object>
  */
 class PropertyPathProcessor
 {
     /**
-     * @var AbstractProcessorConfig<TType>
-     */
-    private AbstractProcessorConfig $processorConfig;
-
-    /**
      * @param AbstractProcessorConfig<TType> $processorConfig
      */
-    public function __construct(AbstractProcessorConfig $processorConfig)
-    {
-        $this->processorConfig = $processorConfig;
-    }
+    public function __construct(
+        private readonly AbstractProcessorConfig $processorConfig
+    ) {}
 
     /**
      * Check if all properties used by the given property paths are accessible

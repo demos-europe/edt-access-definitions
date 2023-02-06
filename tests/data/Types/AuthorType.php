@@ -11,9 +11,12 @@ use EDT\Wrapping\Contracts\Types\AliasableTypeInterface;
 use EDT\Wrapping\Contracts\Types\ExposableRelationshipTypeInterface;
 use EDT\Wrapping\Contracts\Types\FilterableTypeInterface;
 use EDT\Wrapping\Contracts\Types\IdentifiableTypeInterface;
-use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\Contracts\Types\SortableTypeInterface;
-use EDT\Wrapping\Properties\UpdatableRelationship;
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
+use EDT\Wrapping\Properties\AttributeReadability;
+use EDT\Wrapping\Properties\AttributeUpdatability;
+use EDT\Wrapping\Properties\ToManyRelationshipUpdatability;
+use EDT\Wrapping\Properties\ToManyRelationshipReadability;
 use Tests\data\Model\Person;
 
 /**
@@ -30,25 +33,29 @@ class AuthorType implements
     ExposableRelationshipTypeInterface,
     AliasableTypeInterface
 {
-    private PathsBasedConditionFactoryInterface $conditionFactory;
-
-    protected TypeProviderInterface $typeProvider;
-
     public function __construct(
-        PathsBasedConditionFactoryInterface $conditionFactory,
-        TypeProviderInterface $typeProvider
-    ) {
-        $this->conditionFactory = $conditionFactory;
-        $this->typeProvider = $typeProvider;
-    }
+        private readonly PathsBasedConditionFactoryInterface $conditionFactory,
+        protected readonly TypeProviderInterface $typeProvider
+    ) {}
 
     public function getReadableProperties(): array
     {
         return [
-            'name' => null,
-            'pseudonym' => null,
-            'books' => $this->typeProvider->requestType(BookType::class)->getInstanceOrThrow(),
-            'birthCountry' => null,
+            [
+                'name' => new AttributeReadability(false, false, null),
+                'pseudonym' => new AttributeReadability(false, false, null),
+                'birthCountry' => new AttributeReadability(false, false, null),
+            ],
+            [],
+            [
+                'books' => new ToManyRelationshipReadability(
+                    false,
+                    false,
+                    false,
+                    null,
+                    $this->typeProvider->requestType(BookType::class)->getInstanceOrThrow(),
+                ),
+            ],
         ];
     }
 
@@ -107,16 +114,21 @@ class AuthorType implements
         return [];
     }
 
-    public function getUpdatableProperties(object $updateTarget): array
+    public function getUpdatableProperties(): array
     {
+        $bookType = $this->typeProvider->requestType(BookType::class)->getInstanceOrThrow();
+
         return [
-            'name' => null,
-            'birthCountry' => null,
-            'books' => new UpdatableRelationship([
-                $this->typeProvider->requestType(BookType::class)
-                    ->getInstanceOrThrow()
-                    ->getAccessCondition()
-            ]),
+            [
+                'name' => new AttributeUpdatability([], [], null),
+                'birthCountry' => new AttributeUpdatability([], [], null),
+            ],
+            [],
+            [
+                'books' => new ToManyRelationshipUpdatability([], [
+                    $bookType->getAccessCondition()
+                ], $bookType, null),
+            ],
         ];
     }
 
@@ -129,5 +141,10 @@ class AuthorType implements
             'birthCountry' => null,
             'pseudonym' => null,
         ];
+    }
+
+    public function getIdentifier(): string
+    {
+        return self::class;
     }
 }
