@@ -7,24 +7,26 @@ namespace EDT\Wrapping\Properties;
 /**
  * @template TEntity of object
  */
-class AttributeReadability extends AbstractReadability
+abstract class AttributeReadability extends AbstractReadability
 {
     /**
-     * @param null|callable(TEntity): (simple_primitive|array<int|string, mixed>|null) $customValueFunction to be set if this property needs special handling when read
+     * @param null|callable(TEntity): mixed $customReadCallback to be set if this property needs special handling when read
      */
     public function __construct(
         bool $defaultField,
         bool $allowingInconsistencies,
-        private $customValueFunction
+        private readonly mixed $customReadCallback
     ) {
         parent::__construct($defaultField, $allowingInconsistencies);
     }
 
     /**
-     * @return null|callable(TEntity): (simple_primitive|array<int|string, mixed>|null)
+     * @return null|callable(TEntity): mixed
      */
-    public function getCustomValueFunction(): ?callable
+    public function getCustomReadCallback(): ?callable
     {
-        return $this->customValueFunction;
+        return $this->customReadCallback;
     }
+
+    abstract public function isValidValue(mixed $attributeValue): bool;
 }

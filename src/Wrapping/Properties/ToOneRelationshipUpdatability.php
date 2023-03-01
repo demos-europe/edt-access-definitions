@@ -21,13 +21,13 @@ class ToOneRelationshipUpdatability extends AbstractRelationshipUpdatability
      * @param list<TCondition> $entityConditions
      * @param list<TCondition> $valueConditions
      * @param TransferableTypeInterface<TCondition, TSorting, TRelationship> $relationshipType
-     * @param null|callable(TEntity, TRelationship|null): void $customWriteFunction
+     * @param null|callable(TEntity, TRelationship|null): void $customWriteCallback
      */
     public function __construct(
         array $entityConditions,
         array $valueConditions,
         TransferableTypeInterface $relationshipType,
-        private $customWriteFunction
+        private readonly mixed $customWriteCallback
     ) {
         parent::__construct($entityConditions, $valueConditions, $relationshipType);
     }
@@ -35,8 +35,8 @@ class ToOneRelationshipUpdatability extends AbstractRelationshipUpdatability
     /**
      * @return null|callable(TEntity, TRelationship|null): void
      */
-    public function getCustomWriteFunction(): ?callable
+    public function getCustomWriteCallback(): ?callable
     {
-        return $this->customWriteFunction;
+        return $this->customWriteCallback;
     }
 }

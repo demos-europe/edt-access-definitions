@@ -18,14 +18,14 @@ use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 class ToOneRelationshipReadability extends AbstractRelationshipReadability
 {
     /**
-     * @param null|callable(TEntity): (TRelationship|null) $customValueFunction
+     * @param null|callable(TEntity): (TRelationship|null) $customReadCallback
      * @param TransferableTypeInterface<TCondition, TSorting, TRelationship> $relationshipType
      */
     public function __construct(
         bool $defaultField,
         bool $allowingInconsistencies,
         bool $defaultInclude,
-        private $customValueFunction,
+        private readonly mixed $customReadCallback,
         TransferableTypeInterface $relationshipType
     ) {
         parent::__construct($defaultField, $allowingInconsistencies, $defaultInclude, $relationshipType);
@@ -34,8 +34,8 @@ class ToOneRelationshipReadability extends AbstractRelationshipReadability
     /**
      * @return null|callable(TEntity): (TRelationship|null)
      */
-    public function getCustomValueFunction(): ?callable
+    public function getCustomReadCallback(): ?callable
     {
-        return $this->customValueFunction;
+        return $this->customReadCallback;
     }
 }

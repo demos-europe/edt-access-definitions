@@ -12,7 +12,6 @@ use EDT\Wrapping\Contracts\Types\FilterableTypeInterface;
 use EDT\Wrapping\Contracts\Types\IdentifiableTypeInterface;
 use EDT\Wrapping\Contracts\Types\SortableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
-use EDT\Wrapping\Properties\AttributeReadability;
 use EDT\Wrapping\Properties\ToOneRelationshipReadability;
 use Tests\data\Model\Book;
 
@@ -40,8 +39,8 @@ class BookType implements
     {
         return [
             [
-                'title' => new AttributeReadability(false, false, null),
-                'tags' => new AttributeReadability(false, false, null),
+                'title' => new TestAttributeReadability(false, false, null),
+                'tags' => new TestAttributeReadability(false, false, null),
             ], [
                 'author' => new ToOneRelationshipReadability(false, false, false, null,
                     $this->typeProvider->requestType(AuthorType::class)->getInstanceOrThrow(),

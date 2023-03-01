@@ -126,9 +126,12 @@ class WrapperObject
         if (array_key_exists($propertyName, $readableProperties[0])) {
             $readability = $readableProperties[0][$propertyName];
             $propertyValue = $this->propertyAccessor->getValueByPropertyPath($this->entity, ...$propertyPath);
+            if (!$readability->isValidValue($propertyValue)) {
+                $stringPath = implode('.', $propertyPath);
+                throw new InvalidArgumentException("Value retrieved via property path '$stringPath' is not allowed by readability settings.");
+            }
 
             // if non-relationship, simply use the value read from the target
-            // TODO: validate property type
             return $propertyValue;
         }
 
@@ -307,9 +310,9 @@ class WrapperObject
                 }
             }
 
-            $customWrite = $updatability->getCustomWriteFunction();
-            if (null !== $customWrite) {
-                $customWrite($this->entity, $propertyValue);
+            $customWriteCallback = $updatability->getCustomWriteCallback();
+            if (null !== $customWriteCallback) {
+                $customWriteCallback($this->entity, $propertyValue);
 
                 return;
             }
@@ -327,9 +330,9 @@ class WrapperObject
                 throw RelationshipAccessException::toOneWithRestrictedItemNotSetable($this->type, $propertyName, $deAliasedPropertyName);
             }
 
-            $customWrite = $updatability->getCustomWriteFunction();
-            if (null !== $customWrite) {
-                $customWrite($this->entity, $propertyValue);
+            $customWriteCallback = $updatability->getCustomWriteCallback();
+            if (null !== $customWriteCallback) {
+                $customWriteCallback($this->entity, $propertyValue);
 
                 return;
             }
@@ -337,21 +340,26 @@ class WrapperObject
 
         if (array_key_exists($propertyName, $updatabilities[0])) {
             $updatability = $updatabilities[0][$propertyName];
-            // TODO: add value type validation
-            // TODO: add support for value conditions evaluating non-objects
+
+            // TODO: simplify by adding support for conditions evaluating non-objects
+            if (!$updatability->isValidValue($propertyValue)) {
+                throw new InvalidArgumentException('Value to set into attribute is not allowed by updatability settings.');
+            }
             if (is_object($propertyValue) && !$this->conditionEvaluator->evaluateConditions($propertyValue, $updatability->getValueConditions())) {
                 throw new InvalidArgumentException('Value to set into attribute is not allowed by value conditions.');
             }
 
-            $customWrite = $updatability->getCustomWriteFunction();
-            if (null !== $customWrite) {
-                $customWrite($this->entity, $propertyValue);
+            $customWriteCallback = $updatability->getCustomWriteCallback();
+            if (null !== $customWriteCallback) {
+                $customWriteCallback($this->entity, $propertyValue);
 
                 return;
             }
         }
 
-        // set via propertyAccessor if there was no custom-write function
+        // Set via propertyAccessor if there was no custom-write function.
+        // We already ensured before this method was called that the property name exists in one
+        // of the updatability-arrays.
         $target = [] === $propertyPath
             ? $this->entity
             : $this->propertyAccessor->getValueByPropertyPath($this->entity, ...$propertyPath);

@@ -12,26 +12,28 @@ use EDT\Querying\Contracts\PathsBasedInterface;
  *
  * @template-extends AbstractUpdatability<TCondition>
  */
-class AttributeUpdatability extends AbstractUpdatability
+abstract class AttributeUpdatability extends AbstractUpdatability
 {
     /**
      * @param list<TCondition> $entityConditions
      * @param list<TCondition> $valueConditions
-     * @param null|callable(TEntity, simple_primitive|array<int|string, mixed>|null): void $customWriteFunction
+     * @param null|callable(TEntity, mixed): void $customWriteCallback
      */
     public function __construct(
         array $entityConditions,
         array $valueConditions,
-        private $customWriteFunction
+        private readonly mixed $customWriteCallback
     ) {
         parent::__construct($entityConditions, $valueConditions);
     }
 
     /**
-     * @return null|callable(TEntity, simple_primitive|array<int|string, mixed>|null): void
+     * @return null|callable(TEntity, mixed): void
      */
-    public function getCustomWriteFunction(): ?callable
+    public function getCustomWriteCallback(): ?callable
     {
-        return $this->customWriteFunction;
+        return $this->customWriteCallback;
     }
+
+    abstract public function isValidValue(mixed $attributeValue): bool;
 }

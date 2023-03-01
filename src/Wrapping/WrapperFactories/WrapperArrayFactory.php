@@ -89,7 +89,11 @@ class WrapperArrayFactory implements WrapperFactoryInterface
         $wrapperArray = [];
         foreach ($readableProperties[0] as $propertyName => $readability) {
             // if non-relationship, simply use the value read from the target
-            $wrapperArray[$propertyName] = $this->getValue($propertyName, $entity, $aliases);
+            $propertyValue = $this->getValue($propertyName, $entity, $aliases);
+            if (!$readability->isValidValue($propertyValue)) {
+                throw new InvalidArgumentException("Value read from entity for property '$propertyName' is not allowed by readability settings.");
+            }
+            $wrapperArray[$propertyName] = $propertyValue;
         }
         foreach ($readableProperties[1] as $propertyName => $readability) {
             $propertyValue = $this->getValue($propertyName, $entity, $aliases);

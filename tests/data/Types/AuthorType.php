@@ -13,10 +13,8 @@ use EDT\Wrapping\Contracts\Types\FilterableTypeInterface;
 use EDT\Wrapping\Contracts\Types\IdentifiableTypeInterface;
 use EDT\Wrapping\Contracts\Types\SortableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
-use EDT\Wrapping\Properties\AttributeReadability;
-use EDT\Wrapping\Properties\AttributeUpdatability;
-use EDT\Wrapping\Properties\ToManyRelationshipUpdatability;
 use EDT\Wrapping\Properties\ToManyRelationshipReadability;
+use EDT\Wrapping\Properties\ToManyRelationshipUpdatability;
 use Tests\data\Model\Person;
 
 /**
@@ -42,9 +40,9 @@ class AuthorType implements
     {
         return [
             [
-                'name' => new AttributeReadability(false, false, null),
-                'pseudonym' => new AttributeReadability(false, false, null),
-                'birthCountry' => new AttributeReadability(false, false, null),
+                'name' => new TestAttributeReadability(false, false, null),
+                'pseudonym' => new TestAttributeReadability(false, false, null),
+                'birthCountry' => new TestAttributeReadability(false, false, null),
             ],
             [],
             [
@@ -120,8 +118,8 @@ class AuthorType implements
 
         return [
             [
-                'name' => new AttributeUpdatability([], [], null),
-                'birthCountry' => new AttributeUpdatability([], [], null),
+                'name' => new TestAttributeUpdatability([], [], null),
+                'birthCountry' => new TestAttributeUpdatability([], [], null),
             ],
             [],
             [
