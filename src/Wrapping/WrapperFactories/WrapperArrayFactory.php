@@ -10,7 +10,7 @@ use EDT\Querying\Contracts\PropertyAccessorInterface;
 use EDT\Querying\Contracts\SortException;
 use EDT\Querying\Contracts\SortMethodInterface;
 use EDT\Wrapping\Contracts\AccessException;
-use EDT\Wrapping\Contracts\RelationshipAccessException;
+use EDT\Wrapping\Contracts\AttributeAccessException;
 use EDT\Wrapping\Contracts\Types\AliasableTypeInterface;
 use EDT\Wrapping\Contracts\Types\ExposableRelationshipTypeInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
@@ -84,19 +84,24 @@ class WrapperArrayFactory implements WrapperFactoryInterface
         $readableProperties = $type->getReadableProperties();
         $aliases = $type instanceof AliasableTypeInterface ? $type->getAliases() : [];
 
-        // TODO: respect $readability settings if possible (e.g. custom read function)
+        // TODO: respect $readability settings (default field, default include)?
 
         $wrapperArray = [];
         foreach ($readableProperties[0] as $propertyName => $readability) {
-            // if non-relationship, simply use the value read from the target
-            $propertyValue = $this->getValue($propertyName, $entity, $aliases);
+            $customReadCallback = $readability->getCustomReadCallback();
+            $propertyValue = null === $customReadCallback
+                ? $this->getValue($propertyName, $entity, $aliases)
+                : $customReadCallback($entity);
             if (!$readability->isValidValue($propertyValue)) {
-                throw new InvalidArgumentException("Value read from entity for property '$propertyName' is not allowed by readability settings.");
+                throw AttributeAccessException::attributeValueForNameInvalid($propertyName, $propertyValue);
             }
             $wrapperArray[$propertyName] = $propertyValue;
         }
         foreach ($readableProperties[1] as $propertyName => $readability) {
-            $propertyValue = $this->getValue($propertyName, $entity, $aliases);
+            $customReadCallback = $readability->getCustomReadCallback();
+            $propertyValue = null === $customReadCallback
+                ? $this->getValue($propertyName, $entity, $aliases)
+                : $customReadCallback($entity);
 
             if (null === $propertyValue) {
                 $newValue = null;
@@ -104,30 +109,32 @@ class WrapperArrayFactory implements WrapperFactoryInterface
                 $wrapperFactory = $this->getNextWrapperFactory();
                 $relationshipType = $readability->getRelationshipType();
                 $relationshipEntityClass = $relationshipType->getEntityClass();
-                if (!$propertyValue instanceof $relationshipEntityClass) {
-                    throw RelationshipAccessException::toOneNeitherObjectNorNull($propertyName);
-                }
-                $verifiedEntity = $this->propertyReader->determineToOneRelationshipValue($relationshipType, $propertyValue);
-                $newValue = null === $verifiedEntity
+
+                $propertyValue = PropertyReader::verifyToOneEntity($propertyValue, $propertyName, $relationshipEntityClass);
+                $propertyValue = $this->propertyReader->determineToOneRelationshipValue($relationshipType, $propertyValue);
+                $newValue = null === $propertyValue
                     ? null
-                    : $wrapperFactory->createWrapper($verifiedEntity, $relationshipType);
+                    : $wrapperFactory->createWrapper($propertyValue, $relationshipType);
             }
 
             $wrapperArray[$propertyName] = $newValue;
         }
         foreach ($readableProperties[2] as $propertyName => $readability) {
-            $propertyValue = $this->getValue($propertyName, $entity, $aliases);
+            $customReadCallback = $readability->getCustomReadCallback();
+            $propertyValue = null === $customReadCallback
+                ? $this->getValue($propertyName, $entity, $aliases)
+                : $customReadCallback($entity);
 
             $wrapperFactory = $this->getNextWrapperFactory();
             $relationshipType = $readability->getRelationshipType();
 
-            $relationshipValues = $this->propertyReader->verifyToManyIterable($propertyValue, $propertyName, $relationshipType->getEntityClass());
-            $verifiedEntities = $this->propertyReader->determineToManyRelationshipValue($relationshipType, $relationshipValues);
+            $relationshipValues = PropertyReader::verifyToManyIterable($propertyValue, $propertyName, $relationshipType->getEntityClass());
+            $relationshipValues = $this->propertyReader->determineToManyRelationshipValue($relationshipType, $relationshipValues);
 
             // wrap the entities
             $wrapperArray[$propertyName] = array_map(
                 static fn (object $objectToWrap) => $wrapperFactory->createWrapper($objectToWrap, $relationshipType),
-                $verifiedEntities
+                $relationshipValues
             );
         }
 

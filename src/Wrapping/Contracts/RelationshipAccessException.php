@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace EDT\Wrapping\Contracts;
 
 use EDT\Wrapping\Contracts\Types\TypeInterface;
+use function get_class;
+use function is_object;
 
 class RelationshipAccessException extends PropertyAccessException
 {
@@ -61,26 +63,45 @@ class RelationshipAccessException extends PropertyAccessException
     /**
      * @param non-empty-string $propertyName
      */
-    public static function toManyNotIterable(string $propertyName): self
+    public static function toManyNotIterable(string $propertyName, mixed $actualValue): self
     {
-        return new self($propertyName, "Attempted to use non-iterable data for a to-many relationship property '$propertyName'.");
+        $dataType = gettype($actualValue);
+        return new self($propertyName, "Attempted to use non-iterable data ('$dataType') for a to-many relationship property '$propertyName'.");
     }
 
     /**
      * @param non-empty-string $propertyName
+     * @param class-string $expectedType
      */
-    public static function toOneNeitherObjectNorNull(string $propertyName): self
+    public static function toOneNeitherObjectNorNull(string $propertyName, string $expectedType, mixed $actualValue): self
     {
-        return new self($propertyName, "Attempted to use a value that was neither `null` nor the expected entity type for a relationship property '$propertyName'.");
+        $additionalMessage = self::getToOneMessageType($actualValue);
+        return new self($propertyName, "Attempted to use a value that was neither `null` nor the expected entity type '$expectedType' for a relationship property '$propertyName'. $additionalMessage");
     }
 
     /**
      * @param non-empty-string $propertyName
      * @param class-string $entityClass
      */
-    public static function toManyIterableInvalidEntity(string $propertyName, string $entityClass): self
+    public static function toManyIterableInvalidEntity(string $propertyName, string $entityClass, mixed $actualValue): self
     {
-        return new self($propertyName, "Iterable in to-many relationship '$propertyName' does not contain '$entityClass' instances only.");
+        $additionalMessage = self::getToOneMessageType($actualValue);
+        return new self($propertyName, "Iterable in to-many relationship '$propertyName' does not contain '$entityClass' instances only. $additionalMessage");
+    }
+
+    /**
+     * @return non-empty-string
+     */
+    private static function getToOneMessageType(mixed $actualValue): string
+    {
+        if (is_object($actualValue)) {
+            $actualClass = get_class($actualValue);
+            return "Found object with type '$actualClass'.";
+        }
+
+        $actualType = gettype($actualValue);
+
+        return "Found non-object with type '$actualType'.";
     }
 
     /**

@@ -6,6 +6,7 @@ namespace EDT\Wrapping\Properties;
 
 use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
+use EDT\Wrapping\WrapperFactories\WrapperObject;
 
 /**
  * @template TCondition of PathsBasedInterface
@@ -18,7 +19,7 @@ use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 class ToManyRelationshipReadability extends AbstractRelationshipReadability
 {
     /**
-     * @param null|callable(TEntity): iterable<TRelationship> $customReadCallback
+     * @param null|callable(TEntity): iterable<TRelationship|WrapperObject<TRelationship>> $customReadCallback
      * @param TransferableTypeInterface<TCondition, TSorting, TRelationship> $relationshipType
      */
     public function __construct(
@@ -32,7 +33,7 @@ class ToManyRelationshipReadability extends AbstractRelationshipReadability
     }
 
     /**
-     * @return null|callable(TEntity): iterable<TRelationship>
+     * @return null|callable(TEntity): iterable<TRelationship|WrapperObject<TRelationship>>
      */
     public function getCustomReadCallback(): ?callable
     {

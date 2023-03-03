@@ -13,6 +13,7 @@ use EDT\Querying\Contracts\SortMethodInterface;
 use EDT\Querying\Utilities\ConditionEvaluator;
 use EDT\Querying\Utilities\Iterables;
 use EDT\Wrapping\Contracts\AccessException;
+use EDT\Wrapping\Contracts\AttributeAccessException;
 use EDT\Wrapping\Contracts\PropertyAccessException;
 use EDT\Wrapping\Contracts\RelationshipAccessException;
 use EDT\Wrapping\Contracts\TypeRetrievalAccessException;
@@ -109,7 +110,6 @@ class WrapperObject
      *
      * @throws AccessException
      * @throws TypeRetrievalAccessException
-     * @throws AccessException
      * @throws PropertyAccessException
      * @throws PathException
      * @throws SortException
@@ -121,14 +121,17 @@ class WrapperObject
         $readableProperties = $this->type->getReadableProperties();
         $propertyPath = $this->mapProperty($propertyName);
 
-        // TODO: respect readability settings at least partially
+        // TODO: respect readability settings (default include, default field)?
 
         if (array_key_exists($propertyName, $readableProperties[0])) {
             $readability = $readableProperties[0][$propertyName];
-            $propertyValue = $this->propertyAccessor->getValueByPropertyPath($this->entity, ...$propertyPath);
+            $customReadCallback = $readability->getCustomReadCallback();
+            $propertyValue = null === $customReadCallback
+                ? $this->propertyAccessor->getValueByPropertyPath($this->entity, ...$propertyPath)
+                : $customReadCallback($this->entity);
+
             if (!$readability->isValidValue($propertyValue)) {
-                $stringPath = implode('.', $propertyPath);
-                throw new InvalidArgumentException("Value retrieved via property path '$stringPath' is not allowed by readability settings.");
+                throw AttributeAccessException::attributeValueForPathInvalid($propertyName, $propertyPath);
             }
 
             // if non-relationship, simply use the value read from the target
@@ -136,19 +139,20 @@ class WrapperObject
         }
 
         if (array_key_exists($propertyName, $readableProperties[1])) {
-            $readability = $readableProperties[2][$propertyName];
-            $propertyValue = $this->propertyAccessor->getValueByPropertyPath($this->entity, ...$propertyPath);
-            $relationshipType = $readability->getRelationshipType();
-            $relationshipEntityClass = $relationshipType->getEntityClass();
+            $readability = $readableProperties[1][$propertyName];
+            $customReadCallback = $readability->getCustomReadCallback();
+            $propertyValue = null === $customReadCallback
+                ? $this->propertyAccessor->getValueByPropertyPath($this->entity, ...$propertyPath)
+                : $customReadCallback($this->entity);
 
             if (null === $propertyValue) {
                 return null;
             }
 
-            if (!$propertyValue instanceof $relationshipEntityClass) {
-                throw RelationshipAccessException::toOneNeitherObjectNorNull($propertyName);
-            }
+            $relationshipType = $readability->getRelationshipType();
+            $relationshipEntityClass = $relationshipType->getEntityClass();
 
+            $propertyValue = PropertyReader::verifyToOneEntity($propertyValue, $propertyName, $relationshipEntityClass);
             $relationshipEntity = $this->propertyReader->determineToOneRelationshipValue($relationshipType, $propertyValue);
             if (null === $relationshipEntity) {
                 return null;
@@ -159,10 +163,13 @@ class WrapperObject
 
         if (array_key_exists($propertyName, $readableProperties[2])) {
             $readability = $readableProperties[2][$propertyName];
-            $propertyValue = $this->propertyAccessor->getValueByPropertyPath($this->entity, ...$propertyPath);
+            $customReadCallback = $readability->getCustomReadCallback();
+            $propertyValue = null === $customReadCallback
+                ? $this->propertyAccessor->getValueByPropertyPath($this->entity, ...$propertyPath)
+                : $customReadCallback($this->entity);
             $relationshipType = $readability->getRelationshipType();
 
-            $relationshipValues = $this->propertyReader->verifyToManyIterable($propertyValue, $propertyName, $relationshipType->getEntityClass());
+            $relationshipValues = PropertyReader::verifyToManyIterable($propertyValue, $propertyName, $relationshipType->getEntityClass());
             $entities = $this->propertyReader->determineToManyRelationshipValue($relationshipType, $relationshipValues);
 
             // wrap the entities
@@ -297,7 +304,7 @@ class WrapperObject
         if (array_key_exists($propertyName, $updatabilities[2])) {
             $updatability = $updatabilities[2][$propertyName];
             if (!is_iterable($propertyValue)) {
-                throw RelationshipAccessException::toManyNotIterable($propertyName);
+                throw RelationshipAccessException::toManyNotIterable($propertyName, $propertyValue);
             }
             $entityClass = $updatability->getRelationshipType()->getEntityClass();
             // if to-many relationship prevent setting restricted items

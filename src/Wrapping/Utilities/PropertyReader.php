@@ -15,6 +15,7 @@ use EDT\Wrapping\Contracts\RelationshipAccessException;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TypeInterface;
 use EDT\Wrapping\Contracts\WrapperFactoryInterface;
+use EDT\Wrapping\WrapperFactories\WrapperObject;
 
 /**
  * Provides helper methods to determine the access rights to properties of an entity based on the implementation of a given {@link TypeInterface}.
@@ -96,20 +97,52 @@ class PropertyReader
      * @template TEntity of object
      *
      * @param non-empty-string $propertyName
+     * @param class-string<TEntity> $relationshipEntityClass
+     *
+     * @return TEntity
+     *
+     * @throws RelationshipAccessException
+     */
+    public static function verifyToOneEntity(mixed $supposedEntity, string $propertyName, string $relationshipEntityClass): object
+    {
+        if ($supposedEntity instanceof WrapperObject) {
+            $supposedEntity = $supposedEntity->getEntity();
+        }
+
+        if (!$supposedEntity instanceof $relationshipEntityClass) {
+            throw RelationshipAccessException::toOneNeitherObjectNorNull($propertyName, $relationshipEntityClass, $supposedEntity);
+        }
+
+        return $supposedEntity;
+    }
+
+    /**
+     * Ensures the given value is an iterable containing (potentially wrapped) entity of the given
+     * type. If so the entity are returned as array list. If not an exception is thrown.
+     *
+     * @template TEntity of object
+     *
+     * @param non-empty-string $propertyName
      * @param class-string<TEntity> $entityClass
      *
      * @return list<TEntity>
+     *
+     * @throws RelationshipAccessException
      */
-    public function verifyToManyIterable(mixed $supposedIterable, string $propertyName, string $entityClass): array
+    public static function verifyToManyIterable(mixed $supposedIterable, string $propertyName, string $entityClass): array
     {
         if (!is_iterable($supposedIterable)) {
-            throw RelationshipAccessException::toManyNotIterable($propertyName);
+            throw RelationshipAccessException::toManyNotIterable($propertyName, $supposedIterable);
         }
 
         return array_map(
             static function (mixed $relationshipValue) use ($propertyName, $entityClass): object {
+                if ($relationshipValue instanceof WrapperObject) {
+                    $relationshipValue = $relationshipValue->getEntity();
+                }
+
                 if (!$relationshipValue instanceof $entityClass) {
-                    throw RelationshipAccessException::toManyIterableInvalidEntity($propertyName, $entityClass);
+                    throw RelationshipAccessException::toManyIterableInvalidEntity($propertyName, $entityClass, $relationshipValue);
                 }
 
                 return $relationshipValue;
