@@ -5,7 +5,7 @@
     "type": "library",
     "require": {
         "php": "^8.1",
-        "demos-europe/edt-queries": "^0.17.5",
+        "demos-europe/edt-queries": "^0.18",
         "thecodingmachine/safe": "^2.4.0"
     },
     "authors": [
