@@ -4,93 +4,96 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Contracts;
 
-use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
-use EDT\Wrapping\Contracts\Types\TypeInterface;
+use Exception;
 use Throwable;
 
+/**
+ * @template TType of object
+ * @template-extends AccessException<TType>
+ */
 class PropertyAccessException extends AccessException
 {
     /**
+     * @param TType $type
      * @param non-empty-string $propertyName
      * @param non-empty-string $message
      */
     protected function __construct(
+        object $type,
         protected string $propertyName,
         string $message,
-        int $code = 0,
         Throwable $previous = null
     ) {
-        parent::__construct($message, $code, $previous);
+        parent::__construct($type, $message, $previous);
     }
 
     /**
      * @param non-empty-string $property
+     * @param TType $type
+     * @param list<non-empty-string> $availableProperties
+     *
+     * @return PropertyAccessException<TType>
+     */
+    public static function propertyNotAvailableInType(string $property, object $type, array $availableProperties): self
+    {
+        $typeClass = $type::class;
+        $propertyList = implode(', ', $availableProperties);
+
+        return new self($type, $property, "No property '$property' is available in the type class '$typeClass'. Available properties are: $propertyList");
+    }
+
+    /**
+     * @param non-empty-string $property
+     * @param TType $type
+     * @param list<non-empty-string> $availableProperties
+     *
+     * @return PropertyAccessException<TType>
+     */
+    public static function propertyNotAvailableInReadableType(string $property, object $type, array $availableProperties): self
+    {
+        $typeClass = $type::class;
+        $propertyList = implode(', ', $availableProperties);
+
+        return new self($type, $property, "No property '$property' is available in the readable type class '$typeClass'. Available properties are: $propertyList");
+    }
+
+    /**
+     * @param non-empty-string $property
+     * @param TType $type
      * @param non-empty-string ...$availableProperties
+     *
+     * @return PropertyAccessException<TType>
      */
-    public static function propertyNotAvailableInType(string $property, TypeInterface $type, string ...$availableProperties): self
+    public static function propertyNotAvailableInUpdatableType(string $property, object $type, string ...$availableProperties): self
     {
         $typeClass = $type::class;
         $propertyList = implode(', ', $availableProperties);
-        $self = new self($property, "No property '$property' is available in the type class '$typeClass'. Available properties are: $propertyList");
-        $self->typeClass = $typeClass;
 
-        return $self;
+        return new self($type, $property, "No property '$property' is available in the updatable type class '$typeClass'. Available properties are: $propertyList");
     }
 
     /**
      * @param non-empty-string $property
-     * @param non-empty-string ...$availableProperties
+     * @param TType $type
+     *
+     * @return PropertyAccessException<TType>
      */
-    public static function propertyNotAvailableInReadableType(string $property, TransferableTypeInterface $type, string ...$availableProperties): self
+    public static function nonRelationship(string $property, object $type): self
     {
         $typeClass = $type::class;
-        $propertyList = implode(', ', $availableProperties);
-        $self = new self($property, "No property '$property' is available in the readable type class '$typeClass'. Available properties are: $propertyList");
-        $self->typeClass = $typeClass;
 
-        return $self;
+        return new self($type, $property, "The property '$property' exists in the type class '$typeClass' but it is not a relationship and the path continues after it. Check your access to the schema of the type.");
     }
 
     /**
-     * @param non-empty-string          $property
-     * @param TransferableTypeInterface $type
-     * @param non-empty-string          ...$availableProperties
+     * @param TType $type
+     * @param non-empty-string $propertyName
+     *
+     * @return PropertyAccessException<TType>
      */
-    public static function propertyNotAvailableInUpdatableType(string $property, TransferableTypeInterface $type, string ...$availableProperties): self
+    public static function update(object $type, string $propertyName, Exception $cause): self
     {
-        $typeClass = $type::class;
-        $propertyList = implode(', ', $availableProperties);
-        $self = new self($property, "No property '$property' is available in the updatable type class '$typeClass'. Available properties are: $propertyList");
-        $self->typeClass = $typeClass;
-
-        return $self;
-    }
-
-    /**
-     * @param non-empty-string $property
-     */
-    public static function nonRelationship(string $property, TypeInterface $type): self
-    {
-        $typeClass = $type::class;
-        $self = new self($property, "The property '$property' exists in the type class '$typeClass' but it is not a relationship and the path continues after it. Check your access to the schema of the type.");
-        $self->typeClass = $typeClass;
-
-        return $self;
-    }
-
-    /**
-     * @param PropertyAccessException          $previous
-     * @param non-empty-list<non-empty-string> $path
-     */
-    public static function pathDenied(TypeInterface $type, PropertyAccessException $previous, array $path): self
-    {
-        $pathString = implode('.', $path);
-        $typeClass = $type::class;
-        $propertyName = $previous->getPropertyName();
-        $self = new self($propertyName, "Access with the path '$pathString' into the type class '$typeClass' was denied because of the path segment '$propertyName'.", 0, $previous);
-        $self->typeClass = $typeClass;
-
-        return $self;
+        return new self($type, $propertyName, "Failed to update property '$propertyName'.", $cause);
     }
 
     /**

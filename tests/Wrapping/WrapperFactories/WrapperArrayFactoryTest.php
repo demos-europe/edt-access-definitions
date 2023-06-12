@@ -4,27 +4,27 @@ declare(strict_types=1);
 
 namespace Tests\Wrapping\WrapperFactories;
 
+use EDT\JsonApi\ApiDocumentation\AttributeTypeResolver;
 use EDT\Querying\ConditionFactories\PhpConditionFactory;
 use EDT\Querying\PropertyAccessors\ReflectionPropertyAccessor;
 use EDT\Querying\Utilities\ConditionEvaluator;
 use EDT\Querying\Utilities\Sorter;
 use EDT\Querying\Utilities\TableJoiner;
 use EDT\Wrapping\Contracts\AccessException;
-use EDT\Wrapping\Contracts\Types\FilterableTypeInterface;
-use EDT\Wrapping\Contracts\Types\IdentifiableTypeInterface;
+use EDT\Wrapping\Contracts\Types\FilteringTypeInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\TypeProviders\LazyTypeProvider;
 use EDT\Wrapping\Utilities\PropertyPathProcessorFactory;
-use EDT\Wrapping\Utilities\PropertyReader;
 use EDT\Wrapping\Utilities\SchemaPathProcessor;
 use EDT\Wrapping\WrapperFactories\WrapperArrayFactory;
-use EDT\Querying\ObjectProviders\PrefilledObjectProvider;
+use EDT\Querying\ObjectProviders\PrefilledEntityProvider;
 use EDT\Wrapping\TypeProviders\PrefilledTypeProvider;
 use Tests\data\Model\Person;
 use Tests\data\Types\BirthType;
 use Tests\ModelBasedTest;
 use Tests\data\Types\AuthorType;
 use Tests\data\Types\BookType;
+use Webmozart\Assert\Assert;
 
 class WrapperArrayFactoryTest extends ModelBasedTest
 {
@@ -33,9 +33,9 @@ class WrapperArrayFactoryTest extends ModelBasedTest
     private PhpConditionFactory $conditionFactory;
 
     /**
-     * @var PrefilledObjectProvider<Person>
+     * @var PrefilledEntityProvider<Person>
      */
-    private PrefilledObjectProvider $authorProvider;
+    private PrefilledEntityProvider $authorProvider;
 
     private PrefilledTypeProvider $typeProvider;
 
@@ -43,32 +43,27 @@ class WrapperArrayFactoryTest extends ModelBasedTest
 
     private SchemaPathProcessor $schemaPathProcessor;
 
-    private PropertyReader $propertyReader;
-
     protected function setUp(): void
     {
         parent::setUp();
         $this->conditionFactory = new PhpConditionFactory();
         $lazyTypeProvider = new LazyTypeProvider();
-        $this->authorType = new AuthorType($this->conditionFactory, $lazyTypeProvider);
-        $bookType = new BookType($this->conditionFactory, $lazyTypeProvider);
+        $this->propertyAccessor = new ReflectionPropertyAccessor();
+        $typeResolver = new AttributeTypeResolver();
+        $this->authorType = new AuthorType($this->conditionFactory, $lazyTypeProvider, $this->propertyAccessor, $typeResolver);
+        $bookType = new BookType($this->conditionFactory, $lazyTypeProvider, $this->propertyAccessor, $typeResolver);
         $this->typeProvider = new PrefilledTypeProvider([
             $this->authorType,
             $bookType,
             new BirthType($this->conditionFactory),
         ]);
         $lazyTypeProvider->setAllTypes($this->typeProvider);
-        $this->propertyAccessor = new ReflectionPropertyAccessor();
-        $this->authorProvider = new PrefilledObjectProvider(
+        $this->authorProvider = new PrefilledEntityProvider(
             new ConditionEvaluator(new TableJoiner($this->propertyAccessor)),
             new Sorter(new TableJoiner($this->propertyAccessor)),
             $this->authors
         );
         $this->schemaPathProcessor = new SchemaPathProcessor(new PropertyPathProcessorFactory(), $this->typeProvider);
-        $tableJoiner = new TableJoiner($this->propertyAccessor);
-        $conditionEvaluator = new ConditionEvaluator($tableJoiner);
-        $sorter = new Sorter($tableJoiner);
-        $this->propertyReader = new PropertyReader($this->schemaPathProcessor, $conditionEvaluator, $sorter);
     }
 
     public function testTrue(): void
@@ -99,6 +94,7 @@ class WrapperArrayFactoryTest extends ModelBasedTest
                 'books'        => [
                     0 => null,
                 ],
+                'id' => '1',
             ],
         ];
 
@@ -121,8 +117,10 @@ class WrapperArrayFactoryTest extends ModelBasedTest
                         'author' => null,
                         'tags'   => [],
                         'title'  => 'Doctor Sleep',
+                        'id' => '1',
                     ],
                 ],
+                'id' => '1',
             ],
         ];
 
@@ -143,6 +141,7 @@ class WrapperArrayFactoryTest extends ModelBasedTest
                 'books'        => [
                     0 => null,
                 ],
+                'id' => '1',
             ],
         ];
 
@@ -169,11 +168,14 @@ class WrapperArrayFactoryTest extends ModelBasedTest
                             'books'        => [
                                 0 => null,
                             ],
+                            'id' => '1',
                         ],
                         'tags'   => [],
                         'title'  => 'Doctor Sleep',
+                        'id' => '1',
                     ],
                 ],
+                'id' => '1',
             ],
         ];
 
@@ -194,6 +196,7 @@ class WrapperArrayFactoryTest extends ModelBasedTest
                 'books'        => [
                     0 => null,
                 ],
+                'id' => '2',
             ],
         ];
 
@@ -202,7 +205,7 @@ class WrapperArrayFactoryTest extends ModelBasedTest
 
     public function testGetAuthorWrapper(): void
     {
-        $fetchedAuthor = $this->getEntityByIdentifier($this->authorType,'John Ronald Reuel Tolkien');
+        $fetchedAuthor = $this->getEntityByIdentifier($this->authorType,'2');
 
         $expected = [
             'name'         => 'John Ronald Reuel Tolkien',
@@ -211,6 +214,7 @@ class WrapperArrayFactoryTest extends ModelBasedTest
             'books'        => [
                 0 => null,
             ],
+            'id' => '2',
         ];
 
         self::assertEquals($expected, $fetchedAuthor);
@@ -218,14 +222,14 @@ class WrapperArrayFactoryTest extends ModelBasedTest
 
     public function testGetAuthorObject(): void
     {
-        $fetchedAuthor = $this->getEntityByIdentifier($this->authorType,'John Ronald Reuel Tolkien', false);
+        $fetchedAuthor = $this->getEntityByIdentifier($this->authorType,'2', false);
 
         self::assertSame($this->authors['tolkien'], $fetchedAuthor);
     }
 
     private function createWrapperArrayFactory(int $depth): WrapperArrayFactory
     {
-        return new WrapperArrayFactory($this->propertyAccessor, $this->propertyReader, $depth);
+        return new WrapperArrayFactory($this->propertyAccessor, $depth);
     }
 
     private function createArrayWrappers(array $entities, TransferableTypeInterface $type, int $depth): array
@@ -237,22 +241,22 @@ class WrapperArrayFactoryTest extends ModelBasedTest
         ));
     }
 
-    private function listEntities(FilterableTypeInterface $type, array $conditions): array
+    private function listEntities(FilteringTypeInterface $type, array $conditions): array
     {
         $this->schemaPathProcessor->mapFilterConditions($type, $conditions);
-        $conditions[] = $this->schemaPathProcessor->processAccessCondition($type);
+        $conditions = array_merge($conditions, $type->getAccessConditions());
 
         return $this->authorProvider->getEntities($conditions, [], null);
     }
 
     /**
-     * @param IdentifiableTypeInterface&TransferableTypeInterface $type
-     * @param non-empty-string                                    $identifier
+     * @param non-empty-string $identifier
      */
-    public function getEntityByIdentifier(IdentifiableTypeInterface $type, string $identifier, bool $wrap = true)
+    public function getEntityByIdentifier(FilteringTypeInterface&TransferableTypeInterface $type, string $identifier, bool $wrap = true)
     {
-        $identifierPath = $type->getIdentifierPropertyPath();
-        $identifierCondition = $this->conditionFactory->propertyHasValue($identifier, $identifierPath);
+        $idPropertyLink = $type->getFilteringProperties()['id'];
+        Assert::null($idPropertyLink->getTargetType());
+        $identifierCondition = $this->conditionFactory->propertyHasValue($identifier, $idPropertyLink->getPath());
         $entities = $this->listEntities($type, [$identifierCondition]);
         if ($wrap) {
             $entities = $this->createArrayWrappers($entities, $type, 0);

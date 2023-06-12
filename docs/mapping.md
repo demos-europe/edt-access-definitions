@@ -44,12 +44,6 @@ class AuthorType implements TransferableTypeInterface
             'name' => null,
         ];
     }
-
-    public function getAliases(): array {
-        return [
-            'fullName' => ['name'],
-        ];
-    }
 }
 ```
 
@@ -69,12 +63,6 @@ class BookType implements TransferableTypeInterface
     public function getReadableProperties() : array {
         return [
             'author' => AuthorType::class,
-        ];
-    }
-
-    public function getAliases(): array {
-        return [
-            'author' => [],
         ];
     }
 }
@@ -98,13 +86,6 @@ class AuthorType implements TransferableTypeInterface
         return [
             'name' => null,
             'address' => null,
-        ];
-    }
-
-    public function getAliases(): array {
-        return [
-            'name' => ['booksAuthorName'],
-            'address' => ['booksAuthorAddress'],
         ];
     }
 }

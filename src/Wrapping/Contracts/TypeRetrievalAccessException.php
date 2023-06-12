@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Contracts;
 
-class TypeRetrievalAccessException extends AccessException
+use Exception;
+
+class TypeRetrievalAccessException extends Exception
 {
     /**
      * @param non-empty-string       $typeIdentifier

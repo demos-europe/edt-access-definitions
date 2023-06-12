@@ -5,30 +5,50 @@ declare(strict_types=1);
 namespace EDT\Wrapping\Contracts\Types;
 
 use EDT\Querying\Contracts\PathsBasedInterface;
+use Exception;
 
 /**
  * @template TCondition of PathsBasedInterface
- * @template TSorting of PathsBasedInterface
  * @template TEntity of object
- *
- * @template-extends TypeInterface<TCondition, TSorting, TEntity>
  */
-interface FilterableTypeInterface extends TypeInterface
+interface FilterableTypeInterface
 {
     /**
-     * All properties of this type that can be used to filter instances of this type and types that
-     * have a relationship to this type.
+     * Removes items not matching the given conditions from the given list and sort the remaining
+     * items by the given sort methods and by an internal default sorting.
      *
-     * In most use cases this method can return the same array as
-     * {@link TransferableTypeInterface::getReadableProperties()} but you may want to limit
-     * the properties further, e.g. if filtering over some properties is computation heavy or not supported
-     * at all. You may also want to allow more properties for filtering than you allowed for reading,
-     * but be careful as this may allow guessing values of non-readable properties.
+     * Implementations are also responsible to not return instances with restricted accessibility.
      *
-     * @return array<non-empty-string, FilterableTypeInterface<TCondition, TSorting, object>|null> The keys in the returned array are the names of the
-     *                                   properties. Each value is the target
-     *                                   {@link TypeInterface} or `null` if the
-     *                                   property is a non-relationship.
+     * Conditions are allowed to access any property of the entity.
+     *
+     * @param list<TEntity> $entities
+     * @param list<TCondition> $conditions
+     *
+     * @throws Exception
      */
-    public function getFilterableProperties(): array;
+    public function assertMatchingEntities(array $entities, array $conditions): void;
+
+    /**
+     * Will throw an exception if the given entity does not match any given conditions or does
+     * not correspond to this instance.
+     *
+     * Conditions are allowed to access any property of the entity.
+     *
+     * @param TEntity $entity
+     * @param list<TCondition> $conditions
+     *
+     * @throws Exception
+     */
+    public function assertMatchingEntity(object $entity, array $conditions): void;
+
+    /**
+     * Will return `true` if the given entity matches all given conditions and does correspond to
+     * this instance. Will return `false` otherwise.
+     *
+     * Conditions are allowed to access any property of the entity.
+     *
+     * @param TEntity $entity
+     * @param list<TCondition> $conditions
+     */
+    public function isMatchingEntity(object $entity, array $conditions): bool;
 }

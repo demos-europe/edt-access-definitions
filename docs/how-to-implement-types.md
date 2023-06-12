@@ -38,10 +38,6 @@ class ArticleType implements TypeInterface
     public function getEntityClass(): string {
         return Article::class;
     }
-
-    public function getAliases() : array {
-        return [];
-    }
 }
 ```
 
@@ -69,10 +65,6 @@ class UserType implements TypeInterface
 
     public function getEntityClass(): string {
         return User::class;
-    }
-
-    public function getAliases() : array {
-        return [];
     }
 }
 ```
@@ -162,14 +154,6 @@ class DraftArticleType implements TransferableTypeInterface
     public function getDefaultSortMethods() : array {
         return [];
     }
-    
-    public function getAliases() : array {
-        return [];
-    }
-
-    public function getInternalProperties() : array {
-        return [];
-    }
 }
 ```
 
@@ -241,12 +225,6 @@ class DraftArticleType implements TransferableTypeInterface
             $this->currentUserAccountName,
             'author', 'accountName'
         );
-    }
-
-    public function getInternalProperties() : array {
-        return [
-            'author' => \Tests\data\Types\AuthorType::class,
-        ];
     }
 
     // ...

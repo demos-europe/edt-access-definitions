@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Wrapping\Utilities;
 
+use EDT\JsonApi\ApiDocumentation\AttributeTypeResolver;
 use EDT\Querying\ConditionFactories\PhpConditionFactory;
+use EDT\Querying\PropertyAccessors\ReflectionPropertyAccessor;
 use EDT\Wrapping\Contracts\PropertyAccessException;
-use EDT\Wrapping\Contracts\RelationshipAccessException;
 use EDT\Wrapping\TypeProviders\LazyTypeProvider;
 use EDT\Wrapping\TypeProviders\PrefilledTypeProvider;
 use EDT\Wrapping\Utilities\PropertyPathProcessor;
-use EDT\Wrapping\Utilities\TypeAccessors\ExternReadableProcessorConfig;
 use EDT\Wrapping\Utilities\TypeAccessors\ExternSortableProcessorConfig;
 use PHPUnit\Framework\TestCase;
 use Tests\data\Types\AuthorType;
@@ -30,8 +30,10 @@ class PropertyPathProcessorTest extends TestCase
         parent::setUp();
         $conditionFactory = new PhpConditionFactory();
         $lazyTypeProvider = new LazyTypeProvider();
-        $this->bookType = new BookType($conditionFactory, $lazyTypeProvider);
-        $this->authorType = new AuthorType($conditionFactory, $lazyTypeProvider);
+        $propertyAccessor = new ReflectionPropertyAccessor();
+        $typeResolver = new AttributeTypeResolver();
+        $this->bookType = new BookType($conditionFactory, $lazyTypeProvider, $propertyAccessor, $typeResolver);
+        $this->authorType = new AuthorType($conditionFactory, $lazyTypeProvider, $propertyAccessor, $typeResolver);
         $this->typeProvider = new PrefilledTypeProvider([
             $this->bookType,
             $this->authorType,
@@ -50,32 +52,6 @@ class PropertyPathProcessorTest extends TestCase
             [],
             'title',
             'foobar'
-        );
-    }
-
-    public function testProcessPropertyPathWithAllowedAttribute(): void
-    {
-        $processorConfig = new ExternReadableProcessorConfig($this->typeProvider, $this->authorType, true);
-        $propertyPathProcessor = new PropertyPathProcessor($processorConfig);
-        $processedPath = $propertyPathProcessor->processPropertyPath(
-            $this->authorType,
-            [],
-            'books',
-            'title'
-        );
-        self::assertSame(['books', 'title'], $processedPath);
-    }
-
-    public function testProcessPropertyPathWithNonAllowedAttribute(): void
-    {
-        $this->expectException(PropertyAccessException::class);
-        $processorConfig = new ExternReadableProcessorConfig($this->typeProvider, $this->authorType, false);
-        $propertyPathProcessor = new PropertyPathProcessor($processorConfig);
-        $propertyPathProcessor->processPropertyPath(
-            $this->authorType,
-            [],
-            'books',
-            'title'
         );
     }
 }

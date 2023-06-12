@@ -4,140 +4,119 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Contracts;
 
-use EDT\Wrapping\Contracts\Types\IdentifiableTypeInterface;
-use EDT\Wrapping\Contracts\Types\TypeInterface;
 use InvalidArgumentException;
 use Throwable;
 
+/**
+ * @template TType of object
+ */
 class AccessException extends InvalidArgumentException
 {
     /**
-     * @var class-string<TypeInterface>|null
-     */
-    protected ?string $typeClass = null;
-
-    /**
-     * @var non-empty-string|null
-     */
-    protected ?string $typeIdentifier = null;
-
-    /**
+     * @param TType $type
      * @param non-empty-string $message
      */
-    protected function __construct(string $message, int $code = 0, Throwable $previous = null)
-    {
-        parent::__construct($message, $code, $previous);
+    protected function __construct(
+        protected readonly object $type,
+        string $message,
+        Throwable $previous = null
+    ) {
+        parent::__construct($message, 0, $previous);
     }
 
     /**
-     * @param TypeInterface $type
+     * @param TType $type
+     *
+     * @return AccessException<TType>
      */
-    public static function typeNotDirectlyAccessible(TypeInterface $type): self
+    public static function unexpectedArguments(object $type, int $expected, int $actual): self
     {
         $typeClass = $type::class;
-        $self = new self("Type '$typeClass' not directly accessible.");
-        $self->typeClass = $typeClass;
 
-        return $self;
-    }
-
-    public static function unexpectedArguments(TypeInterface $type, int $expected, int $actual): self
-    {
-        $typeClass = $type::class;
-        $self = new self("Unexpected arguments received for type class '$typeClass'. Expected $expected arguments, got $actual arguments.");
-        $self->typeClass = $typeClass;
-
-        return $self;
-    }
-
-    public static function typeNotAvailable(TypeInterface $type): self
-    {
-        $typeClass = $type::class;
-        $self = new self("Type class '$typeClass' not available.");
-        $self->typeClass = $typeClass;
-
-        return $self;
-    }
-
-    public static function typeNotReadable(TypeInterface $type): self
-    {
-        $typeClass = $type::class;
-        $self = new self("The type class you try to access is not readable: $typeClass");
-        $self->typeClass = $typeClass;
-
-        return $self;
-    }
-
-    public static function typeNotFilterable(TypeInterface $type): self
-    {
-        $typeClass = $type::class;
-        $self = new self("The type class you try to access is not exposed as filterable relationship: $typeClass");
-        $self->typeClass = $typeClass;
-
-        return $self;
-    }
-
-    public static function typeNotSortable(TypeInterface $type): self
-    {
-        $typeClass = $type::class;
-        $self = new self("The type class you try to access is not exposed as sortable relationship: $typeClass");
-        $self->typeClass = $typeClass;
-
-        return $self;
-    }
-
-    public static function typeNotUpdatable(TypeInterface $type): self
-    {
-        $typeClass = $type::class;
-        $self = new self("The type class you try to access is not updatable: $typeClass");
-        $self->typeClass = $typeClass;
-
-        return $self;
-    }
-
-    public static function multipleEntitiesByIdentifier(IdentifiableTypeInterface $type): self
-    {
-        $typeClass = $type::class;
-        $self = new self("Multiple entities were found for the given identifier when accessing type class '$typeClass'. The identifier must be unique.");
-        $self->typeClass = $typeClass;
-
-        return $self;
-    }
-
-    public static function noEntityByIdentifier(IdentifiableTypeInterface $type): self
-    {
-        $typeClass = $type::class;
-        $self = new self("No entity could be found when accessing type class '$typeClass'. Either no one exists for the given identifier or the given types access condition restricts the access.");
-        $self->typeClass = $typeClass;
-
-        return $self;
+        return new self($type, "Unexpected arguments received for type class '$typeClass'. Expected $expected arguments, got $actual arguments.");
     }
 
     /**
+     * @param TType $type
+     *
+     * @return AccessException<TType>
+     */
+    public static function typeNotFilterable(object $type): self
+    {
+        $typeClass = $type::class;
+
+        return new self($type, "The type class you try to access is not exposed as filterable relationship: $typeClass");
+    }
+
+    /**
+     * @param TType $type
+     *
+     * @return AccessException<TType>
+     */
+    public static function typeNotSortable(object $type): self
+    {
+        $typeClass = $type::class;
+
+        return new self($type, "The type class you try to access is not exposed as sortable relationship: $typeClass");
+    }
+
+    /**
+     * @param TType $type
+     *
+     * @return AccessException<TType>
+     */
+    public static function multipleEntitiesByIdentifier(object $type): self
+    {
+        $typeClass = $type::class;
+
+        return new self($type, "Multiple entities were found for the given identifier when accessing type class '$typeClass'. The identifier must be unique.");
+    }
+
+    /**
+     * @param TType $type
+     *
+     * @return AccessException<TType>
+     */
+    public static function noEntityByIdentifier(object $type): self
+    {
+        $typeClass = $type::class;
+
+        return new self($type, "No entity could be found when accessing type class '$typeClass'. Either no one exists for the given identifier or the given types access condition restricts the access.");
+    }
+
+    /**
+     * @param TType $type
      * @param non-empty-string $methodName
+     *
+     * @return AccessException<TType>
      */
-    public static function failedToParseAccessor(TypeInterface $type, string $methodName): self
+    public static function failedToParseAccessor(object $type, string $methodName): self
     {
         $typeClass = $type::class;
-        $self = new self("The method you've called is not supported: '$methodName'");
-        $self->typeClass = $typeClass;
 
-        return $self;
+        return new self($type, "The method you've called during the processing of '$typeClass' is not supported: '$methodName'");
     }
 
     /**
-     * @return class-string<TypeInterface>|null
+     * @param TType $type
+     * @param Throwable $previous
+     * @param non-empty-list<non-empty-string> $path
+     *
+     * @return AccessException<TType>
      */
-    public function getTypeClass(): ?string
+    public static function pathDenied(object $type, Throwable $previous, array $path): self
     {
-        return $this->typeClass;
+        $pathString = implode('.', $path);
+        $typeClass = $type::class;
+
+        return new self($type, "Access with the path '$pathString' into the type class '$typeClass' was denied.", $previous);
     }
 
     /**
-     * @return non-empty-string|null
+     * @return TType
      */
-    public function getTypeIdentifier(): ?string
+    public function getType(): object
     {
-        return $this->typeIdentifier;
+        return $this->type;
     }
 }

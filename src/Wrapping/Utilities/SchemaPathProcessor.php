@@ -4,33 +4,27 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Utilities;
 
+use EDT\Querying\Contracts\EntityBasedInterface;
 use EDT\Querying\Contracts\PathException;
 use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\AccessException;
 use EDT\Wrapping\Contracts\PropertyAccessException;
-use EDT\Wrapping\Contracts\TypeProviderInterface;
-use EDT\Wrapping\Contracts\Types\FilterableTypeInterface;
+use EDT\Wrapping\Contracts\Types\FilteringTypeInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
-use EDT\Wrapping\Contracts\Types\SortableTypeInterface;
-use EDT\Wrapping\Contracts\Types\TypeInterface;
+use EDT\Wrapping\Contracts\Types\SortingTypeInterface;
 use EDT\Wrapping\Utilities\TypeAccessors\ExternFilterableProcessorConfig;
-use EDT\Wrapping\Utilities\TypeAccessors\ExternReadableProcessorConfig;
 use EDT\Wrapping\Utilities\TypeAccessors\ExternSortableProcessorConfig;
-use EDT\Wrapping\Utilities\TypeAccessors\InternProcessorConfig;
+use function array_key_exists;
 
 /**
  * Follows {@link PropertyPathAccessInterface} instances to check if access is
- * allowed in the context of a given root {@link TypeInterface} and maps
- * the paths according to the corresponding {@link AliasableTypeInterface::getAliases()} return.
+ * allowed in the context of a given root {@link EntityBasedInterface} and maps
+ * the paths according to the corresponding configured aliases.
  */
 class SchemaPathProcessor
 {
-    /**
-     * @param TypeProviderInterface<PathsBasedInterface, PathsBasedInterface> $typeProvider
-     */
     public function __construct(
-        private readonly PropertyPathProcessorFactory $propertyPathProcessorFactory,
-        private readonly TypeProviderInterface $typeProvider
+        protected readonly PropertyPathProcessorFactory $propertyPathProcessorFactory
     ) {}
 
     /**
@@ -39,15 +33,15 @@ class SchemaPathProcessor
      * @template TCondition of PathsBasedInterface
      * @template TSorting of PathsBasedInterface
      *
-     * @param FilterableTypeInterface<TCondition, TSorting, object> $type
-     * @param non-empty-list<TCondition>                     $conditions
+     * @param FilteringTypeInterface<TCondition, TSorting>&EntityBasedInterface<object> $type
+     * @param non-empty-list<TCondition> $conditions
      *
-     * @throws PathException Thrown if {@link AliasableTypeInterface::getAliases()} returned an invalid path.
+     * @throws PathException
      * @throws AccessException
      */
-    public function mapFilterConditions(FilterableTypeInterface $type, array $conditions): void
+    public function mapFilterConditions(FilteringTypeInterface&EntityBasedInterface $type, array $conditions): void
     {
-        $processorConfig = new ExternFilterableProcessorConfig($this->typeProvider, $type);
+        $processorConfig = new ExternFilterableProcessorConfig($type);
         $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($processorConfig);
         array_map([$processor, 'processPropertyPaths'], $conditions);
     }
@@ -58,89 +52,56 @@ class SchemaPathProcessor
      * @template TCondition of PathsBasedInterface
      * @template TSorting of PathsBasedInterface
      *
-     * @param SortableTypeInterface<TCondition, TSorting, object> $type
-     * @param non-empty-list<TSorting>                   $sortMethods
-     *
-     * @throws AccessException
-     * @throws PathException Thrown if {@link AliasableTypeInterface::getAliases()} returned an invalid path.
-     */
-    public function mapSorting(SortableTypeInterface $type, array $sortMethods): void
-    {
-        $processorConfig = new ExternSortableProcessorConfig($this->typeProvider, $type);
-        $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($processorConfig);
-        array_map([$processor, 'processPropertyPaths'], $sortMethods);
-    }
-
-    /**
-     * @param non-empty-list<non-empty-string> $path
-     *
-     * @return non-empty-list<non-empty-string>
-     *
-     * @throws PropertyAccessException
-     */
-    public function mapExternReadablePath(TransferableTypeInterface $type, array $path, bool $allowAttribute): array
-    {
-        $processorConfig = new ExternReadableProcessorConfig($this->typeProvider, $type, $allowAttribute);
-        $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($processorConfig);
-        try {
-            return $processor->processPropertyPath($type, [], ...$path);
-        } catch (PropertyAccessException $exception) {
-            throw PropertyAccessException::pathDenied($type, $exception, $path);
-        }
-    }
-
-    /**
-     * Check if all properties used in the sort methods are available
-     * and map the paths to be applied to the schema of the backing class.
-     *
-     * @template TCondition of PathsBasedInterface
-     * @template TSorting of PathsBasedInterface
-     *
-     * @param TypeInterface<TCondition, TSorting, object> $type
-     *
-     * @return list<TSorting>
-     *
-     * @throws PathException Thrown if {@link AliasableTypeInterface::getAliases()} returned an invalid path.
-     *
-     * @internal
-     */
-    public function processDefaultSortMethods(TypeInterface $type): array
-    {
-        $sortMethods = $type->getDefaultSortMethods();
-        if ([] === $sortMethods) {
-            return [];
-        }
-
-        $processorConfig = new InternProcessorConfig($this->typeProvider, $type);
-        $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($processorConfig);
-        array_map([$processor, 'processPropertyPaths'], $sortMethods);
-
-        return $sortMethods;
-    }
-
-    /**
-     * Get the processed {@link TransferableTypeInterface::getAccessCondition() access condition}
-     * of the given type.
-     *
-     * @template TCondition of PathsBasedInterface
-     * @template TSorting of PathsBasedInterface
-     *
-     * @param TypeInterface<TCondition, TSorting, object> $type
-     *
-     * @return TCondition
+     * @param SortingTypeInterface<TCondition, TSorting> $type
+     * @param non-empty-list<TSorting> $sortMethods
      *
      * @throws AccessException
      * @throws PathException
-     *
-     * @internal
      */
-    public function processAccessCondition(TypeInterface $type): PathsBasedInterface
+    public function mapSorting(SortingTypeInterface $type, array $sortMethods): void
     {
-        $condition = $type->getAccessCondition();
-        $processorConfig = new InternProcessorConfig($this->typeProvider, $type);
+        $processorConfig = new ExternSortableProcessorConfig($type);
         $processor = $this->propertyPathProcessorFactory->createPropertyPathProcessor($processorConfig);
-        $processor->processPropertyPaths($condition);
+        array_map([$processor, 'processPropertyPaths'], $sortMethods);
+    }
 
-        return $condition;
+    /**
+     * Compares the given path with the {@link TransferableTypeInterface::getReadableProperties()}
+     * of the involved types.
+     *
+     * @param TransferableTypeInterface<PathsBasedInterface, PathsBasedInterface, object> $type
+     * @param non-empty-list<non-empty-string> $path
+     *
+     * @throws PropertyAccessException
+     */
+    public function verifyExternReadablePath(TransferableTypeInterface $type, array $path, bool $allowAttribute): void
+    {
+        $originalPath = $path;
+        try {
+            $readableProperties = $type->getReadableProperties();
+            $allReadableProperties = $allowAttribute
+                ? $readableProperties->getAllProperties()
+                : $readableProperties->getRelationships();
+
+            $pathSegment = array_shift($path);
+            if (!array_key_exists($pathSegment, $allReadableProperties)) {
+                $availablePropertyNames = array_keys($allReadableProperties);
+                throw PropertyAccessException::propertyNotAvailableInType($pathSegment, $type, $availablePropertyNames);
+            }
+
+            if ([] === $path) {
+                return;
+            }
+
+            if (!$readableProperties->hasRelationship($pathSegment)) {
+                throw PropertyAccessException::nonRelationship($pathSegment, $type);
+            }
+
+            $property = $readableProperties->getRelationship($pathSegment);
+
+            $this->verifyExternReadablePath($property->getRelationshipType(), $path, $allowAttribute);
+        } catch (PropertyAccessException $exception) {
+            throw AccessException::pathDenied($type, $exception, $originalPath);
+        }
     }
 }

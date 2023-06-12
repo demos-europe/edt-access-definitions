@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Utilities;
 
-use EDT\Querying\Contracts\PathsBasedInterface;
-use EDT\Wrapping\Contracts\Types\TypeInterface;
 use EDT\Wrapping\Utilities\TypeAccessors\AbstractProcessorConfig;
 
 class PropertyPathProcessorFactory
 {
     /**
-     * @template TType of TypeInterface<PathsBasedInterface, PathsBasedInterface, object>
+     * @template TType of object
      *
      * @param AbstractProcessorConfig<TType> $processorConfig
      *

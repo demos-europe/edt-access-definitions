@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\TypeProviders;
 
+use EDT\Querying\Contracts\EntityBasedInterface;
 use EDT\Querying\Contracts\PathsBasedInterface;
-use EDT\Wrapping\Contracts\Types\TypeInterface;
+use EDT\Wrapping\Contracts\TypeProviderInterface;
 use InvalidArgumentException;
 use function array_key_exists;
 
 /**
- * Takes something iterable containing {@link TypeInterface}s on initialization
+ * Takes something iterable containing {@link EntityBasedInterface}s on initialization
  * and will assign each item an identifier using the {@link PrefilledTypeProvider::getIdentifier()}
  * method. By default, the fully qualified class name is chosen as identifier. To use something different
  * override {@link PrefilledTypeProvider::getIdentifier()}.
@@ -18,17 +19,17 @@ use function array_key_exists;
  * @template TCondition of PathsBasedInterface
  * @template TSorting of PathsBasedInterface
  *
- * @template-extends AbstractTypeProvider<TCondition, TSorting>
+ * @template-implements TypeProviderInterface<TCondition, TSorting>
  */
-class PrefilledTypeProvider extends AbstractTypeProvider
+class PrefilledTypeProvider implements TypeProviderInterface
 {
     /**
-     * @var array<non-empty-string, TypeInterface<TCondition, TSorting, object>>
+     * @var array<non-empty-string, EntityBasedInterface<object>>
      */
     protected array $typesByIdentifier = [];
 
     /**
-     * @param iterable<TypeInterface<TCondition, TSorting, object>> $types The types this instance is able to provide.
+     * @param iterable<EntityBasedInterface<object>> $types The types this instance is able to provide.
      *
      * @throws InvalidArgumentException Thrown if the given array contains duplicates. Types are considered duplicates
      * if {@link PrefilledTypeProvider::getIdentifier their} return the same result for two given types.
@@ -48,14 +49,17 @@ class PrefilledTypeProvider extends AbstractTypeProvider
 
     /**
      * Returns the identifier to use for the given type. Defaults to its fully qualified class name if not overridden.
+     *
+     * @param EntityBasedInterface<object> $type
+     *
      * @return non-empty-string
      */
-    protected function getIdentifier(TypeInterface $type): string
+    protected function getIdentifier(EntityBasedInterface $type): string
     {
         return $type::class;
     }
 
-    protected function getTypeByIdentifier(string $typeIdentifier): ?TypeInterface
+    public function getTypeByIdentifier(string $typeIdentifier): ?EntityBasedInterface
     {
         return $this->typesByIdentifier[$typeIdentifier] ?? null;
     }

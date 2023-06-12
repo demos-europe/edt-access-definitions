@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Wrapping\TypeProviders;
 
+use EDT\JsonApi\ApiDocumentation\AttributeTypeResolver;
 use EDT\Querying\ConditionFactories\PhpConditionFactory;
-use EDT\Wrapping\Contracts\AccessException;
+use EDT\Querying\PropertyAccessors\ReflectionPropertyAccessor;
 use EDT\Wrapping\TypeProviders\LazyTypeProvider;
 use EDT\Wrapping\TypeProviders\PrefilledTypeProvider;
 use PHPUnit\Framework\TestCase;
@@ -22,8 +23,10 @@ class PrefilledTypeProviderTest extends TestCase
 
         $conditionFactory = new PhpConditionFactory();
         $lazyTypeProvider = new LazyTypeProvider();
-        $authorType = new AuthorType($conditionFactory, $lazyTypeProvider);
-        $bookType = new BookType($conditionFactory, $lazyTypeProvider);
+        $propertyAccessor = new ReflectionPropertyAccessor();
+        $typeResolver = new AttributeTypeResolver();
+        $authorType = new AuthorType($conditionFactory, $lazyTypeProvider, $propertyAccessor, $typeResolver);
+        $bookType = new BookType($conditionFactory, $lazyTypeProvider, $propertyAccessor, $typeResolver);
         $this->typeProvider = new PrefilledTypeProvider([
             $authorType,
             $bookType,
@@ -33,8 +36,7 @@ class PrefilledTypeProviderTest extends TestCase
 
     public function testUnknownTypeIdentifier(): void
     {
-        $this->expectException(AccessException::class);
-        $this->expectExceptionMessage("Type instance with identifier 'foobar' matching the defined criteria was not found due to the following reasons: identifier 'foobar' not known");
-        $this->typeProvider->requestType('foobar')->getInstanceOrThrow();
+        $type = $this->typeProvider->getTypeByIdentifier('foobar');
+        self::assertNull($type);
     }
 }
