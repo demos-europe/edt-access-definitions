@@ -19,8 +19,6 @@ interface PropertyReadableTypeInterface
      *
      * The return may depend on the current state of the application and thus may change on consecutive calls.
      *
-     * Implementations must return the nested arrays with keys that do not conflict with each other.
-     *
      * @return ReadabilityCollection<TCondition, TSorting, TEntity>
      */
     public function getReadableProperties(): ReadabilityCollection;

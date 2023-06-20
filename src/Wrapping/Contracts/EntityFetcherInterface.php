@@ -21,22 +21,25 @@ interface EntityFetcherInterface
     /**
      * @param non-empty-string $id
      * @param list<TCondition> $conditions
+     * @param non-empty-list<non-empty-string> $identifierPropertyPath
      *
      * @return TEntity
      */
-    public function getEntityByIdentifier(string $id, array $conditions): object;
+    public function getEntityByIdentifier(string $id, array $conditions, array $identifierPropertyPath): object;
 
     /**
      * @param list<non-empty-string> $identifiers
      * @param list<TCondition> $conditions
      * @param list<TSorting> $sortMethods
+     * @param non-empty-list<non-empty-string> $identifierPropertyPath
      *
      * @return list<TEntity>
      */
     public function getEntitiesByIdentifiers(
         array $identifiers,
         array $conditions,
-        array $sortMethods
+        array $sortMethods,
+        array $identifierPropertyPath
     ): array;
 
     /**
