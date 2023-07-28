@@ -17,9 +17,12 @@ interface FilterableTypeInterface
      * Removes items not matching the given conditions from the given list and sort the remaining
      * items by the given sort methods and by an internal default sorting.
      *
-     * Implementations are also responsible to not return instances with restricted accessibility.
+     * If no conditions are given access may still be restricted by conditions internally
+     * imposed by the implementing type. Implementations are also responsible to not return instances with restricted
+     * accessibility.
      *
      * Conditions are allowed to access any property of the entity.
+     *
      *
      * @param list<TEntity> $entities
      * @param list<TCondition> $conditions
@@ -34,6 +37,9 @@ interface FilterableTypeInterface
      *
      * Conditions are allowed to access any property of the entity.
      *
+     * If no conditions are given access may still be restricted by conditions internally
+     * imposed by the implementation.
+     *
      * @param TEntity $entity
      * @param list<TCondition> $conditions
      *
@@ -46,6 +52,9 @@ interface FilterableTypeInterface
      * this instance. Will return `false` otherwise.
      *
      * Conditions are allowed to access any property of the entity.
+     *
+     * If no conditions are given access may still be restricted by conditions internally
+     * imposed by the implementation.
      *
      * @param TEntity $entity
      * @param list<TCondition> $conditions

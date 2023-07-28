@@ -78,7 +78,7 @@ interface EntityFetcherInterface
 
     /**
      * @param TEntity $entity
-     * @param list<TCondition> $conditions
+     * @param non-empty-list<TCondition> $conditions
      */
     public function isMatchingEntity(object $entity, array $conditions): bool;
 
