@@ -116,11 +116,6 @@ class BookType implements
         return self::class;
     }
 
-    public function getEntityByIdentifier(int|string $identifier, array $conditions): object
-    {
-        throw new \RuntimeException();
-    }
-
     public function getEntitiesForRelationship(array $identifiers, array $conditions, array $sortMethods): array
     {
         throw new \RuntimeException();
