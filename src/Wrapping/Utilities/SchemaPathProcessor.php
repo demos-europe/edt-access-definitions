@@ -14,6 +14,7 @@ use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\Contracts\Types\SortingTypeInterface;
 use EDT\Wrapping\Utilities\TypeAccessors\ExternFilterableProcessorConfig;
 use EDT\Wrapping\Utilities\TypeAccessors\ExternSortableProcessorConfig;
+use Exception;
 use function array_key_exists;
 
 /**
@@ -98,8 +99,13 @@ class SchemaPathProcessor
             }
 
             $property = $readableProperties->getRelationship($pathSegment);
+            $relationshipType = $property->getRelationshipType();
 
-            $this->verifyExternReadablePath($property->getRelationshipType(), $path, $allowAttribute);
+            try {
+                $this->verifyExternReadablePath($relationshipType, $path, $allowAttribute);
+            } catch (Exception $exception) {
+                throw new ExternReadableRelationshipSchemaVerificationException($relationshipType, $path, $exception);
+            }
         } catch (PropertyAccessException $exception) {
             throw AccessException::pathDenied($type, $exception, $originalPath);
         }

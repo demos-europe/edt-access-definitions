@@ -30,14 +30,14 @@ class InitializabilityCollection
     ) {}
 
     /**
-     * @return array<non-empty-string, mixed>
+     * @return list<non-empty-string>
      */
-    public function getRequiredAttributes(): array
+    public function getRequiredAttributeNames(): array
     {
-        return array_merge(
+        return array_keys(array_merge(
             $this->filterRequiredProperties($this->attributeInitializabilities),
             $this->filterAttributeProperties($this->orderedRequiredConstructorParameters)
-        );
+        ));
     }
 
     /**
@@ -63,14 +63,14 @@ class InitializabilityCollection
     }
 
     /**
-     * @return array<non-empty-string, mixed>
+     * @return list<non-empty-string>
      */
-    public function getOptionalAttributes(): array
+    public function getOptionalAttributeNames(): array
     {
-        return array_merge(
+        return array_keys(array_merge(
             $this->filterOptionalProperties($this->attributeInitializabilities),
             $this->filterAttributeProperties($this->orderedOptionalConstructorParameters)
-        );
+        ));
     }
 
     /**
@@ -175,7 +175,7 @@ class InitializabilityCollection
     {
         return array_filter(
             $array,
-            static fn (ConstructorParameterInterface $item): bool => $item->isAttribute()
+            static fn (ConstructorParameterInterface $item): bool => $item instanceof AttributeConstructorParameter
         );
     }
 
@@ -187,8 +187,8 @@ class InitializabilityCollection
     protected function getToOneRelationshipIdentifiers(array $array): array
     {
         return array_map(
-            static fn (ConstructorParameterInterface $item) => $item->getRelationshipType()->getTypeName(),
-            array_filter($array, static fn (ConstructorParameterInterface $item): bool => $item->isToOneRelationship())
+            static fn (AbstractRelationshipConstructorParameter $item): string => $item->getRelationshipType()->getTypeName(),
+            array_filter($array, static fn (ConstructorParameterInterface $item): bool => $item instanceof ToOneRelationshipConstructorParameter)
         );
     }
 
@@ -200,9 +200,9 @@ class InitializabilityCollection
     protected function filterToManyRelationshipIdentifiers(array $array): array
     {
         return array_map(
-            static fn (ConstructorParameterInterface $item) => $item->getRelationshipType()->getTypeName(),
-            array_filter($array, static fn (ConstructorParameterInterface $item): bool => $item->isToManyRelationship()
-        ));
+            static fn (AbstractRelationshipConstructorParameter $item) => $item->getRelationshipType()->getTypeName(),
+            array_filter($array, static fn (ConstructorParameterInterface $item): bool => $item instanceof ToManyRelationshipConstructorParameter)
+        );
     }
 
     /**

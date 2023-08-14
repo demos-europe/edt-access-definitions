@@ -15,6 +15,7 @@ use EDT\Querying\SortMethods\Ascending;
 use EDT\Wrapping\Contracts\AccessException;
 use EDT\Wrapping\TypeProviders\LazyTypeProvider;
 use EDT\Wrapping\TypeProviders\PrefilledTypeProvider;
+use EDT\Wrapping\Utilities\ExternReadableRelationshipSchemaVerificationException;
 use EDT\Wrapping\Utilities\PropertyPathProcessorFactory;
 use EDT\Wrapping\Utilities\SchemaPathProcessor;
 use Tests\data\Types\AuthorType;
@@ -78,7 +79,7 @@ class SchemaPathProcessorTest extends ModelBasedTest
 
     public function testProcessPropertyPathWithNonAllowedAttribute(): void
     {
-        $this->expectException(AccessException::class);
+        $this->expectException(ExternReadableRelationshipSchemaVerificationException::class);
         $this->schemaPathProcessor->verifyExternReadablePath($this->authorType, ['books', 'title'], false);
     }
 }

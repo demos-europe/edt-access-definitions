@@ -33,6 +33,14 @@ class UpdatablePropertyCollection
     }
 
     /**
+     * @return list<non-empty-string>
+     */
+    public function getAttributeNames(): array
+    {
+        return array_keys($this->attributes);
+    }
+
+    /**
      * @return array<non-empty-string, ToOneRelationshipSetabilityInterface<TCondition, TSorting, TEntity, object>>
      */
     public function getToOneRelationships(): array
