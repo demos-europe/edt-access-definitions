@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\data\Types;
 
 use EDT\Querying\Contracts\PropertyAccessorInterface;
-use EDT\Wrapping\Properties\AttributeReadabilityInterface;
+use EDT\Wrapping\PropertyBehavior\Attribute\AttributeReadabilityInterface;
 
 class TestAttributeReadability implements AttributeReadabilityInterface
 {

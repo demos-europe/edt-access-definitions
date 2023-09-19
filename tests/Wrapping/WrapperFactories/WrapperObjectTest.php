@@ -19,6 +19,7 @@ use Tests\ModelBasedTest;
 class WrapperObjectTest extends ModelBasedTest
 {
     private AuthorType $authorType;
+    private BookType $bookType;
 
     protected function setUp(): void
     {
@@ -29,9 +30,10 @@ class WrapperObjectTest extends ModelBasedTest
         $attributeTypeResolver = new AttributeTypeResolver();
         $this->authorType = new AuthorType($conditionFactory, $lazyTypeProvider, $propertyAccessor, $attributeTypeResolver);
         $typeResolver = new AttributeTypeResolver();
+        $this->bookType = new BookType($conditionFactory, $lazyTypeProvider, $propertyAccessor, $typeResolver);
         $typeProvider = new PrefilledTypeProvider([
             $this->authorType,
-            new BookType($conditionFactory, $lazyTypeProvider, $propertyAccessor, $typeResolver),
+            $this->bookType,
             new BirthType($conditionFactory),
         ]);
         $lazyTypeProvider->setAllTypes($typeProvider);
@@ -54,6 +56,7 @@ class WrapperObjectTest extends ModelBasedTest
         self::assertCount(1, $author->getBooks());
         self::assertSame($this->books['pickwickPapers']->getTitle(), $author->books[0]->title);
         self::assertSame($this->books['pickwickPapers']->getTitle(), $author->books[0]->getTitle());
+        $this->bookType->setAvailableInstances($this->getTestData()['books']);
         $author->books = [
             $this->books['beowulf'],
             $this->books['doctorSleep'],

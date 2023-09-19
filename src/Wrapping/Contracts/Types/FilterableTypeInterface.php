@@ -14,24 +14,6 @@ use Exception;
 interface FilterableTypeInterface
 {
     /**
-     * Removes items not matching the given conditions from the given list and sort the remaining
-     * items by the given sort methods and by an internal default sorting.
-     *
-     * If no conditions are given access may still be restricted by conditions internally
-     * imposed by the implementing type. Implementations are also responsible to not return instances with restricted
-     * accessibility.
-     *
-     * Conditions are allowed to access any property of the entity.
-     *
-     *
-     * @param list<TEntity> $entities
-     * @param list<TCondition> $conditions
-     *
-     * @throws Exception
-     */
-    public function assertMatchingEntities(array $entities, array $conditions): void;
-
-    /**
      * Will throw an exception if the given entity does not match any given conditions or does
      * not correspond to this instance.
      *

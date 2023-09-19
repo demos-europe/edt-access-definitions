@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace EDT\Wrapping\Contracts\Types;
 
 use EDT\Querying\Contracts\PathsBasedInterface;
-use EDT\Wrapping\Properties\ReadabilityCollection;
+use EDT\Wrapping\ResourceBehavior\ResourceReadability;
 
 /**
  * @template TCondition of PathsBasedInterface
@@ -19,7 +19,7 @@ interface PropertyReadableTypeInterface
      *
      * The return may depend on the current state of the application and thus may change on consecutive calls.
      *
-     * @return ReadabilityCollection<TCondition, TSorting, TEntity>
+     * @return ResourceReadability<TCondition, TSorting, TEntity>
      */
-    public function getReadableProperties(): ReadabilityCollection;
+    public function getReadability(): ResourceReadability;
 }

@@ -255,7 +255,7 @@ class WrapperArrayFactoryTest extends ModelBasedTest
     public function getEntityByIdentifier(FilteringTypeInterface&TransferableTypeInterface $type, string $identifier, bool $wrap = true)
     {
         $idPropertyLink = $type->getFilteringProperties()['id'];
-        Assert::null($idPropertyLink->getTargetType());
+        Assert::null($idPropertyLink->getAvailableTargetProperties());
         $identifierCondition = $this->conditionFactory->propertyHasValue($identifier, $idPropertyLink->getPath());
         $entities = $this->listEntities($type, [$identifierCondition]);
         if ($wrap) {

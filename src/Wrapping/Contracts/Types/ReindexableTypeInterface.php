@@ -13,7 +13,7 @@ use EDT\Querying\Contracts\PathsBasedInterface;
  *
  * @template-extends FilterableTypeInterface<TCondition, TEntity>
  */
-interface ReindexableTypeInterface extends SortableTypeInterface, FilterableTypeInterface
+interface ReindexableTypeInterface extends FilterableTypeInterface
 {
     /**
      * Removes items from the given array that not accessible via this type or do not match the

@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\WrapperFactories;
 
-use EDT\JsonApi\RequestHandling\ContentField;
 use EDT\Querying\Contracts\EntityBasedInterface;
 use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\AccessException;
+use EDT\Wrapping\Contracts\ContentField;
 use EDT\Wrapping\Contracts\PropertyAccessException;
-use EDT\Wrapping\Contracts\RelationshipAccessException;
 use EDT\Wrapping\Contracts\Types\ExposableRelationshipTypeInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
-use EDT\Wrapping\Properties\EntityVerificationTrait;
-use EDT\Wrapping\Properties\PropertyAccessibilityInterface;
+use EDT\Wrapping\EntityData;
+use EDT\Wrapping\PropertyBehavior\EntityVerificationTrait;
 use Exception;
 use InvalidArgumentException;
 use Safe\Exceptions\PcreException;
 use Webmozart\Assert\Assert;
 use function array_key_exists;
 use function count;
+use function in_array;
 use function Safe\preg_match;
 
 /**
@@ -27,7 +27,7 @@ use function Safe\preg_match;
  *
  * Instances will provide read and write access to specific properties of the given object.
  *
- * The properties allowed to be read depend on the return of {@link TransferableTypeInterface::getReadableProperties()}.
+ * The properties allowed to be read depend on the return of {@link TransferableTypeInterface::getReadability()}.
  * Only those relationships will be readable whose target type return `true` in
  * {@link ExposableRelationshipTypeInterface::isExposedAsRelationship()}
  *
@@ -57,6 +57,7 @@ class WrapperObject
         protected readonly TransferableTypeInterface $type
     ) {
         try {
+            // ensure the given entity instance actually matches the restrictions of the given type
             $this->type->assertMatchingEntity($this->entity, []);
         } catch (Exception $exception) {
             throw new InvalidArgumentException("Given entity is not a valid '{$this->type->getTypeName()}' type instance.", 0, $exception);
@@ -97,6 +98,109 @@ class WrapperObject
     }
 
     /**
+     * @return non-empty-string
+     */
+    public function getTypeName(): string
+    {
+        return $this->type->getTypeName();
+    }
+
+    /**
+     * @return non-empty-string
+     */
+    public function getIdentifier(): string
+    {
+        return $this->type->getReadability()->getIdentifierReadability()->getValue($this->entity);
+    }
+
+    /**
+     * @param non-empty-string $propertyName
+     *
+     * @throws InvalidArgumentException if no attribute is available for the given name
+     */
+    public function getAttribute(string $propertyName): mixed
+    {
+        // we allow reading of properties that are actually accessible
+        $readableProperties = $this->type->getReadability();
+
+        if (array_key_exists($propertyName, $readableProperties->getAttributes())) {
+            return $readableProperties->getAttribute($propertyName)->getValue($this->entity);
+        }
+
+        throw new InvalidArgumentException("No attribute named `$propertyName` available.");
+    }
+
+    /**
+     * @param non-empty-string $propertyName
+     * @param list<TCondition> $conditions
+     *
+     * @return WrapperObject<object, TCondition, TSorting>|null
+     */
+    public function getToOneRelationship(string $propertyName, array $conditions = []): ?WrapperObject
+    {
+        // we allow reading of properties that are actually accessible
+        $readableProperties = $this->type->getReadability();
+
+        $readability = $readableProperties->getToOneRelationship($propertyName);
+        $relationshipType = $readability->getRelationshipType();
+        $relationshipEntity = $readability->getValue($this->entity, $conditions);
+        if (null === $relationshipEntity) {
+            return null;
+        }
+
+        return $this->createWrapper($relationshipEntity, $relationshipType);
+    }
+
+    /**
+     * @param non-empty-string $propertyName
+     * @param list<TCondition> $conditions
+     *
+     * @return non-empty-string|null
+     */
+    public function getToOneRelationshipReference(string $propertyName, array $conditions = []): ?string
+    {
+        return $this->getToOneRelationship($propertyName, $conditions)?->getIdentifier();
+    }
+
+    /**
+     * @param non-empty-string $propertyName
+     * @param list<TCondition> $conditions
+     * @param list<TSorting> $sortMethods
+     *
+     * @return list<WrapperObject<object, TCondition, TSorting>>
+     */
+    public function getToManyRelationships(string $propertyName, array $conditions = [], array $sortMethods = []): array
+    {
+        // we allow reading of properties that are actually accessible
+        $readableProperties = $this->type->getReadability();
+
+        $readability = $readableProperties->getToManyRelationship($propertyName);
+        $relationshipType = $readability->getRelationshipType();
+        $relationshipEntities = $readability->getValue($this->entity, $conditions, $sortMethods);
+
+        // wrap the entities
+        return array_map(
+            fn (object $entityToWrap) => $this->createWrapper($entityToWrap, $relationshipType),
+            $relationshipEntities
+        );
+    }
+
+    /**
+     * @param non-empty-string $propertyName
+     * @param list<TCondition> $conditions
+     * @param list<TSorting> $sortMethods
+     *
+     * @return list<non-empty-string>
+     */
+    public function getToManyRelationshipReferences(string $propertyName, array $conditions = [], array $sortMethods = []): array
+    {
+        return array_map(
+            static fn (WrapperObject $wrapper): string => $wrapper->getIdentifier(),
+            $this->getToManyRelationships($propertyName, $conditions, $sortMethods)
+        );
+    }
+
+    /**
      * @param non-empty-string $propertyName
      *
      * @return mixed|null The value of the accessed property. Each relationship entity will be  wrapped into another wrapper instance.
@@ -104,7 +208,7 @@ class WrapperObject
     public function __get(string $propertyName)
     {
         // we allow reading of properties that are actually accessible
-        $readableProperties = $this->type->getReadableProperties();
+        $readableProperties = $this->type->getReadability();
 
         // TODO: consider readability settings like default include and default field?
 
@@ -113,30 +217,19 @@ class WrapperObject
         }
 
         if (ContentField::ID === $propertyName) {
-            return $readableProperties->getIdentifierReadability()->getValue($this->entity);
+            return $this->getIdentifier();
+        }
+
+        if (ContentField::TYPE === $propertyName) {
+            return $this->getTypeName();
         }
 
         if ($readableProperties->hasToOneRelationship($propertyName)) {
-            $readability = $readableProperties->getToOneRelationship($propertyName);
-            $relationshipType = $readability->getRelationshipType();
-            $relationshipEntity = $readability->getValue($this->entity, []);
-            if (null === $relationshipEntity) {
-                return null;
-            }
-
-            return $this->createWrapper($relationshipEntity, $relationshipType);
+            return $this->getToOneRelationship($propertyName, []);
         }
 
         if ($readableProperties->hasToManyRelationship($propertyName)) {
-            $readability = $readableProperties->getToManyRelationship($propertyName);
-            $relationshipType = $readability->getRelationshipType();
-            $relationshipEntities = $readability->getValue($this->entity, [], []);
-
-            // wrap the entities
-            return array_map(
-                fn (object $entityToWrap) => $this->createWrapper($entityToWrap, $relationshipType),
-                $relationshipEntities
-            );
+            return $this->getToManyRelationships($propertyName, [], []);
         }
 
         throw PropertyAccessException::propertyNotAvailableInReadableType(
@@ -147,75 +240,121 @@ class WrapperObject
     }
 
     /**
+     * @param non-empty-string $propertyName
+     */
+    public function setAttribute(string $propertyName, mixed $value): void
+    {
+        $entityUpdatability = $this->type->getUpdatability();
+
+        $relevantEntityConditions = $entityUpdatability->getEntityConditions([$propertyName]);
+        $this->type->assertMatchingEntity($this->entity, $relevantEntityConditions);
+
+        $entityData = new EntityData($this->type->getTypeName(), [$propertyName => $value], [], []);
+        $entityUpdatability->getAttribute($propertyName)->updateProperty($this->entity, $entityData);
+    }
+
+    /**
+     * @param non-empty-string $propertyName
+     */
+    public function setToOneRelationship(string $propertyName, ?object $value): bool
+    {
+        $entityUpdatability = $this->type->getUpdatability();
+        $setability = $entityUpdatability->getToOneRelationship($propertyName);
+
+        $relationshipType = $setability->getRelationshipType();
+        $relationshipClass = $relationshipType->getEntityClass();
+        $relationship = $this->assertValidToOneValue($value, $relationshipClass);
+
+        $relevantEntityConditions = $entityUpdatability->getEntityConditions([$propertyName]);
+        $this->type->assertMatchingEntity($this->entity, $relevantEntityConditions);
+
+        $attributes = [];
+        $toOneRelationships = [
+            $propertyName => null === $relationship ? null : [
+                ContentField::ID => $relationshipType->getReadability()->getIdentifierReadability()->getValue($relationship),
+                ContentField::TYPE => $relationshipType->getTypeName(),
+            ],
+        ];
+        $toManyRelationships = [];
+        $entityData = new EntityData(
+            $this->type->getTypeName(),
+            $attributes,
+            $toOneRelationships,
+            $toManyRelationships
+        );
+
+        return $setability->updateProperty($this->entity, $entityData);
+    }
+
+    /**
+     * @param non-empty-string $propertyName
+     * @param list<object> $values
+     */
+    public function setToManyRelationship(string $propertyName, array $values): void
+    {
+        $entityUpdatability = $this->type->getUpdatability();
+
+        $setability = $entityUpdatability->getToManyRelationship($propertyName);
+        $relationshipType = $setability->getRelationshipType();
+        $relationshipClass = $relationshipType->getEntityClass();
+        $relationships = $this->assertValidToManyValue($values, $relationshipClass);
+
+        $relevantEntityConditions = $entityUpdatability->getEntityConditions([$propertyName]);
+        $this->type->assertMatchingEntity($this->entity, $relevantEntityConditions);
+
+        $relationshipTypeName = $relationshipType->getTypeName();
+        $entityData = new EntityData($this->type->getTypeName(), [], [], [
+            $propertyName => array_map(
+                static fn (object $relationship): array => [
+                    ContentField::ID => $relationshipType->getReadability()->getIdentifierReadability()->getValue($relationship),
+                    ContentField::TYPE => $relationshipTypeName,
+                ],
+                $relationships
+            ),
+        ]);
+        $setability->updateProperty($this->entity, $entityData);
+    }
+
+    /**
      * This method will prevent access to properties that should not be accessible.
      *
      * @param non-empty-string $propertyName
      * @param mixed $value The value to set. Will only be allowed if the property name matches with an allowed property
-     *                     (must be {@link TransferableTypeInterface::getUpdatableProperties() updatable}.
+     *                     (must be {@link TransferableTypeInterface::getUpdatability() updatable}.
      *
      * @throws AccessException
      */
     public function __set(string $propertyName, mixed $value): void
     {
         try {
-            $propertyCollection = $this->type->getUpdatableProperties();
-            $attributeSetabilities = $propertyCollection->getAttributes();
-            $toOneSetabilities = $propertyCollection->getToOneRelationships();
-            $toManySetabilities = $propertyCollection->getToManyRelationships();
+            $entityUpdatability = $this->type->getUpdatability();
+            $attributeNames = $entityUpdatability->getAttributeNames();
+            $toOneRelationshipNames = $entityUpdatability->getToOneRelationshipNames();
+            $toManyRelationshipNames = $entityUpdatability->getToManyRelationshipNames();
 
-            if (array_key_exists($propertyName, $attributeSetabilities)) {
-                Assert::allKeyNotExists([$toOneSetabilities, $toManySetabilities], $propertyName);
-                $setability = $attributeSetabilities[$propertyName];
-                $this->assertMatchingEntityConditions($setability);
-                $setability->updateAttributeValue($this->entity, $value);
-
-                return;
-            }
-
-            if (array_key_exists($propertyName, $toOneSetabilities)) {
-                Assert::allKeyNotExists([$attributeSetabilities, $toManySetabilities], $propertyName);
-                $setability = $toOneSetabilities[$propertyName];
-                $relationshipType = $setability->getRelationshipType();
-                $relationshipClass = $relationshipType->getEntityClass();
-                $relationship = $this->assertValidToOneValue($value, $relationshipClass);
-
-                $this->assertMatchingEntityConditions($setability);
-
-                // TODO: how to disallow a `null` relationship?
-                if (null !== $relationship) {
-                    $relationshipConditions = $setability->getRelationshipConditions();
-                    try {
-                        $relationshipType->assertMatchingEntity($relationship, $relationshipConditions);
-                    } catch (Exception $exception) {
-                        throw RelationshipAccessException::updateRelationshipCondition($this->type, $propertyName, $exception);
-                    }
-                }
-
-                $setability->updateToOneRelationship($this->entity, $relationship);
+            if (in_array($propertyName, $attributeNames, true)) {
+                Assert::allNotContains($toOneRelationshipNames, $propertyName);
+                Assert::allNotContains($toManyRelationshipNames, $propertyName);
+                $this->setAttribute($propertyName, $value);
 
                 return;
             }
 
-            if (array_key_exists($propertyName, $toManySetabilities)) {
-                Assert::allKeyNotExists([$attributeSetabilities, $toOneSetabilities], $propertyName);
-                $setability = $toManySetabilities[$propertyName];
-                $relationshipType = $setability->getRelationshipType();
-                $relationshipClass = $relationshipType->getEntityClass();
-                $relationships = $this->assertValidToManyValue($value, $relationshipClass);
+            if (in_array($propertyName, $toOneRelationshipNames, true)) {
+                Assert::allNotContains($attributeNames, $propertyName);
+                Assert::allNotContains($toManyRelationshipNames, $propertyName);
+                Assert::nullOrObject($value);
+                $this->setToOneRelationship($propertyName, $value);
 
-                $this->assertMatchingEntityConditions($setability);
+                return;
+            }
 
-                // TODO: how to disallow an empty relationship?
-                if ([] !== $relationships) {
-                    $relationshipConditions = $setability->getRelationshipConditions();
-                    try {
-                        $relationshipType->assertMatchingEntities($relationships, $relationshipConditions);
-                    } catch (Exception $exception) {
-                        throw RelationshipAccessException::updateRelationshipsCondition($this->type, $propertyName, $exception);
-                    }
-                }
-
-                $setability->updateToManyRelationship($this->entity, $relationships);
+            if (in_array($propertyName, $toManyRelationshipNames, true)) {
+                Assert::allNotContains($attributeNames, $propertyName);
+                Assert::allNotContains($toOneRelationshipNames, $propertyName);
+                Assert::isList($value);
+                Assert::allObject($value);
+                $this->setToManyRelationship($propertyName, $value);
 
                 return;
             }
@@ -223,29 +362,21 @@ class WrapperObject
             throw PropertyAccessException::update($this->type, $propertyName, $exception);
         }
 
-        $setabilityKeys = array_keys(array_merge(
-            $attributeSetabilities,
-            $toOneSetabilities,
-            $toManySetabilities,
-        ));
+        $setabilityKeys = array_merge(
+            $attributeNames,
+            $toOneRelationshipNames,
+            $toManyRelationshipNames,
+        );
 
         throw PropertyAccessException::propertyNotAvailableInUpdatableType($propertyName, $this->type, ...$setabilityKeys);
     }
 
     /**
-     * Ensures that {@link $entity} matches the {@link PropertyAccessibilityInterface conditions} of the given updatability.
-     *
-     * @param PropertyAccessibilityInterface<TCondition> $property
-     *
-     * @throws InvalidArgumentException
+     * @param list<TCondition> $conditions
      */
-    protected function assertMatchingEntityConditions(PropertyAccessibilityInterface $property): void
+    public function isMatchingAllConditions(array $conditions): bool
     {
-        try {
-            $this->type->assertMatchingEntity($this->entity, $property->getEntityConditions());
-        } catch (Exception $exception) {
-            throw new InvalidArgumentException('The entity to be updated did not meet all property conditions.', 0, $exception);
-        }
+        return $this->type->isMatchingEntity($this->entity, $conditions);
     }
 
     /**

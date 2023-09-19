@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Contracts\Types;
 
-use EDT\JsonApi\RequestHandling\Body\UpdateRequestBody;
 use EDT\JsonApi\RequestHandling\ExpectedPropertyCollection;
+use EDT\JsonApi\RequestHandling\ModifiedEntity;
 use EDT\Querying\Contracts\PathsBasedInterface;
+use EDT\Wrapping\EntityDataInterface;
 
 /**
  * @template TCondition of PathsBasedInterface
@@ -17,7 +18,7 @@ interface UpdatableInterface
     public function getExpectedUpdateProperties(): ExpectedPropertyCollection;
 
     /**
-     * @return TEntity|null $entity `null` if the entity was updated exactly as defined in the request
+     * @param non-empty-string $entityId
      */
-    public function updateEntity(UpdateRequestBody $requestBody): ?object;
+    public function updateEntity(string $entityId, EntityDataInterface $entityData): ModifiedEntity;
 }

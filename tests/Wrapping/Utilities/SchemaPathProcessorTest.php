@@ -18,6 +18,7 @@ use EDT\Wrapping\TypeProviders\PrefilledTypeProvider;
 use EDT\Wrapping\Utilities\ExternReadableRelationshipSchemaVerificationException;
 use EDT\Wrapping\Utilities\PropertyPathProcessorFactory;
 use EDT\Wrapping\Utilities\SchemaPathProcessor;
+use InvalidArgumentException;
 use Tests\data\Types\AuthorType;
 use Tests\data\Types\BirthType;
 use Tests\data\Types\BookType;
@@ -30,6 +31,8 @@ class SchemaPathProcessorTest extends ModelBasedTest
     private AuthorType $authorType;
 
     private PhpSortMethodFactory $sortMethodFactory;
+    private BookType $bookType;
+    private PrefilledTypeProvider $typeProvider;
 
     protected function setUp(): void
     {
@@ -53,8 +56,8 @@ class SchemaPathProcessorTest extends ModelBasedTest
 
     public function testSortAccessException(): void
     {
-        $this->expectException(AccessException::class);
-        $this->expectExceptionMessage("Access with the path 'foo.bar' into the type class 'Tests\data\Types\AuthorType' was denied.");
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage("No property 'foo' is available. Available properties are: name, pseudonym, birthCountry");
         $invalidSortMethod = $this->sortMethodFactory->propertyAscending(['foo', 'bar']);
         $this->schemaPathProcessor->mapSorting($this->authorType, [$invalidSortMethod]);
     }

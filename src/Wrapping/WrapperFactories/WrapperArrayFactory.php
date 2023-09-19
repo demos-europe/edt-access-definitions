@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\WrapperFactories;
 
-use EDT\JsonApi\RequestHandling\ContentField;
 use EDT\Querying\Contracts\PathException;
 use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
 use EDT\Querying\Contracts\SortException;
 use EDT\Wrapping\Contracts\AccessException;
+use EDT\Wrapping\Contracts\ContentField;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
-use EDT\Wrapping\Properties\AttributeReadabilityInterface;
-use EDT\Wrapping\Properties\IdAttributeConflictException;
-use EDT\Wrapping\Properties\IdReadabilityInterface;
+use EDT\Wrapping\PropertyBehavior\Attribute\AttributeReadabilityInterface;
+use EDT\Wrapping\PropertyBehavior\IdAttributeConflictException;
+use EDT\Wrapping\PropertyBehavior\Identifier\IdentifierReadabilityInterface;
 use InvalidArgumentException;
 use function array_key_exists;
 
@@ -35,7 +35,7 @@ class WrapperArrayFactory
     /**
      * Converts the given object into an `array` with the object's property names as array keys and the
      * property values as array values. Only properties that are defined as readable by
-     * {@link TransferableTypeInterface::getReadableProperties()} are included. Relationships to
+     * {@link TransferableTypeInterface::getReadability()} are included. Relationships to
      * other types will be copied recursively in the same manner, but only if access is granted.
      *
      * The recursion stops when the specified depth in {@link WrapperArrayFactory::$depth} is reached.
@@ -74,7 +74,7 @@ class WrapperArrayFactory
     public function createWrapper(object $entity, TransferableTypeInterface $type): array
     {
         // we only include properties in the result array that are actually accessible
-        $readableProperties = $type->getReadableProperties();
+        $readableProperties = $type->getReadability();
 
         // TODO: respect $readability settings (default field, default include)?
         // TODO: add sparse fieldset support
@@ -87,7 +87,7 @@ class WrapperArrayFactory
         $attributes[ContentField::ID] = $idReadability;
 
         $wrapperArray = array_map(
-            static fn (AttributeReadabilityInterface|IdReadabilityInterface $readability) => $readability->getValue($entity),
+            static fn (AttributeReadabilityInterface|IdentifierReadabilityInterface $readability) => $readability->getValue($entity),
             $attributes
         );
 
@@ -108,7 +108,7 @@ class WrapperArrayFactory
             $relationshipType = $readability->getRelationshipType();
             $relationshipEntities = $readability->getValue($entity, [], []);
             $wrapperArray[$propertyName] = array_map(
-                static fn (object $objectToWrap) => $relationshipWrapperFactory
+                static fn (object $objectToWrap): ?array => $relationshipWrapperFactory
                     ->createWrapper($objectToWrap, $relationshipType),
                 $relationshipEntities
             );

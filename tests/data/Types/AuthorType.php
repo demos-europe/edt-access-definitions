@@ -6,14 +6,11 @@ namespace Tests\data\Types;
 
 use EDT\ConditionFactory\PathsBasedConditionFactoryInterface;
 use EDT\JsonApi\ApiDocumentation\AttributeTypeResolver;
-use EDT\JsonApi\Properties\Id\PathIdReadability;
-use EDT\JsonApi\Properties\Relationships\PathToManyRelationshipReadability;
-use EDT\JsonApi\Properties\Relationships\PathToManyRelationshipSetability;
-use EDT\JsonApi\RequestHandling\Body\UpdateRequestBody;
 use EDT\JsonApi\RequestHandling\ExpectedPropertyCollection;
-use EDT\Querying\Contracts\PathsBasedInterface;
+use EDT\JsonApi\RequestHandling\ModifiedEntity;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
-use EDT\Querying\PropertyPaths\PropertyLink;
+use EDT\Querying\PropertyPaths\NonRelationshipLink;
+use EDT\Querying\PropertyPaths\RelationshipLink;
 use EDT\Querying\Utilities\ConditionEvaluator;
 use EDT\Querying\Utilities\TableJoiner;
 use EDT\Wrapping\Contracts\TypeProviderInterface;
@@ -21,8 +18,12 @@ use EDT\Wrapping\Contracts\Types\ExposableRelationshipTypeInterface;
 use EDT\Wrapping\Contracts\Types\FilteringTypeInterface;
 use EDT\Wrapping\Contracts\Types\SortingTypeInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
-use EDT\Wrapping\Properties\ReadabilityCollection;
-use EDT\Wrapping\Properties\UpdatablePropertyCollection;
+use EDT\Wrapping\EntityDataInterface;
+use EDT\Wrapping\PropertyBehavior\Identifier\PathIdentifierReadability;
+use EDT\Wrapping\PropertyBehavior\Relationship\ToMany\PathToManyRelationshipReadability;
+use EDT\Wrapping\PropertyBehavior\Relationship\ToMany\PathToManyRelationshipSetability;
+use EDT\Wrapping\ResourceBehavior\ResourceReadability;
+use EDT\Wrapping\ResourceBehavior\ResourceUpdatability;
 use Tests\data\Model\Person;
 use Webmozart\Assert\Assert;
 
@@ -39,9 +40,9 @@ class AuthorType implements
         protected readonly AttributeTypeResolver $typeResolver
     ) {}
 
-    public function getReadableProperties(): ReadabilityCollection
+    public function getReadability(): ResourceReadability
     {
-        return new ReadabilityCollection(
+        return new ResourceReadability(
             [
                 'name' => new TestAttributeReadability(['name'], $this->propertyAccessor),
                 'pseudonym' => new TestAttributeReadability(['pseudonym'], $this->propertyAccessor),
@@ -55,11 +56,10 @@ class AuthorType implements
                     false,
                     false,
                     $this->typeProvider->getTypeByIdentifier(BookType::class),
-                    $this->propertyAccessor,
-                    $this->entityVerifier
+                    $this->propertyAccessor
                 ),
             ],
-            new PathIdReadability(
+            new PathIdentifierReadability(
                 $this->getEntityClass(),
                 ['id'],
                 $this->propertyAccessor,
@@ -71,23 +71,25 @@ class AuthorType implements
     public function getFilteringProperties(): array
     {
         return [
-            'id' => new PropertyLink(['id'], null),
-            'name' => new PropertyLink(['name'], null),
-            'pseudonym' => new PropertyLink(['pseudonym'], null),
-            'books' => new PropertyLink(
+            'id' => new NonRelationshipLink(['id']),
+            'name' => new NonRelationshipLink(['name']),
+            'pseudonym' => new NonRelationshipLink(['pseudonym']),
+            'books' => new RelationshipLink(
                 ['books'],
-                $this->typeProvider->getTypeByIdentifier(BookType::class)
+                fn () => $this->typeProvider
+                    ->getTypeByIdentifier(BookType::class)
+                    ->getFilteringProperties()
             ),
-            'birthCountry' => new PropertyLink(['birth', 'country'], null),
+            'birthCountry' => new NonRelationshipLink(['birth', 'country']),
         ];
     }
 
     public function getSortingProperties(): array
     {
         return [
-            'name' => new PropertyLink(['name'], null),
-            'pseudonym' => new PropertyLink(['pseudonym'], null),
-            'birthCountry' => new PropertyLink(['birth', 'country'], null),
+            'name' => new NonRelationshipLink(['name']),
+            'pseudonym' => new NonRelationshipLink(['pseudonym']),
+            'birthCountry' => new NonRelationshipLink(['birth', 'country']),
         ];
     }
 
@@ -106,24 +108,36 @@ class AuthorType implements
         return true;
     }
 
-    public function getUpdatableProperties(): UpdatablePropertyCollection
+    public function getUpdatability(): ResourceUpdatability
     {
         $bookType = $this->typeProvider->getTypeByIdentifier(BookType::class);
 
-        return new UpdatablePropertyCollection(
+        return new ResourceUpdatability(
             [
-                'name' => new TestAttributeSetability(['name'], $this->propertyAccessor),
-                'birthCountry' => new TestAttributeSetability(['birth', 'country'], $this->propertyAccessor),
+                'name' => new TestAttributeSetability(
+                    'name',
+                    ['name'],
+                    $this->propertyAccessor,
+                    true
+                ),
+                'birthCountry' => new TestAttributeSetability(
+                    'birthCountry',
+                    ['birth', 'country'],
+                    $this->propertyAccessor,
+                    true
+                ),
             ],
             [],
             [
                 'books' => new PathToManyRelationshipSetability(
+                    'books',
                     self::class,
                     [],
                     $bookType->getAccessConditions(),
                     $bookType,
                     ['books'],
-                    $this->propertyAccessor
+                    $this->propertyAccessor,
+                    true
                 ),
             ],
         );
@@ -144,12 +158,7 @@ class AuthorType implements
         throw new \RuntimeException();
     }
 
-    public function updateEntity(UpdateRequestBody $requestBody): ?object
-    {
-        throw new \RuntimeException();
-    }
-
-    public function assertMatchingEntities(array $entities, array $conditions): void
+    public function updateEntity(string $entityId, EntityDataInterface $entityData): ModifiedEntity
     {
         throw new \RuntimeException();
     }

@@ -34,7 +34,7 @@ class PropertyReaderTest extends ModelBasedTest
             $this->propertyAccessor,
             $typeResolver
         );
-        $bookType = new BookType($conditionFactory, $lazyTypeProvider, $this->propertyAccessor, $typeResolver, $entityVerifier);
+        $bookType = new BookType($conditionFactory, $lazyTypeProvider, $this->propertyAccessor, $typeResolver);
         $typeProvider = new PrefilledTypeProvider([$this->authorType, $bookType]);
         $lazyTypeProvider->setAllTypes($typeProvider);
     }

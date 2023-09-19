@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Utilities\TypeAccessors;
 
-use EDT\Querying\PropertyPaths\PropertyLink;
+use EDT\Querying\PropertyPaths\PropertyLinkInterface;
 
 /**
  * Implementing this class allows to limit the access to properties by different
@@ -35,7 +35,7 @@ abstract class AbstractProcessorConfig
      *
      * @param TType $type
      *
-     * @return array<non-empty-string, PropertyLink<TType>>
+     * @return array<non-empty-string, PropertyLinkInterface>
      */
     abstract public function getProperties(object $type): array;
 }

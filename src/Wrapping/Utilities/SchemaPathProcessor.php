@@ -67,7 +67,7 @@ class SchemaPathProcessor
     }
 
     /**
-     * Compares the given path with the {@link TransferableTypeInterface::getReadableProperties()}
+     * Compares the given path with the {@link TransferableTypeInterface::getReadability()}
      * of the involved types.
      *
      * @param TransferableTypeInterface<PathsBasedInterface, PathsBasedInterface, object> $type
@@ -79,7 +79,7 @@ class SchemaPathProcessor
     {
         $originalPath = $path;
         try {
-            $readableProperties = $type->getReadableProperties();
+            $readableProperties = $type->getReadability();
             $allReadableProperties = $allowAttribute
                 ? $readableProperties->getAllProperties()
                 : $readableProperties->getRelationships();

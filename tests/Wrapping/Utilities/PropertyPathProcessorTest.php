@@ -44,11 +44,11 @@ class PropertyPathProcessorTest extends TestCase
 
     public function testProcessPropertyPathWithRelationshipAfterAttribute(): void
     {
-        $this->expectException(PropertyAccessException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $processorConfig = new ExternSortableProcessorConfig($this->typeProvider, $this->bookType);
         $propertyPathProcessor = new PropertyPathProcessor($processorConfig);
         $propertyPathProcessor->processPropertyPath(
-            $this->bookType,
+            $this->bookType->getSortingProperties(),
             [],
             'title',
             'foobar'
