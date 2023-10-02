@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior;
 
-use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\EntityDataInterface;
 
 /**
