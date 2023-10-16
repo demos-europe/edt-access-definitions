@@ -9,7 +9,7 @@ use EDT\Wrapping\Contracts\RelationshipInterface;
 use EDT\Wrapping\Contracts\Types\NamedTypeInterface;
 use EDT\Wrapping\Contracts\Types\RelationshipFetchableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
-use EDT\Wrapping\PropertyBehavior\ConstructorParameterInterface;
+use EDT\Wrapping\PropertyBehavior\ConstructorBehaviorInterface;
 
 /**
  * @template TCondition of PathsBasedInterface
@@ -17,7 +17,7 @@ use EDT\Wrapping\PropertyBehavior\ConstructorParameterInterface;
  *
  * @template-implements RelationshipInterface<NamedTypeInterface&RelationshipFetchableTypeInterface<TCondition, TSorting, object>>
  */
-abstract class AbstractRelationshipConstructorParameter implements ConstructorParameterInterface, RelationshipInterface
+abstract class AbstractRelationshipConstructorBehavior implements ConstructorBehaviorInterface, RelationshipInterface
 {
     /**
      * @param non-empty-string $argumentName
@@ -36,11 +36,6 @@ abstract class AbstractRelationshipConstructorParameter implements ConstructorPa
     public function getRelationshipType(): NamedTypeInterface&RelationshipFetchableTypeInterface
     {
         return $this->relationshipType;
-    }
-
-    public function getArgumentName(): string
-    {
-        return $this->argumentName;
     }
 
     public function getRequiredAttributes(): array

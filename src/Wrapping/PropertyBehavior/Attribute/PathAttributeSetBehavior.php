@@ -12,9 +12,9 @@ use Webmozart\Assert\Assert;
  * @template TCondition of PathsBasedInterface
  * @template TEntity of object
  *
- * @template-extends AbstractAttributeSetability<TCondition, TEntity>
+ * @template-extends AbstractAttributeSetBehavior<TCondition, TEntity>
  */
-class PathAttributeSetability extends AbstractAttributeSetability
+class PathAttributeSetBehavior extends AbstractAttributeSetBehavior
 {
     use AttributeTrait;
 

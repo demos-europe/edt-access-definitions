@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace EDT\Wrapping\PropertyBehavior\Relationship\ToOne;
+namespace EDT\Wrapping\PropertyBehavior\Relationship\ToMany;
 
 use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
@@ -15,9 +15,9 @@ use Webmozart\Assert\Assert;
  * @template TEntity of object
  * @template TRelationship of object
  *
- * @template-extends AbstractToOneRelationshipSetability<TCondition, TSorting, TEntity, TRelationship>
+ * @template-extends AbstractToManyRelationshipSetBehavior<TCondition, TSorting, TEntity, TRelationship>
  */
-class PathToOneRelationshipSetability extends AbstractToOneRelationshipSetability
+class PathToManyRelationshipSetBehavior extends AbstractToManyRelationshipSetBehavior
 {
     /**
      * @param non-empty-string $propertyName
@@ -45,7 +45,7 @@ class PathToOneRelationshipSetability extends AbstractToOneRelationshipSetabilit
         return $this->relationshipType;
     }
 
-    public function updateToOneRelationship(object $entity, ?object $relationship): bool
+    public function updateToManyRelationship(object $entity, array $relationships): bool
     {
         $propertyPath = $this->propertyPath;
         $propertyName = array_pop($propertyPath);
@@ -53,7 +53,7 @@ class PathToOneRelationshipSetability extends AbstractToOneRelationshipSetabilit
             ? $entity
             : $this->propertyAccessor->getValueByPropertyPath($entity, ...$propertyPath);
         Assert::object($target);
-        $this->propertyAccessor->setValue($target, $relationship, $propertyName);
+        $this->propertyAccessor->setValue($target, $relationships, $propertyName);
 
         return false;
     }

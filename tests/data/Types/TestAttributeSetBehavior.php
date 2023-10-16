@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Tests\data\Types;
 
 use EDT\Querying\Contracts\PropertyAccessorInterface;
-use EDT\Wrapping\PropertyBehavior\Attribute\AbstractAttributeSetability;
+use EDT\Wrapping\PropertyBehavior\Attribute\AbstractAttributeSetBehavior;
 use Webmozart\Assert\Assert;
 
-class TestAttributeSetability extends AbstractAttributeSetability
+class TestAttributeSetBehavior extends AbstractAttributeSetBehavior
 {
     public function __construct(
         string $propertyName,

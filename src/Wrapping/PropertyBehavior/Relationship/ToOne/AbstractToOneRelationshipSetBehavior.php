@@ -7,7 +7,7 @@ namespace EDT\Wrapping\PropertyBehavior\Relationship\ToOne;
 use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\EntityDataInterface;
 use EDT\Wrapping\PropertyBehavior\PropertyUpdaterTrait;
-use EDT\Wrapping\PropertyBehavior\Relationship\RelationshipSetabilityInterface;
+use EDT\Wrapping\PropertyBehavior\Relationship\RelationshipSetBehaviorInterface;
 use Exception;
 
 /**
@@ -16,9 +16,9 @@ use Exception;
  * @template TEntity of object
  * @template TRelationship of object
  *
- * @template-implements RelationshipSetabilityInterface<TCondition, TSorting, TEntity, TRelationship>
+ * @template-implements RelationshipSetBehaviorInterface<TCondition, TSorting, TEntity, TRelationship>
  */
-abstract class AbstractToOneRelationshipSetability implements RelationshipSetabilityInterface
+abstract class AbstractToOneRelationshipSetBehavior implements RelationshipSetBehaviorInterface
 {
     use PropertyUpdaterTrait;
 
@@ -56,7 +56,7 @@ abstract class AbstractToOneRelationshipSetability implements RelationshipSetabi
      */
     abstract protected function updateToOneRelationship(object $entity, ?object $relationship): bool;
 
-    public function updateProperty(object $entity, EntityDataInterface $entityData): bool
+    public function executeBehavior(object $entity, EntityDataInterface $entityData): bool
     {
         $requestRelationships = $entityData->getToOneRelationships();
         $relationshipReference = $requestRelationships[$this->propertyName];

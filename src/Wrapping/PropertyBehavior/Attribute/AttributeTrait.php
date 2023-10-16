@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Attribute;
 
-use EDT\Wrapping\PropertyBehavior\simple_primitive;
 use Webmozart\Assert\Assert;
 use function is_bool;
 use function is_float;

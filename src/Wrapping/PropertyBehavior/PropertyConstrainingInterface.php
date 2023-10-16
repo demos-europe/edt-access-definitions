@@ -8,8 +8,8 @@ use EDT\Wrapping\EntityDataInterface;
 
 /**
  * Sets constraints regarding the properties that must and may be present in {@link EntityDataInterface}
- * when passed to the {@link PropertySetabilityInterface::updateProperty()} or
- * {@link ConstructorParameterInterface::getArgument()} methods.
+ * when passed to the {@link PropertySetBehaviorInterface::executeBehavior()} or
+ * {@link ConstructorBehaviorInterface::getArguments()} methods.
  *
  * Regarding the initialization of entities this information also serves to determine which properties
  * are allowed in the provided {@link EntityDataInterface} at all. If a property is not supported

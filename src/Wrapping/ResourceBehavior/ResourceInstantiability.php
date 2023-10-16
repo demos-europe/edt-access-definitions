@@ -6,10 +6,9 @@ namespace EDT\Wrapping\ResourceBehavior;
 
 use EDT\Wrapping\Contracts\ContentField;
 use EDT\Wrapping\CreationDataInterface;
-use EDT\Wrapping\PropertyBehavior\ConstructorParameterInterface;
-use EDT\Wrapping\PropertyBehavior\Identifier\IdentifierPostInstantiabilityInterface;
-use EDT\Wrapping\PropertyBehavior\PropertyConstrainingInterface;
-use EDT\Wrapping\PropertyBehavior\PropertySetabilityInterface;
+use EDT\Wrapping\PropertyBehavior\ConstructorBehaviorInterface;
+use EDT\Wrapping\PropertyBehavior\Identifier\IdentifierPostConstructorBehaviorInterface;
+use EDT\Wrapping\PropertyBehavior\PropertySetBehaviorInterface;
 use InvalidArgumentException;
 use ReflectionClass;
 use ReflectionMethod;
@@ -23,43 +22,25 @@ use function array_key_exists;
 class ResourceInstantiability extends AbstractResourceModifier
 {
     /**
-     * @var list<ConstructorParameterInterface|null>
-     */
-    protected readonly array $orderedConstructorParameters;
-
-    /**
      * @var list<ReflectionParameter>
      */
     protected readonly array $reflectionConstructorParameters;
 
     /**
      * @param class-string<TEntity> $entityClass
-     * @param array<non-empty-string, ConstructorParameterInterface> $constructorParameters mapping from resource property name to constructor parameter
-     * @param array<non-empty-string, PropertySetabilityInterface<TEntity>> $postInstantiabilities mapping from resource property name to post instantiability instance
-     * @param IdentifierPostInstantiabilityInterface<TEntity>|null $identifierPostInstantiability
+     * @param array<non-empty-string, list<ConstructorBehaviorInterface>> $constructorBehaviors mapping from resource property name to constructor parameters
+     * @param array<non-empty-string, list<PropertySetBehaviorInterface<TEntity>>> $postConstructorBehaviors mapping from resource property name to post constructor instances
+     * @param list<IdentifierPostConstructorBehaviorInterface<TEntity>> $identifierPostConstructorBehaviors
      */
     public function __construct(
         protected readonly string $entityClass,
-        array $constructorParameters,
-        protected readonly array $postInstantiabilities,
-        protected readonly ?IdentifierPostInstantiabilityInterface $identifierPostInstantiability
+        protected readonly array $constructorBehaviors,
+        protected readonly array $postConstructorBehaviors,
+        protected readonly array $identifierPostConstructorBehaviors
     ) {
         $reflectionClass = new ReflectionClass($this->entityClass);
         $constructor = $this->getConstructor($reflectionClass);
         $this->reflectionConstructorParameters = $constructor?->getParameters() ?? [];
-
-        $lookupTable = [];
-        foreach ($constructorParameters as $constructorParameter) {
-            $argumentName = $constructorParameter->getArgumentName();
-            Assert::keyNotExists($lookupTable, $argumentName);
-            $lookupTable[$argumentName] = $constructorParameter;
-        }
-
-        $orderedConstructorParameters = [];
-        foreach ($this->reflectionConstructorParameters as $propertyName => $reflectionParameter) {
-            $orderedConstructorParameters[$propertyName] = $lookupTable[$reflectionParameter->getName()] ?? null;
-        }
-        $this->orderedConstructorParameters = $orderedConstructorParameters;
     }
 
     /**
@@ -77,18 +58,24 @@ class ResourceInstantiability extends AbstractResourceModifier
      */
     public function fillProperties(object $entity, CreationDataInterface $entityData): bool
     {
+        $idSideEffect = false;
+
+        // if a specific ID was provided, check if it can be set either via constructor
+        // parameter or post instantiation setter, if not throw an exception
         if (null !== $entityData->getEntityIdentifier()) {
-            // a specific ID was provided, check if it can be set either via constructor
-            // parameter or post instantiation setter, if not throw an exception
-            if (null === $this->identifierPostInstantiability && array_key_exists(ContentField::ID, $this->orderedConstructorParameters)) {
+            if ([] !== $this->identifierPostConstructorBehaviors) {
+                foreach ($this->identifierPostConstructorBehaviors as $identifierPostConstructorBehavior) {
+                    $idSideEffect = $identifierPostConstructorBehavior->setIdentifier($entity, $entityData) || $idSideEffect;
+                }
+            } elseif (!array_key_exists(ContentField::ID, $this->constructorBehaviors)) {
                 // TODO: MUST return 403 Forbidden (https://jsonapi.org/format/#crud-creating-client-ids)
-                throw new InvalidArgumentException('Value for `id` field was provided, but no setup to handle it exists.');
+                throw new InvalidArgumentException('Value for `id` field was provided in request, but no setup to handle it exists.');
             }
         }
 
-        $idSideEffect = $this->identifierPostInstantiability?->setIdentifier($entity, $entityData) ?? false;
+        $flattenedPostConstructorBehaviors = $this->getFlattenedValues($this->postConstructorBehaviors);
         $propertySideEffects = $this
-            ->getSetabilitiesSideEffect(array_values($this->postInstantiabilities), $entity, $entityData);
+            ->getSetabilitiesSideEffect($flattenedPostConstructorBehaviors, $entity, $entityData);
 
         return $idSideEffect && $propertySideEffects;
     }
@@ -96,12 +83,21 @@ class ResourceInstantiability extends AbstractResourceModifier
     protected function getParameterConstrains(): array
     {
         return array_merge(
-            array_filter(
-                $this->orderedConstructorParameters,
-                static fn (?PropertyConstrainingInterface $param): bool => null !== $param
-            ),
-            array_values($this->postInstantiabilities)
+            $this->getFlattenedValues($this->postConstructorBehaviors),
+            $this->getFlattenedValues($this->constructorBehaviors)
         );
+    }
+
+    /**
+     * @template TValue of object
+     *
+     * @param array<non-empty-string, list<TValue>> $nestedArray
+     *
+     * @return list<TValue>
+     */
+    protected function getFlattenedValues(array $nestedArray): array
+    {
+        return array_merge(...array_values($nestedArray));
     }
 
     /**
@@ -126,22 +122,60 @@ class ResourceInstantiability extends AbstractResourceModifier
      */
     public function getConstructorArguments(CreationDataInterface $entityData): array
     {
-        return array_map(
-            static function (
-                ReflectionParameter $reflectionParameter,
-                ?ConstructorParameterInterface $constructorParameter
-            ) use ($entityData): mixed {
-                // if no constructor parameter was given, fall back to default parameters
-                if (null === $constructorParameter) {
-                    return $reflectionParameter->isDefaultValueAvailable()
-                        ? $reflectionParameter->getDefaultValue()
-                        : throw new InvalidArgumentException('Missing constructor parameter');
-                }
+        $lookupTable = $this->createLookupTable($entityData);
 
-                return $constructorParameter->getArgument($entityData);
-            },
-            $this->reflectionConstructorParameters,
-            $this->orderedConstructorParameters
+        return array_map(
+            static fn (
+                ReflectionParameter $reflectionParameter
+            ): mixed => $lookupTable[$reflectionParameter->getName()] ?? (
+                // if no constructor parameter was given, try to fall back to default values
+                $reflectionParameter->isDefaultValueAvailable()
+                    ? $reflectionParameter->getDefaultValue()
+                    : throw new InvalidArgumentException('Missing constructor parameter')
+            ),
+            $this->reflectionConstructorParameters
+        );
+    }
+
+    /**
+     * @return array<non-empty-string, mixed>
+     */
+    protected function createLookupTable(CreationDataInterface $entityData): array
+    {
+        $nestedConstructorArguments = array_map(
+            fn (array $constructorBehaviors): array => $this->calculateConstructorArguments($constructorBehaviors, $entityData),
+            $this->constructorBehaviors
+        );
+
+        $lookupTable = [];
+        foreach ($nestedConstructorArguments as $constructorArgumentLists) {
+            foreach ($constructorArgumentLists as $constructorArguments) {
+                foreach ($constructorArguments as $argumentName => $constructorArgument) {
+                    Assert::keyNotExists($lookupTable, $argumentName);
+                    $lookupTable[$argumentName] = $constructorArgument;
+                }
+            }
+        }
+
+        return $lookupTable;
+    }
+
+    /**
+     * Will provide each constructor parameter behavior instance with the given entity data.
+     *
+     * The result will be a mapping from a resource property name to an associative list of constructor arguments.
+     * I.e. the result may contain conflicting values or may not cover all required constructor arguments, if the
+     * configuration contains mistakes.
+     *
+     * @param list<ConstructorBehaviorInterface> $constructorBehaviors
+     *
+     * @return list<array<non-empty-string, mixed>>
+     */
+    protected function calculateConstructorArguments(array $constructorBehaviors, CreationDataInterface $entityData): array
+    {
+        return array_map(
+            static fn(ConstructorBehaviorInterface $constructorBehavior): array => $constructorBehavior->getArguments($entityData),
+            $constructorBehaviors
         );
     }
 }

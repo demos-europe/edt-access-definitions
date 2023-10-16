@@ -9,9 +9,9 @@ use EDT\Querying\Contracts\PathsBasedInterface;
  * @template TCondition of PathsBasedInterface
  * @template TEntity of object
  *
- * @template-extends PropertySetabilityInterface<TEntity>
+ * @template-extends PropertySetBehaviorInterface<TEntity>
  */
-interface PropertyUpdatabilityInterface extends PropertySetabilityInterface
+interface PropertyUpdatabilityInterface extends PropertySetBehaviorInterface
 {
     /**
      * The entity to access a property of must match these conditions to be accessible by this instance.

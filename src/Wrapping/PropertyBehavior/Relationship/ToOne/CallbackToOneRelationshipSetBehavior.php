@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace EDT\Wrapping\PropertyBehavior\Relationship\ToMany;
+namespace EDT\Wrapping\PropertyBehavior\Relationship\ToOne;
 
 use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
@@ -13,16 +13,16 @@ use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
  * @template TEntity of object
  * @template TRelationship of object
  *
- * @template-extends AbstractToManyRelationshipSetability<TCondition, TSorting, TEntity, TRelationship>
+ * @template-extends AbstractToOneRelationshipSetBehavior<TCondition, TSorting, TEntity, TRelationship>
  */
-class CallbackToManyRelationshipSetability extends AbstractToManyRelationshipSetability
+class CallbackToOneRelationshipSetBehavior extends AbstractToOneRelationshipSetBehavior
 {
     /**
-     * @param non-empty-string $propertyName the exposed property name accepted by this instance
+     * @param non-empty-string $propertyName
      * @param list<TCondition> $entityConditions
      * @param list<TCondition> $relationshipConditions
      * @param TransferableTypeInterface<TCondition, TSorting, TRelationship> $relationshipType
-     * @param callable(TEntity, list<TRelationship>): bool $setterCallback
+     * @param callable(TEntity, TRelationship|null): bool $setterCallback
      */
     public function __construct(
         string $propertyName,
@@ -30,7 +30,7 @@ class CallbackToManyRelationshipSetability extends AbstractToManyRelationshipSet
         array $relationshipConditions,
         protected readonly TransferableTypeInterface $relationshipType,
         protected readonly mixed $setterCallback,
-        bool $optional = false
+        bool $optional
     ) {
         parent::__construct($propertyName, $entityConditions, $relationshipConditions, $optional);
     }
@@ -40,8 +40,8 @@ class CallbackToManyRelationshipSetability extends AbstractToManyRelationshipSet
         return $this->relationshipType;
     }
 
-    public function updateToManyRelationship(object $entity, array $relationships): bool
+    public function updateToOneRelationship(object $entity, ?object $relationship): bool
     {
-        return ($this->setterCallback)($entity, $relationships);
+        return ($this->setterCallback)($entity, $relationship);
     }
 }

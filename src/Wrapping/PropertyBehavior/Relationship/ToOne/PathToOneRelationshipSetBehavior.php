@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace EDT\Wrapping\PropertyBehavior\Relationship\ToOne;
 
 use EDT\Querying\Contracts\PathsBasedInterface;
+use EDT\Querying\Contracts\PropertyAccessorInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
+use Webmozart\Assert\Assert;
 
 /**
  * @template TCondition of PathsBasedInterface
@@ -13,23 +15,26 @@ use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
  * @template TEntity of object
  * @template TRelationship of object
  *
- * @template-extends AbstractToOneRelationshipSetability<TCondition, TSorting, TEntity, TRelationship>
+ * @template-extends AbstractToOneRelationshipSetBehavior<TCondition, TSorting, TEntity, TRelationship>
  */
-class CallbackToOneRelationshipSetability extends AbstractToOneRelationshipSetability
+class PathToOneRelationshipSetBehavior extends AbstractToOneRelationshipSetBehavior
 {
     /**
      * @param non-empty-string $propertyName
+     * @param class-string<TEntity> $entityClass
      * @param list<TCondition> $entityConditions
      * @param list<TCondition> $relationshipConditions
      * @param TransferableTypeInterface<TCondition, TSorting, TRelationship> $relationshipType
-     * @param callable(TEntity, TRelationship|null): bool $setterCallback
+     * @param non-empty-list<non-empty-string> $propertyPath
      */
     public function __construct(
         string $propertyName,
+        protected readonly string $entityClass,
         array $entityConditions,
         array $relationshipConditions,
         protected readonly TransferableTypeInterface $relationshipType,
-        protected readonly mixed $setterCallback,
+        protected readonly array $propertyPath,
+        protected readonly PropertyAccessorInterface $propertyAccessor,
         bool $optional
     ) {
         parent::__construct($propertyName, $entityConditions, $relationshipConditions, $optional);
@@ -42,6 +47,14 @@ class CallbackToOneRelationshipSetability extends AbstractToOneRelationshipSetab
 
     public function updateToOneRelationship(object $entity, ?object $relationship): bool
     {
-        return ($this->setterCallback)($entity, $relationship);
+        $propertyPath = $this->propertyPath;
+        $propertyName = array_pop($propertyPath);
+        $target = [] === $propertyPath
+            ? $entity
+            : $this->propertyAccessor->getValueByPropertyPath($entity, ...$propertyPath);
+        Assert::object($target);
+        $this->propertyAccessor->setValue($target, $relationship, $propertyName);
+
+        return false;
     }
 }

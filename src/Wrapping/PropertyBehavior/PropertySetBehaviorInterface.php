@@ -11,13 +11,13 @@ use EDT\Wrapping\EntityDataInterface;
  *
  * @template TEntity of object
  */
-interface PropertySetabilityInterface extends PropertyConstrainingInterface
+interface PropertySetBehaviorInterface extends PropertyConstrainingInterface
 {
     /**
      * @param TEntity $entity must match all conditions in {@link self::getEntityConditions()}
      *
-     * @return bool `true` if the update had side effects, i.e. it changed properties other than
+     * @return bool `true` if the execution had side effects, i.e. it changed properties other than
      *               the one defined in the given entity data; `false` otherwise
      */
-    public function updateProperty(object $entity, EntityDataInterface $entityData): bool;
+    public function executeBehavior(object $entity, EntityDataInterface $entityData): bool;
 }

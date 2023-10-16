@@ -242,15 +242,24 @@ class WrapperObject
     /**
      * @param non-empty-string $propertyName
      */
-    public function setAttribute(string $propertyName, mixed $value): void
+    public function setAttribute(string $propertyName, mixed $value): bool
     {
         $entityUpdatability = $this->type->getUpdatability();
 
         $relevantEntityConditions = $entityUpdatability->getEntityConditions([$propertyName]);
         $this->type->assertMatchingEntity($this->entity, $relevantEntityConditions);
 
-        $entityData = new EntityData($this->type->getTypeName(), [$propertyName => $value], [], []);
-        $entityUpdatability->getAttribute($propertyName)->updateProperty($this->entity, $entityData);
+        $setBehaviors = $entityUpdatability->getAttribute($propertyName);
+
+        $unrequestedChanges = false;
+        foreach ($setBehaviors as $setBehavior) {
+            $attributes = [$propertyName => $value];
+
+            $entityData = new EntityData($this->type->getTypeName(), $attributes, [], []);
+            $unrequestedChanges = $setBehavior->executeBehavior($this->entity, $entityData) || $unrequestedChanges;
+        }
+
+        return $unrequestedChanges;
     }
 
     /**
@@ -259,60 +268,63 @@ class WrapperObject
     public function setToOneRelationship(string $propertyName, ?object $value): bool
     {
         $entityUpdatability = $this->type->getUpdatability();
-        $setability = $entityUpdatability->getToOneRelationship($propertyName);
-
-        $relationshipType = $setability->getRelationshipType();
-        $relationshipClass = $relationshipType->getEntityClass();
-        $relationship = $this->assertValidToOneValue($value, $relationshipClass);
-
+        $setBehaviors = $entityUpdatability->getToOneRelationship($propertyName);
         $relevantEntityConditions = $entityUpdatability->getEntityConditions([$propertyName]);
         $this->type->assertMatchingEntity($this->entity, $relevantEntityConditions);
 
-        $attributes = [];
-        $toOneRelationships = [
-            $propertyName => null === $relationship ? null : [
-                ContentField::ID => $relationshipType->getReadability()->getIdentifierReadability()->getValue($relationship),
-                ContentField::TYPE => $relationshipType->getTypeName(),
-            ],
-        ];
-        $toManyRelationships = [];
-        $entityData = new EntityData(
-            $this->type->getTypeName(),
-            $attributes,
-            $toOneRelationships,
-            $toManyRelationships
-        );
+        $unrequestedChanges = false;
+        foreach ($setBehaviors as $setBehavior) {
+            $relationshipType = $setBehavior->getRelationshipType();
+            $relationshipClass = $relationshipType->getEntityClass();
+            $relationship = $this->assertValidToOneValue($value, $relationshipClass);
 
-        return $setability->updateProperty($this->entity, $entityData);
+            $toOneRelationships = [
+                $propertyName => null === $relationship ? null : [
+                    ContentField::ID => $relationshipType->getReadability()->getIdentifierReadability()->getValue($relationship),
+                    ContentField::TYPE => $relationshipType->getTypeName(),
+                ],
+            ];
+
+            $entityData = new EntityData($this->type->getTypeName(), [], $toOneRelationships, []);
+            $unrequestedChanges = $setBehavior->executeBehavior($this->entity, $entityData) || $unrequestedChanges;
+        }
+
+        return $unrequestedChanges;
     }
 
     /**
      * @param non-empty-string $propertyName
      * @param list<object> $values
      */
-    public function setToManyRelationship(string $propertyName, array $values): void
+    public function setToManyRelationship(string $propertyName, array $values): bool
     {
         $entityUpdatability = $this->type->getUpdatability();
-
-        $setability = $entityUpdatability->getToManyRelationship($propertyName);
-        $relationshipType = $setability->getRelationshipType();
-        $relationshipClass = $relationshipType->getEntityClass();
-        $relationships = $this->assertValidToManyValue($values, $relationshipClass);
-
         $relevantEntityConditions = $entityUpdatability->getEntityConditions([$propertyName]);
         $this->type->assertMatchingEntity($this->entity, $relevantEntityConditions);
+        $setBehaviors = $entityUpdatability->getToManyRelationship($propertyName);
 
-        $relationshipTypeName = $relationshipType->getTypeName();
-        $entityData = new EntityData($this->type->getTypeName(), [], [], [
-            $propertyName => array_map(
-                static fn (object $relationship): array => [
-                    ContentField::ID => $relationshipType->getReadability()->getIdentifierReadability()->getValue($relationship),
-                    ContentField::TYPE => $relationshipTypeName,
-                ],
-                $relationships
-            ),
-        ]);
-        $setability->updateProperty($this->entity, $entityData);
+        $unrequestedChanges = false;
+        foreach ($setBehaviors as $setBehavior) {
+            $relationshipType = $setBehavior->getRelationshipType();
+            $relationshipClass = $relationshipType->getEntityClass();
+            $relationships = $this->assertValidToManyValue($values, $relationshipClass);
+
+            $relationshipTypeName = $relationshipType->getTypeName();
+            $toManyRelationships = [
+                $propertyName => array_map(
+                    static fn(object $relationship): array => [
+                        ContentField::ID => $relationshipType->getReadability()->getIdentifierReadability()->getValue($relationship),
+                        ContentField::TYPE => $relationshipTypeName,
+                    ],
+                    $relationships
+                ),
+            ];
+
+            $entityData = new EntityData($this->type->getTypeName(), [], [],$toManyRelationships);
+            $unrequestedChanges = $setBehavior->executeBehavior($this->entity, $entityData) || $unrequestedChanges;
+        }
+
+        return $unrequestedChanges;
     }
 
     /**
@@ -362,13 +374,13 @@ class WrapperObject
             throw PropertyAccessException::update($this->type, $propertyName, $exception);
         }
 
-        $setabilityKeys = array_merge(
+        $setBehaviorKeys = array_merge(
             $attributeNames,
             $toOneRelationshipNames,
             $toManyRelationshipNames,
         );
 
-        throw PropertyAccessException::propertyNotAvailableInUpdatableType($propertyName, $this->type, ...$setabilityKeys);
+        throw PropertyAccessException::propertyNotAvailableInUpdatableType($propertyName, $this->type, ...$setBehaviorKeys);
     }
 
     /**

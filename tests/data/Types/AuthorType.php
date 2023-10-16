@@ -21,7 +21,7 @@ use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\EntityDataInterface;
 use EDT\Wrapping\PropertyBehavior\Identifier\PathIdentifierReadability;
 use EDT\Wrapping\PropertyBehavior\Relationship\ToMany\PathToManyRelationshipReadability;
-use EDT\Wrapping\PropertyBehavior\Relationship\ToMany\PathToManyRelationshipSetability;
+use EDT\Wrapping\PropertyBehavior\Relationship\ToMany\PathToManyRelationshipSetBehavior;
 use EDT\Wrapping\ResourceBehavior\ResourceReadability;
 use EDT\Wrapping\ResourceBehavior\ResourceUpdatability;
 use Tests\data\Model\Person;
@@ -114,22 +114,22 @@ class AuthorType implements
 
         return new ResourceUpdatability(
             [
-                'name' => new TestAttributeSetability(
+                'name' => [new TestAttributeSetBehavior(
                     'name',
                     ['name'],
                     $this->propertyAccessor,
                     true
-                ),
-                'birthCountry' => new TestAttributeSetability(
+                )],
+                'birthCountry' => [new TestAttributeSetBehavior(
                     'birthCountry',
                     ['birth', 'country'],
                     $this->propertyAccessor,
                     true
-                ),
+                )],
             ],
             [],
             [
-                'books' => new PathToManyRelationshipSetability(
+                'books' => [new PathToManyRelationshipSetBehavior(
                     'books',
                     self::class,
                     [],
@@ -138,7 +138,7 @@ class AuthorType implements
                     ['books'],
                     $this->propertyAccessor,
                     true
-                ),
+                )],
             ],
         );
     }

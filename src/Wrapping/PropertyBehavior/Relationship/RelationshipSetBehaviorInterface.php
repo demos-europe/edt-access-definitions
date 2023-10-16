@@ -20,6 +20,6 @@ use EDT\Wrapping\PropertyBehavior\PropertyUpdatabilityInterface;
  * @template-extends PropertyUpdatabilityInterface<TCondition, TEntity>
  * @template-extends RelationshipInterface<TransferableTypeInterface<TCondition, TSorting, TRelationship>>
  */
-interface RelationshipSetabilityInterface extends PropertyUpdatabilityInterface, RelationshipInterface
+interface RelationshipSetBehaviorInterface extends PropertyUpdatabilityInterface, RelationshipInterface
 {
 }

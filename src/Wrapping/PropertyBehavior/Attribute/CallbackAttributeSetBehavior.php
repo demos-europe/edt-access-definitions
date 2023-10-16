@@ -10,9 +10,9 @@ use EDT\Querying\Contracts\PathsBasedInterface;
  * @template TCondition of PathsBasedInterface
  * @template TEntity of object
  *
- * @template-extends AbstractAttributeSetability<TCondition, TEntity>
+ * @template-extends AbstractAttributeSetBehavior<TCondition, TEntity>
  */
-class CallbackAttributeSetability extends AbstractAttributeSetability
+class CallbackAttributeSetBehavior extends AbstractAttributeSetBehavior
 {
     use AttributeTrait;
 

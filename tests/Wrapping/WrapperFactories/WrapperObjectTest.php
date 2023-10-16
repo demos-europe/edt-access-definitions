@@ -57,10 +57,10 @@ class WrapperObjectTest extends ModelBasedTest
         self::assertSame($this->books['pickwickPapers']->getTitle(), $author->books[0]->title);
         self::assertSame($this->books['pickwickPapers']->getTitle(), $author->books[0]->getTitle());
         $this->bookType->setAvailableInstances($this->getTestData()['books']);
-        $author->books = [
+        $author->__set('books', [
             $this->books['beowulf'],
             $this->books['doctorSleep'],
-        ];
+        ]);
         self::assertCount(2, $author->books);
         self::assertCount(2, $author->getBooks());
         self::assertSame($this->books['beowulf']->getTitle(), $author->books[0]->title);

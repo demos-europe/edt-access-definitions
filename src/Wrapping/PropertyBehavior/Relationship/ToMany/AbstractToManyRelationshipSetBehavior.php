@@ -7,7 +7,7 @@ namespace EDT\Wrapping\PropertyBehavior\Relationship\ToMany;
 use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\EntityDataInterface;
 use EDT\Wrapping\PropertyBehavior\PropertyUpdaterTrait;
-use EDT\Wrapping\PropertyBehavior\Relationship\RelationshipSetabilityInterface;
+use EDT\Wrapping\PropertyBehavior\Relationship\RelationshipSetBehaviorInterface;
 use Exception;
 
 /**
@@ -16,9 +16,9 @@ use Exception;
  * @template TEntity of object
  * @template TRelationship of object
  *
- * @template-implements RelationshipSetabilityInterface<TCondition, TSorting, TEntity, TRelationship>
+ * @template-implements RelationshipSetBehaviorInterface<TCondition, TSorting, TEntity, TRelationship>
  */
-abstract class AbstractToManyRelationshipSetability implements RelationshipSetabilityInterface
+abstract class AbstractToManyRelationshipSetBehavior implements RelationshipSetBehaviorInterface
 {
     use PropertyUpdaterTrait;
 
@@ -56,7 +56,7 @@ abstract class AbstractToManyRelationshipSetability implements RelationshipSetab
      */
     abstract protected function updateToManyRelationship(object $entity, array $relationships): bool;
 
-    public function updateProperty(object $entity, EntityDataInterface $entityData): bool
+    public function executeBehavior(object $entity, EntityDataInterface $entityData): bool
     {
         $requestRelationships = $entityData->getToManyRelationships();
         $relationshipReferences = $requestRelationships[$this->propertyName];

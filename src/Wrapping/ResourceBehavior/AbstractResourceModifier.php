@@ -8,7 +8,7 @@ use EDT\JsonApi\RequestHandling\ExpectedPropertyCollection;
 use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\EntityDataInterface;
 use EDT\Wrapping\PropertyBehavior\PropertyConstrainingInterface;
-use EDT\Wrapping\PropertyBehavior\PropertySetabilityInterface;
+use EDT\Wrapping\PropertyBehavior\PropertySetBehaviorInterface;
 
 abstract class AbstractResourceModifier
 {
@@ -34,7 +34,7 @@ abstract class AbstractResourceModifier
             $this->getParameterConstrains()
         );
 
-        return array_merge([], ...$parameters);
+        return array_merge(...$parameters);
     }
 
     /**
@@ -47,7 +47,7 @@ abstract class AbstractResourceModifier
             $this->getParameterConstrains()
         );
 
-        return array_merge([], ...$parameters);
+        return array_merge(...$parameters);
     }
 
     /**
@@ -60,7 +60,7 @@ abstract class AbstractResourceModifier
             $this->getParameterConstrains()
         );
 
-        return array_merge([], ...$parameters);
+        return array_merge(...$parameters);
     }
 
     /**
@@ -73,7 +73,7 @@ abstract class AbstractResourceModifier
             $this->getParameterConstrains()
         );
 
-        return array_merge([], ...$parameters);
+        return array_merge(...$parameters);
     }
 
     /**
@@ -86,7 +86,7 @@ abstract class AbstractResourceModifier
             $this->getParameterConstrains()
         );
 
-        return array_merge([], ...$parameters);
+        return array_merge(...$parameters);
     }
 
     /**
@@ -99,20 +99,20 @@ abstract class AbstractResourceModifier
             $this->getParameterConstrains()
         );
 
-        return array_merge([], ...$parameters);
+        return array_merge(...$parameters);
     }
 
     /**
      * @template TEnt of object
      *
-     * @param list<PropertySetabilityInterface<TEnt>> $setabilities
+     * @param list<PropertySetBehaviorInterface<TEnt>> $setBehaviors
      * @param TEnt $entity
      */
-    protected function getSetabilitiesSideEffect(array $setabilities, object $entity, EntityDataInterface $entityData): bool
+    protected function getSetabilitiesSideEffect(array $setBehaviors, object $entity, EntityDataInterface $entityData): bool
     {
         $nestedSideEffects = array_map(
-            static fn (PropertySetabilityInterface $setability): bool => $setability->updateProperty($entity, $entityData),
-            $setabilities
+            static fn (PropertySetBehaviorInterface $setBehavior): bool => $setBehavior->executeBehavior($entity, $entityData),
+            $setBehaviors
         );
 
         foreach ($nestedSideEffects as $sideEffect) {

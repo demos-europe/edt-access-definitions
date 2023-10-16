@@ -6,10 +6,11 @@ namespace EDT\Wrapping\ResourceBehavior;
 
 use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\EntityDataInterface;
-use EDT\Wrapping\PropertyBehavior\PropertySetabilityInterface;
+use EDT\Wrapping\PropertyBehavior\PropertySetBehaviorInterface;
 use EDT\Wrapping\PropertyBehavior\PropertyUpdatabilityInterface;
-use EDT\Wrapping\PropertyBehavior\Relationship\RelationshipSetabilityInterface;
+use EDT\Wrapping\PropertyBehavior\Relationship\RelationshipSetBehaviorInterface;
 use InvalidArgumentException;
+use Webmozart\Assert\Assert;
 
 /**
  * @template TCondition of PathsBasedInterface
@@ -19,15 +20,19 @@ use InvalidArgumentException;
 class ResourceUpdatability extends AbstractResourceModifier
 {
     /**
-     * @param array<non-empty-string, PropertyUpdatabilityInterface<TCondition, TEntity>> $attributes
-     * @param array<non-empty-string, RelationshipSetabilityInterface<TCondition, TSorting, TEntity, object>> $toOneRelationships
-     * @param array<non-empty-string, RelationshipSetabilityInterface<TCondition, TSorting, TEntity, object>> $toManyRelationships
+     * @param array<non-empty-string, list<PropertyUpdatabilityInterface<TCondition, TEntity>>> $attributes
+     * @param array<non-empty-string, list<RelationshipSetBehaviorInterface<TCondition, TSorting, TEntity, object>>> $toOneRelationships
+     * @param array<non-empty-string, list<RelationshipSetBehaviorInterface<TCondition, TSorting, TEntity, object>>> $toManyRelationships
      */
     public function __construct(
         protected readonly array $attributes,
         protected readonly array $toOneRelationships,
         protected readonly array $toManyRelationships
-    ) {}
+    ) {
+        Assert::isEmpty(array_intersect_key($this->attributes, $this->toOneRelationships));
+        Assert::isEmpty(array_intersect_key($this->attributes, $this->toManyRelationships));
+        Assert::isEmpty(array_intersect_key($this->toOneRelationships, $this->toManyRelationships));
+    }
 
     /**
      * Get all setabilities, that correspond to the given entity data.
@@ -40,11 +45,15 @@ class ResourceUpdatability extends AbstractResourceModifier
     {
         $allowedKeys = array_flip($propertyNames);
 
-        return array_values(array_merge(
-            array_intersect_key($this->attributes, $allowedKeys),
-            array_intersect_key($this->toOneRelationships, $allowedKeys),
-            array_intersect_key($this->toManyRelationships, $allowedKeys)
-        ));
+        $relevantAttributes = array_intersect_key($this->attributes, $allowedKeys);
+        $relevantToOneRelationships = array_intersect_key($this->toOneRelationships, $allowedKeys);
+        $relevantToManyRelationships = array_intersect_key($this->toManyRelationships, $allowedKeys);
+
+        return array_merge(
+            array_merge(...array_values($relevantAttributes)),
+            array_merge(...array_values($relevantToOneRelationships)),
+            array_merge(...array_values($relevantToManyRelationships))
+        );
     }
 
     /**
@@ -84,7 +93,7 @@ class ResourceUpdatability extends AbstractResourceModifier
     /**
      * Merges all entity conditions of the setabilities, that correspond to the given entity data.
      *
-     * Does not process any paths, as the setability entity conditions are expected to
+     * Does not process any paths, as the set-behavior entity conditions are expected to
      * be hardcoded and not supplied via request.
      *
      * @param list<non-empty-string> $propertyNames the properties for which values are to be set
@@ -94,19 +103,19 @@ class ResourceUpdatability extends AbstractResourceModifier
     public function getEntityConditions(array $propertyNames): array
     {
         $entityConditions = array_map(
-            static fn (PropertySetabilityInterface $accessibility): array => $accessibility->getEntityConditions(),
+            static fn (PropertySetBehaviorInterface $accessibility): array => $accessibility->getEntityConditions(),
             $this->getRelevantSetabilities($propertyNames)
         );
 
-        return array_merge([], ...$entityConditions);
+        return array_merge(...$entityConditions);
     }
 
     /**
      * @param non-empty-string $propertyName
      *
-     * @return PropertyUpdatabilityInterface<TCondition, TEntity>
+     * @return list<PropertyUpdatabilityInterface<TCondition, TEntity>>
      */
-    public function getAttribute(string $propertyName): PropertyUpdatabilityInterface
+    public function getAttribute(string $propertyName): array
     {
         return $this->attributes[$propertyName]
             ?? throw new InvalidArgumentException("To-one relationship `$propertyName` not available.");
@@ -115,9 +124,9 @@ class ResourceUpdatability extends AbstractResourceModifier
     /**
      * @param non-empty-string $propertyName
      *
-     * @return RelationshipSetabilityInterface<TCondition, TSorting, TEntity, object>
+     * @return list<RelationshipSetBehaviorInterface<TCondition, TSorting, TEntity, object>>
      */
-    public function getToOneRelationship(string $propertyName): RelationshipSetabilityInterface
+    public function getToOneRelationship(string $propertyName): array
     {
         return $this->toOneRelationships[$propertyName]
             ?? throw new InvalidArgumentException("To-one relationship `$propertyName` not available.");
@@ -126,9 +135,9 @@ class ResourceUpdatability extends AbstractResourceModifier
     /**
      * @param non-empty-string $propertyName
      *
-     * @return RelationshipSetabilityInterface<TCondition, TSorting, TEntity, object>
+     * @return list<RelationshipSetBehaviorInterface<TCondition, TSorting, TEntity, object>>
      */
-    public function getToManyRelationship(string $propertyName): RelationshipSetabilityInterface
+    public function getToManyRelationship(string $propertyName): array
     {
         return $this->toManyRelationships[$propertyName]
             ?? throw new InvalidArgumentException("To-many relationship `$propertyName` not available");
@@ -136,6 +145,10 @@ class ResourceUpdatability extends AbstractResourceModifier
 
     protected function getParameterConstrains(): array
     {
-        return array_values(array_merge($this->attributes, $this->toOneRelationships, $this->toManyRelationships));
+        return array_merge(
+            ...array_values($this->attributes),
+            ...array_values($this->toOneRelationships),
+            ...array_values($this->toManyRelationships)
+        );
     }
 }

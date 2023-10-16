@@ -15,7 +15,7 @@ use Exception;
  *
  * @template-implements PropertyUpdatabilityInterface<TCondition, TEntity>
  */
-abstract class AbstractAttributeSetability implements PropertyUpdatabilityInterface
+abstract class AbstractAttributeSetBehavior implements PropertyUpdatabilityInterface
 {
     /**
      * @param non-empty-string $propertyName the exposed property name accepted by this instance
@@ -47,7 +47,7 @@ abstract class AbstractAttributeSetability implements PropertyUpdatabilityInterf
      */
     abstract protected function updateAttributeValue(object $entity, mixed $value): bool;
 
-    public function updateProperty(object $entity, EntityDataInterface $entityData): bool
+    public function executeBehavior(object $entity, EntityDataInterface $entityData): bool
     {
         $attributes = $entityData->getAttributes();
         $attributeValue = $attributes[$this->propertyName];

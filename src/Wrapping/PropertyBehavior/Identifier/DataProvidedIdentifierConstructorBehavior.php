@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace EDT\Wrapping\PropertyBehavior\Identifier;
 
 use EDT\Wrapping\CreationDataInterface;
-use EDT\Wrapping\PropertyBehavior\ConstructorParameterInterface;
+use EDT\Wrapping\PropertyBehavior\ConstructorBehaviorInterface;
 use Webmozart\Assert\Assert;
 
 /**
  * When used, instances require a specific attribute to be present in the request, which will
  * be directly used as constructor argument.
  */
-class DataProvidedIdentifierConstructorParameter implements ConstructorParameterInterface
+class DataProvidedIdentifierConstructorBehavior implements ConstructorBehaviorInterface
 {
     /**
      * @param non-empty-string $argumentName
@@ -22,19 +22,16 @@ class DataProvidedIdentifierConstructorParameter implements ConstructorParameter
     ) {}
 
     /**
-     * @return non-empty-string
+     * @return array<non-empty-string, non-empty-string>
      */
-    public function getArgument(CreationDataInterface $entityData): string
+    public function getArguments(CreationDataInterface $entityData): array
     {
         $entityIdentifier = $entityData->getEntityIdentifier();
         Assert::stringNotEmpty($entityIdentifier);
 
-        return $entityIdentifier;
-    }
-
-    public function getArgumentName(): string
-    {
-        return $this->argumentName;
+        return [
+            $this->argumentName => $entityIdentifier,
+        ];
     }
 
     public function getRequiredAttributes(): array
