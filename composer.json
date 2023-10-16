@@ -5,7 +5,7 @@
     "type": "library",
     "require": {
         "php": "^8.1",
-        "demos-europe/edt-queries": "^0.24.1",
+        "demos-europe/edt-queries": "^0.25",
         "thecodingmachine/safe": "^2.4.0",
         "pagerfanta/pagerfanta": "^2.7"
     },
