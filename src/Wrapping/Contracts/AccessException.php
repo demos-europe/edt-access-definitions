@@ -27,6 +27,18 @@ class AccessException extends InvalidArgumentException
     /**
      * @param TType $type
      *
+     * @return self<TType>
+     */
+    public static function typeNotDirectlyAccessible(object $type): self
+    {
+        $typeClass = $type::class;
+
+        return new self($type, "Type '$typeClass' not directly accessible.");
+    }
+
+    /**
+     * @param TType $type
+     *
      * @return AccessException<TType>
      */
     public static function unexpectedArguments(object $type, int $expected, int $actual): self
@@ -34,6 +46,18 @@ class AccessException extends InvalidArgumentException
         $typeClass = $type::class;
 
         return new self($type, "Unexpected arguments received for type class '$typeClass'. Expected $expected arguments, got $actual arguments.");
+    }
+
+    /**
+     * @param TType $type
+     *
+     * @return self<TType>
+     */
+    public static function typeNotAvailable(object $type): self
+    {
+        $typeClass = $type::class;
+
+        return new self($type, "Type class '$typeClass' not available.");
     }
 
     /**
