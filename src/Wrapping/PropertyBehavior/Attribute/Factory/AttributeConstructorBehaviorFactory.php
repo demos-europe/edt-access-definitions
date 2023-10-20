@@ -6,10 +6,10 @@ namespace EDT\Wrapping\PropertyBehavior\Attribute\Factory;
 
 use EDT\Wrapping\CreationDataInterface;
 use EDT\Wrapping\PropertyBehavior\Attribute\AttributeConstructorBehavior;
-use EDT\Wrapping\PropertyBehavior\NonRelationshipConstructorBehaviorFactoryInterface;
+use EDT\Wrapping\PropertyBehavior\ConstructorBehaviorFactoryInterface;
 use EDT\Wrapping\PropertyBehavior\ConstructorBehaviorInterface;
 
-class AttributeConstructorBehaviorFactory implements NonRelationshipConstructorBehaviorFactoryInterface
+class AttributeConstructorBehaviorFactory implements ConstructorBehaviorFactoryInterface
 {
     /**
      * @param non-empty-string|null $argumentName
@@ -20,7 +20,7 @@ class AttributeConstructorBehaviorFactory implements NonRelationshipConstructorB
         protected readonly mixed $fallback
     ) {}
 
-    public function createNonRelationshipConstructorBehavior(string $name, array $propertyPath, string $entityClass): ConstructorBehaviorInterface
+    public function createConstructorBehavior(string $name, array $propertyPath, string $entityClass): ConstructorBehaviorInterface
     {
         return new AttributeConstructorBehavior(
             $name,

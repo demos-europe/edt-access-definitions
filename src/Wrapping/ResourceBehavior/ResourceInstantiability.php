@@ -28,14 +28,18 @@ class ResourceInstantiability extends AbstractResourceModifier
 
     /**
      * @param class-string<TEntity> $entityClass
-     * @param array<non-empty-string, list<ConstructorBehaviorInterface>> $constructorBehaviors mapping from resource property name to constructor parameters
-     * @param array<non-empty-string, list<PropertySetBehaviorInterface<TEntity>>> $postConstructorBehaviors mapping from resource property name to post constructor instances
+     * @param array<non-empty-string, list<ConstructorBehaviorInterface>> $propertyConstructorBehaviors mapping from resource property name to constructor parameters
+     * @param list<ConstructorBehaviorInterface> $generalConstructorBehaviors
+     * @param array<non-empty-string, list<PropertySetBehaviorInterface<TEntity>>> $propertyPostConstructorBehaviors mapping from resource property name to post constructor instances
+     * @param list<PropertySetBehaviorInterface<TEntity>> $generalPostConstructorBehaviors mapping from resource property name to post constructor instances
      * @param list<IdentifierPostConstructorBehaviorInterface<TEntity>> $identifierPostConstructorBehaviors
      */
     public function __construct(
         protected readonly string $entityClass,
-        protected readonly array $constructorBehaviors,
-        protected readonly array $postConstructorBehaviors,
+        protected readonly array $propertyConstructorBehaviors,
+        protected readonly array $generalConstructorBehaviors,
+        protected readonly array $propertyPostConstructorBehaviors,
+        protected readonly array $generalPostConstructorBehaviors,
         protected readonly array $identifierPostConstructorBehaviors
     ) {
         $reflectionClass = new ReflectionClass($this->entityClass);
@@ -44,12 +48,12 @@ class ResourceInstantiability extends AbstractResourceModifier
     }
 
     /**
-     * @param list<mixed> $constructorArguments
-     *
      * @return TEntity
      */
-    public function initializeEntity(array $constructorArguments): object
+    public function initializeEntity(CreationDataInterface $entityData): object
     {
+        $constructorArguments = $this->getConstructorArguments($entityData);
+
         return new $this->entityClass(...$constructorArguments);
     }
 
@@ -67,13 +71,14 @@ class ResourceInstantiability extends AbstractResourceModifier
                 foreach ($this->identifierPostConstructorBehaviors as $identifierPostConstructorBehavior) {
                     $idSideEffect = $identifierPostConstructorBehavior->setIdentifier($entity, $entityData) || $idSideEffect;
                 }
-            } elseif (!array_key_exists(ContentField::ID, $this->constructorBehaviors)) {
+            } elseif (!array_key_exists(ContentField::ID, $this->propertyConstructorBehaviors)) {
                 // TODO: MUST return 403 Forbidden (https://jsonapi.org/format/#crud-creating-client-ids)
                 throw new InvalidArgumentException('Value for `id` field was provided in request, but no setup to handle it exists.');
             }
         }
 
-        $flattenedPostConstructorBehaviors = $this->getFlattenedValues($this->postConstructorBehaviors);
+        $flattenedPostConstructorBehaviors = $this->getFlattenedValues($this->propertyPostConstructorBehaviors);
+        $flattenedPostConstructorBehaviors = array_merge($this->generalPostConstructorBehaviors, $flattenedPostConstructorBehaviors);
         $propertySideEffects = $this
             ->getSetabilitiesSideEffect($flattenedPostConstructorBehaviors, $entity, $entityData);
 
@@ -83,8 +88,10 @@ class ResourceInstantiability extends AbstractResourceModifier
     protected function getParameterConstrains(): array
     {
         return array_merge(
-            $this->getFlattenedValues($this->postConstructorBehaviors),
-            $this->getFlattenedValues($this->constructorBehaviors)
+            $this->generalConstructorBehaviors,
+            $this->generalPostConstructorBehaviors,
+            $this->getFlattenedValues($this->propertyPostConstructorBehaviors),
+            $this->getFlattenedValues($this->propertyConstructorBehaviors)
         );
     }
 
@@ -120,10 +127,12 @@ class ResourceInstantiability extends AbstractResourceModifier
     /**
      * @return list<mixed>
      */
-    public function getConstructorArguments(CreationDataInterface $entityData): array
+    protected function getConstructorArguments(CreationDataInterface $entityData): array
     {
         $lookupTable = $this->createLookupTable($entityData);
 
+        // loop through all constructor arguments of the corresponding entity and
+        // determine a value to be used if possible
         return array_map(
             static fn (
                 ReflectionParameter $reflectionParameter
@@ -131,7 +140,7 @@ class ResourceInstantiability extends AbstractResourceModifier
                 // if no constructor parameter was given, try to fall back to default values
                 $reflectionParameter->isDefaultValueAvailable()
                     ? $reflectionParameter->getDefaultValue()
-                    : throw new InvalidArgumentException('Missing constructor parameter')
+                    : throw new InvalidArgumentException("Missing constructor parameter value: `{$reflectionParameter->getName()}`")
             ),
             $this->reflectionConstructorParameters
         );
@@ -142,22 +151,38 @@ class ResourceInstantiability extends AbstractResourceModifier
      */
     protected function createLookupTable(CreationDataInterface $entityData): array
     {
-        $nestedConstructorArguments = array_map(
-            fn (array $constructorBehaviors): array => $this->calculateConstructorArguments($constructorBehaviors, $entityData),
-            $this->constructorBehaviors
+        $relevantProperties = array_flip($entityData->getPropertyNames());
+        $relevantPropertyConstructorBehaviors = array_merge(
+            ...array_intersect_key($this->propertyConstructorBehaviors, $relevantProperties)
         );
 
-        $lookupTable = [];
-        foreach ($nestedConstructorArguments as $constructorArgumentLists) {
-            foreach ($constructorArgumentLists as $constructorArguments) {
-                foreach ($constructorArguments as $argumentName => $constructorArgument) {
-                    Assert::keyNotExists($lookupTable, $argumentName);
-                    $lookupTable[$argumentName] = $constructorArgument;
-                }
+        $propertyConstructorArgumentLists = $this->calculateConstructorArguments($relevantPropertyConstructorBehaviors, $entityData);
+        $propertyLookupTable = $this->reduceConstructorArguments($propertyConstructorArgumentLists);
+
+        $generalConstructorArgumentLists = $this->calculateConstructorArguments($this->generalConstructorBehaviors, $entityData);
+        $generalLookupTable = $this->reduceConstructorArguments($generalConstructorArgumentLists);
+
+        // constructor arguments from a general constructor behavior are only used for arguments that
+        // are not already defined by constructor arguments from property constructor behaviors
+        return array_merge($generalLookupTable, $propertyLookupTable);
+    }
+
+    /**
+     * @param list<array<non-empty-string, mixed>> $constructorArgumentLists
+     *
+     * @return array<non-empty-string, mixed>
+     */
+    protected function reduceConstructorArguments(array $constructorArgumentLists): array
+    {
+        $propertyLookupTable = [];
+        foreach ($constructorArgumentLists as $constructorArguments) {
+            foreach ($constructorArguments as $argumentName => $constructorArgument) {
+                Assert::keyNotExists($propertyLookupTable, $argumentName);
+                $propertyLookupTable[$argumentName] = $constructorArgument;
             }
         }
 
-        return $lookupTable;
+        return $propertyLookupTable;
     }
 
     /**

@@ -31,4 +31,8 @@ class TestAttributeSetBehavior extends AbstractAttributeSetBehavior
 
         return false;
     }
+
+    public function getDescription(): string
+    {
+    }
 }

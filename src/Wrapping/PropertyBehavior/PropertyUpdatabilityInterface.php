@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior;
 use EDT\Querying\Contracts\PathsBasedInterface;
+use EDT\Wrapping\EntityDataInterface;
 
 /**
  * @template TCondition of PathsBasedInterface
@@ -20,5 +21,5 @@ interface PropertyUpdatabilityInterface extends PropertySetBehaviorInterface
      *
      * @return list<TCondition>
      */
-    public function getEntityConditions(): array;
+    public function getEntityConditions(EntityDataInterface $entityData): array;
 }

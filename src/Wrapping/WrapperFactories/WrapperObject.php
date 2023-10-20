@@ -10,9 +10,12 @@ use EDT\Wrapping\Contracts\AccessException;
 use EDT\Wrapping\Contracts\ContentField;
 use EDT\Wrapping\Contracts\PropertyAccessException;
 use EDT\Wrapping\Contracts\Types\ExposableRelationshipTypeInterface;
+use EDT\Wrapping\Contracts\Types\NamedTypeInterface;
+use EDT\Wrapping\Contracts\Types\PropertyReadableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\EntityData;
 use EDT\Wrapping\PropertyBehavior\EntityVerificationTrait;
+use EDT\Wrapping\ResourceBehavior\ResourceUpdatability;
 use Exception;
 use InvalidArgumentException;
 use Safe\Exceptions\PcreException;
@@ -245,86 +248,79 @@ class WrapperObject
     public function setAttribute(string $propertyName, mixed $value): bool
     {
         $entityUpdatability = $this->type->getUpdatability();
+        $entityData = $this->createAttributeEntityData($propertyName, $value);
 
-        $relevantEntityConditions = $entityUpdatability->getEntityConditions([$propertyName]);
-        $this->type->assertMatchingEntity($this->entity, $relevantEntityConditions);
-
-        $setBehaviors = $entityUpdatability->getAttribute($propertyName);
-
-        $unrequestedChanges = false;
-        foreach ($setBehaviors as $setBehavior) {
-            $attributes = [$propertyName => $value];
-
-            $entityData = new EntityData($this->type->getTypeName(), $attributes, [], []);
-            $unrequestedChanges = $setBehavior->executeBehavior($this->entity, $entityData) || $unrequestedChanges;
-        }
-
-        return $unrequestedChanges;
+        // check if entity is allowed to be adjusted
+        return $this->updateEntity($entityUpdatability, $entityData);
     }
 
     /**
+     * @template TRelationship of object
+     *
      * @param non-empty-string $propertyName
+     * @param PropertyReadableTypeInterface<TCondition, TSorting, TRelationship>&NamedTypeInterface&EntityBasedInterface<TRelationship> $relationshipType
      */
-    public function setToOneRelationship(string $propertyName, ?object $value): bool
-    {
+    public function setToOneRelationship(
+        string $propertyName,
+        ?object $relationship,
+        PropertyReadableTypeInterface&NamedTypeInterface&EntityBasedInterface $relationshipType
+    ): bool {
         $entityUpdatability = $this->type->getUpdatability();
-        $setBehaviors = $entityUpdatability->getToOneRelationship($propertyName);
-        $relevantEntityConditions = $entityUpdatability->getEntityConditions([$propertyName]);
-        $this->type->assertMatchingEntity($this->entity, $relevantEntityConditions);
 
-        $unrequestedChanges = false;
-        foreach ($setBehaviors as $setBehavior) {
-            $relationshipType = $setBehavior->getRelationshipType();
-            $relationshipClass = $relationshipType->getEntityClass();
-            $relationship = $this->assertValidToOneValue($value, $relationshipClass);
+        $relationshipClass = $relationshipType->getEntityClass();
+        $relationship = $this->assertValidToOneValue($relationship, $relationshipClass);
+        $entityData = $this->createToOneRelationshipEntityData($propertyName, $relationship, $relationshipType);
 
-            $toOneRelationships = [
-                $propertyName => null === $relationship ? null : [
-                    ContentField::ID => $relationshipType->getReadability()->getIdentifierReadability()->getValue($relationship),
-                    ContentField::TYPE => $relationshipType->getTypeName(),
-                ],
-            ];
-
-            $entityData = new EntityData($this->type->getTypeName(), [], $toOneRelationships, []);
-            $unrequestedChanges = $setBehavior->executeBehavior($this->entity, $entityData) || $unrequestedChanges;
-        }
-
-        return $unrequestedChanges;
+        return $entityUpdatability->updateProperties($this->entity, $entityData);
     }
 
     /**
+     * @template TRelationship of object
+     *
      * @param non-empty-string $propertyName
-     * @param list<object> $values
+     * @param list<TRelationship> $values
+     * @param PropertyReadableTypeInterface<TCondition, TSorting, TRelationship>&NamedTypeInterface&EntityBasedInterface<TRelationship> $relationshipType
      */
-    public function setToManyRelationship(string $propertyName, array $values): bool
-    {
+    public function setToManyRelationship(
+        string $propertyName,
+        array $values,
+        PropertyReadableTypeInterface&NamedTypeInterface&EntityBasedInterface $relationshipType
+    ): bool {
         $entityUpdatability = $this->type->getUpdatability();
-        $relevantEntityConditions = $entityUpdatability->getEntityConditions([$propertyName]);
+
+        // create entity data
+        $relationshipClass = $relationshipType->getEntityClass();
+        $relationships = $this->assertValidToManyValue($values, $relationshipClass);
+        $entityData = $this->createToManyRelationshipEntityData($propertyName, $relationships, $relationshipType);
+
+        return $this->updateEntity($entityUpdatability, $entityData);
+    }
+
+    /**
+     * @template TRelationship of object
+     *
+     * @param array<non-empty-string, PropertyReadableTypeInterface<TCondition, TSorting, TRelationship>&NamedTypeInterface&EntityBasedInterface<TRelationship>> $relationshipTypes
+     *
+     * @return PropertyReadableTypeInterface<TCondition, TSorting, TRelationship>&NamedTypeInterface&EntityBasedInterface<TRelationship>
+     */
+    protected function getSingleRelationshipType(array $relationshipTypes): object
+    {
+        return match (count($relationshipTypes)) {
+            0 => throw new InvalidArgumentException('There were no update behaviors defined for the property'),
+            1 => array_pop($relationshipTypes),
+            default => throw new InvalidArgumentException('Multiple update behaviors with different relationship type names were defined. This is currently not supported.'),
+        };
+    }
+
+    /**
+     * @param ResourceUpdatability<TCondition, TSorting, TEntity> $updatability
+     */
+    protected function updateEntity(ResourceUpdatability $updatability, EntityData $entityData): bool
+    {
+        $relevantEntityConditions = $updatability->getEntityConditions($entityData);
         $this->type->assertMatchingEntity($this->entity, $relevantEntityConditions);
-        $setBehaviors = $entityUpdatability->getToManyRelationship($propertyName);
 
-        $unrequestedChanges = false;
-        foreach ($setBehaviors as $setBehavior) {
-            $relationshipType = $setBehavior->getRelationshipType();
-            $relationshipClass = $relationshipType->getEntityClass();
-            $relationships = $this->assertValidToManyValue($values, $relationshipClass);
-
-            $relationshipTypeName = $relationshipType->getTypeName();
-            $toManyRelationships = [
-                $propertyName => array_map(
-                    static fn(object $relationship): array => [
-                        ContentField::ID => $relationshipType->getReadability()->getIdentifierReadability()->getValue($relationship),
-                        ContentField::TYPE => $relationshipTypeName,
-                    ],
-                    $relationships
-                ),
-            ];
-
-            $entityData = new EntityData($this->type->getTypeName(), [], [],$toManyRelationships);
-            $unrequestedChanges = $setBehavior->executeBehavior($this->entity, $entityData) || $unrequestedChanges;
-        }
-
-        return $unrequestedChanges;
+        return $updatability->updateProperties($this->entity, $entityData);
     }
 
     /**
@@ -356,7 +352,12 @@ class WrapperObject
                 Assert::allNotContains($attributeNames, $propertyName);
                 Assert::allNotContains($toManyRelationshipNames, $propertyName);
                 Assert::nullOrObject($value);
-                $this->setToOneRelationship($propertyName, $value);
+
+                $entityUpdatability = $this->type->getUpdatability();
+                $relationshipTypes = $entityUpdatability->getToOneRelationshipTypes($propertyName);
+                $relationshipType = $this->getSingleRelationshipType($relationshipTypes);
+
+                $this->setToOneRelationship($propertyName, $value, $relationshipType);
 
                 return;
             }
@@ -366,7 +367,12 @@ class WrapperObject
                 Assert::allNotContains($toOneRelationshipNames, $propertyName);
                 Assert::isList($value);
                 Assert::allObject($value);
-                $this->setToManyRelationship($propertyName, $value);
+
+                $entityUpdatability = $this->type->getUpdatability();
+                $relationshipTypes = $entityUpdatability->getToManyRelationshipTypes($propertyName);
+                $relationshipType = $this->getSingleRelationshipType($relationshipTypes);
+
+                $this->setToManyRelationship($propertyName, $value, $relationshipType);
 
                 return;
             }
@@ -483,5 +489,65 @@ class WrapperObject
     protected function createWrapper(object $entity, TransferableTypeInterface $type): WrapperObject
     {
         return new WrapperObject($entity, $type);
+    }
+
+    /**
+     * @param non-empty-string $propertyName
+     */
+    protected function createAttributeEntityData(string $propertyName, mixed $value): EntityData
+    {
+        $attributes = [$propertyName => $value];
+
+        return new EntityData($this->type->getTypeName(), $attributes, [], []);
+    }
+
+    /**
+     * @template TRelationship of object
+     *
+     * @param non-empty-string $propertyName
+     * @param TRelationship|null $relationship
+     * @param PropertyReadableTypeInterface<TCondition, TSorting, TRelationship>&NamedTypeInterface $relationshipType
+     */
+    protected function createToOneRelationshipEntityData(
+        string $propertyName,
+        ?object $relationship,
+        PropertyReadableTypeInterface&NamedTypeInterface $relationshipType
+    ): EntityData {
+        $toOneRelationships = [
+            $propertyName => null === $relationship ? null : [
+                ContentField::ID => $relationshipType->getReadability()->getIdentifierReadability()->getValue($relationship),
+                ContentField::TYPE => $relationshipType->getTypeName(),
+            ],
+        ];
+
+        return new EntityData($this->type->getTypeName(), [], $toOneRelationships, []);
+    }
+
+    /**
+     * @template TRelationship of object
+     *
+     * @param non-empty-string $propertyName
+     * @param list<TRelationship> $relationships
+     * @param PropertyReadableTypeInterface<TCondition, TSorting, TRelationship>&NamedTypeInterface $relationshipType
+     */
+    protected function createToManyRelationshipEntityData(
+        string $propertyName,
+        array $relationships,
+        PropertyReadableTypeInterface&NamedTypeInterface $relationshipType
+    ): EntityData {
+
+        $relationshipTypeName = $relationshipType->getTypeName();
+
+        $toManyRelationships = [
+            $propertyName => array_map(
+                static fn(object $relationship): array => [
+                    ContentField::ID => $relationshipType->getReadability()->getIdentifierReadability()->getValue($relationship),
+                    ContentField::TYPE => $relationshipTypeName,
+                ],
+                $relationships
+            ),
+        ];
+
+        return new EntityData($this->type->getTypeName(), [], [],$toManyRelationships);
     }
 }

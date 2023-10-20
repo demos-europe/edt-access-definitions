@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior;
 
-interface NonRelationshipConstructorBehaviorFactoryInterface
+interface ConstructorBehaviorFactoryInterface
 {
     /**
      * @template TEntity of object
@@ -13,5 +13,5 @@ interface NonRelationshipConstructorBehaviorFactoryInterface
      * @param non-empty-list<non-empty-string> $propertyPath
      * @param class-string<TEntity> $entityClass
      */
-    public function createNonRelationshipConstructorBehavior(string $name, array $propertyPath, string $entityClass): ConstructorBehaviorInterface;
+    public function createConstructorBehavior(string $name, array $propertyPath, string $entityClass): ConstructorBehaviorInterface;
 }

@@ -12,7 +12,7 @@ use EDT\Wrapping\PropertyBehavior\Relationship\RelationshipConstructorBehaviorFa
 /**
  * @template-implements RelationshipConstructorBehaviorFactoryInterface<PathsBasedInterface>
  */
-class FixedConstructorBehaviorFactory implements RelationshipConstructorBehaviorFactoryInterface, NonRelationshipConstructorBehaviorFactoryInterface
+class FixedConstructorBehaviorFactory implements RelationshipConstructorBehaviorFactoryInterface, ConstructorBehaviorFactoryInterface
 {
     /**
      * @param callable(CreationDataInterface): mixed $callback
@@ -21,7 +21,7 @@ class FixedConstructorBehaviorFactory implements RelationshipConstructorBehavior
         protected readonly mixed $callback
     ){}
 
-    public function createNonRelationshipConstructorBehavior(string $name, array $propertyPath, string $entityClass): ConstructorBehaviorInterface
+    public function createConstructorBehavior(string $name, array $propertyPath, string $entityClass): ConstructorBehaviorInterface
     {
         return new FixedConstructorBehavior($name, $this->callback);
     }

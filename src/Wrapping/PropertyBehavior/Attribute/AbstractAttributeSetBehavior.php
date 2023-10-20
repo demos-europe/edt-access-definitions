@@ -8,6 +8,8 @@ use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\EntityDataInterface;
 use EDT\Wrapping\PropertyBehavior\PropertyUpdatabilityInterface;
 use Exception;
+use Webmozart\Assert\Assert;
+use function array_key_exists;
 
 /**
  * @template TCondition of PathsBasedInterface
@@ -27,7 +29,7 @@ abstract class AbstractAttributeSetBehavior implements PropertyUpdatabilityInter
         protected readonly bool $optional
     ) {}
 
-    public function getEntityConditions(): array
+    public function getEntityConditions(EntityDataInterface $entityData): array
     {
         return $this->entityConditions;
     }
@@ -50,9 +52,15 @@ abstract class AbstractAttributeSetBehavior implements PropertyUpdatabilityInter
     public function executeBehavior(object $entity, EntityDataInterface $entityData): bool
     {
         $attributes = $entityData->getAttributes();
-        $attributeValue = $attributes[$this->propertyName];
+        if (array_key_exists($this->propertyName, $attributes)) {
+            $attributeValue = $attributes[$this->propertyName];
 
-        return $this->updateAttributeValue($entity, $attributeValue);
+            return $this->updateAttributeValue($entity, $attributeValue);
+        }
+
+        Assert::true($this->optional, "No value present for non-optional attribute `$this->propertyName`.");
+
+        return false;
     }
 
     public function getRequiredAttributes(): array

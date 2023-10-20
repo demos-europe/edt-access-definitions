@@ -44,4 +44,22 @@ class CallbackToManyRelationshipSetBehavior extends AbstractToManyRelationshipSe
     {
         return ($this->setterCallback)($entity, $relationships);
     }
+
+    public function getDescription(): string
+    {
+        $relationshipType = $this->getRelationshipType()->getTypeName();
+
+        return ($this->optional
+                ? "Allows a to-many relationship `$this->propertyName` with the type `$relationshipType` to be present in the request body, but does not require it. "
+                : "Requires a to-many relationship `$this->propertyName` with the type `$relationshipType` to be present in the request body.")
+            . 'If the property is present in the request body it will be passed to a callback, which is able to adjust the target entity or execute side effects.'
+            . ([] === $this->entityConditions
+                ? 'The target entity does not need to '
+                : 'The target entity must ')
+            . 'match additional conditions beside the ones defined by its type.'
+            . ([] === $this->relationshipConditions
+                ? 'The relationships do not need to '
+                : 'The relationships must ')
+            . 'match additional conditions beside the ones defined by their type.';
+    }
 }

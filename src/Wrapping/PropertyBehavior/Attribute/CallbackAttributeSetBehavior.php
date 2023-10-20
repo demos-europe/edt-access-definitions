@@ -35,4 +35,16 @@ class CallbackAttributeSetBehavior extends AbstractAttributeSetBehavior
         $value = $this->assertValidValue($value);
         return ($this->setterCallback)($entity, $value);
     }
+
+    public function getDescription(): string
+    {
+        return ($this->optional
+                ? "Allows an attribute `$this->propertyName` to be present in the request body, but does not require it. "
+                : "Requires an attribute `$this->propertyName` to be present in the request body.")
+            . 'If the property is present in the request body it will be passed to a callback, which is able to adjust the target entity or execute side effects.'
+            . ([] === $this->entityConditions
+                ? 'The target entity does not need to '
+                : 'The target entity must ')
+            . 'match additional conditions beside the ones defined by its type.';
+    }
 }

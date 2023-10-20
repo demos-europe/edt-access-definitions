@@ -140,6 +140,7 @@ class AuthorType implements
                     true
                 )],
             ],
+            []
         );
     }
 

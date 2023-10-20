@@ -20,4 +20,9 @@ interface PropertySetBehaviorInterface extends PropertyConstrainingInterface
      *               the one defined in the given entity data; `false` otherwise
      */
     public function executeBehavior(object $entity, EntityDataInterface $entityData): bool;
+
+    /**
+     * @return non-empty-string
+     */
+    public function getDescription(): string;
 }

@@ -23,5 +23,5 @@ interface RelationshipSetBehaviorFactoryInterface
      *
      * @return RelationshipSetBehaviorInterface<TCondition, TSorting, TEntity, TRelationship>
      */
-    public function createSetBehavior(string $name, array $propertyPath, string $entityClass, ResourceTypeInterface $relationshipType): RelationshipSetBehaviorInterface;
+    public function createRelationshipSetBehavior(string $name, array $propertyPath, string $entityClass, ResourceTypeInterface $relationshipType): RelationshipSetBehaviorInterface;
 }

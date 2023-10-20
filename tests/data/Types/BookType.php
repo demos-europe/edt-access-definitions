@@ -124,7 +124,7 @@ class BookType implements
 
     public function getUpdatability(): ResourceUpdatability
     {
-        return new ResourceUpdatability([], [], []);
+        return new ResourceUpdatability([], [], [], []);
     }
 
     public function getTypeName(): string

@@ -57,4 +57,23 @@ class PathToOneRelationshipSetBehavior extends AbstractToOneRelationshipSetBehav
 
         return false;
     }
+    public function getDescription(): string
+    {
+        $propertyPathString = implode('.', $this->propertyPath);
+        $relationshipType = $this->relationshipType->getTypeName();
+
+        return
+            ($this->optional
+                ? "Allows a to-one relationship `$this->propertyName` of type `$relationshipType` to be present in the request body, but does not require it. "
+                : "Requires a to-one relationship `$this->propertyName` of type `$relationshipType` to be present in the request body.")
+            . "The relationship will be stored in $this->entityClass::$propertyPathString. "
+            . ([] === $this->entityConditions
+                ? 'The entity does not need to '
+                : 'The entity must ')
+            . 'match additional conditions beside the ones defined by its type. '
+            . ([] === $this->relationshipConditions
+                ? 'The relationship do not need to '
+                : 'The relationship must ')
+            . 'match additional conditions beside the ones defined by its type.';
+    }
 }

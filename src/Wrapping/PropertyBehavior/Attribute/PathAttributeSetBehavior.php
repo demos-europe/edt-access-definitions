@@ -49,4 +49,19 @@ class PathAttributeSetBehavior extends AbstractAttributeSetBehavior
 
         return false;
     }
+
+    public function getDescription(): string
+    {
+        $propertyPathString = implode('.', $this->propertyPath);
+
+        return
+            ($this->optional
+                ? "Allows an attribute `$this->propertyName` to be present in the request body, but does not require it. "
+                : "Requires an attribute `$this->propertyName` to be present in the request body.")
+            . "The attribute will be stored in $this->entityClass::$propertyPathString. "
+            . ([] === $this->entityConditions
+                ? 'The entity does not need to '
+                : 'The entity must ')
+            . 'match additional conditions beside the ones defined by its type.';
+    }
 }

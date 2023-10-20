@@ -34,7 +34,7 @@ abstract class AbstractToOneRelationshipSetBehavior implements RelationshipSetBe
         protected readonly bool $optional
     ) {}
 
-    public function getEntityConditions(): array
+    public function getEntityConditions(EntityDataInterface $entityData): array
     {
         return $this->entityConditions;
     }
