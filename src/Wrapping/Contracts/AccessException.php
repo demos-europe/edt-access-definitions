@@ -16,7 +16,7 @@ class AccessException extends InvalidArgumentException
      * @param TType $type
      * @param non-empty-string $message
      */
-    protected function __construct(
+    public function __construct(
         protected readonly object $type,
         string $message,
         Throwable $previous = null
