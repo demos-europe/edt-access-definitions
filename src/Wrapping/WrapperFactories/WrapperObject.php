@@ -9,7 +9,6 @@ use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\AccessException;
 use EDT\Wrapping\Contracts\ContentField;
 use EDT\Wrapping\Contracts\PropertyAccessException;
-use EDT\Wrapping\Contracts\Types\ExposableRelationshipTypeInterface;
 use EDT\Wrapping\Contracts\Types\NamedTypeInterface;
 use EDT\Wrapping\Contracts\Types\PropertyReadableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
@@ -31,8 +30,6 @@ use function Safe\preg_match;
  * Instances will provide read and write access to specific properties of the given object.
  *
  * The properties allowed to be read depend on the return of {@link TransferableTypeInterface::getReadability()}.
- * Only those relationships will be readable whose target type return `true` in
- * {@link ExposableRelationshipTypeInterface::isExposedAsRelationship()}
  *
  * Returned relationships will be wrapped themselves inside {@link WrapperObject} instances.
  *

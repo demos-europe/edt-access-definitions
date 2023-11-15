@@ -14,7 +14,6 @@ use EDT\Querying\PropertyPaths\RelationshipLink;
 use EDT\Querying\Utilities\ConditionEvaluator;
 use EDT\Querying\Utilities\TableJoiner;
 use EDT\Wrapping\Contracts\TypeProviderInterface;
-use EDT\Wrapping\Contracts\Types\ExposableRelationshipTypeInterface;
 use EDT\Wrapping\Contracts\Types\FilteringTypeInterface;
 use EDT\Wrapping\Contracts\Types\SortingTypeInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
@@ -30,8 +29,7 @@ use Webmozart\Assert\Assert;
 class AuthorType implements
     TransferableTypeInterface,
     FilteringTypeInterface,
-    SortingTypeInterface,
-    ExposableRelationshipTypeInterface
+    SortingTypeInterface
 {
     public function __construct(
         protected readonly PathsBasedConditionFactoryInterface $conditionFactory,
@@ -101,11 +99,6 @@ class AuthorType implements
     public function getEntityClass(): string
     {
         return Person::class;
-    }
-
-    public function isExposedAsRelationship(): bool
-    {
-        return true;
     }
 
     public function getUpdatability(): ResourceUpdatability

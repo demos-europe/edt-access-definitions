@@ -17,7 +17,6 @@ use EDT\Querying\Utilities\Reindexer;
 use EDT\Querying\Utilities\Sorter;
 use EDT\Querying\Utilities\TableJoiner;
 use EDT\Wrapping\Contracts\TypeProviderInterface;
-use EDT\Wrapping\Contracts\Types\ExposableRelationshipTypeInterface;
 use EDT\Wrapping\Contracts\Types\FilteringTypeInterface;
 use EDT\Wrapping\Contracts\Types\SortingTypeInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
@@ -32,11 +31,8 @@ use Webmozart\Assert\Assert;
 class BookType implements
     TransferableTypeInterface,
     FilteringTypeInterface,
-    SortingTypeInterface,
-    ExposableRelationshipTypeInterface
+    SortingTypeInterface
 {
-    private bool $exposedAsRelationship = true;
-
     /**
      * @var array<non-empty-string, Book>
      */
@@ -115,11 +111,6 @@ class BookType implements
     public function getEntityClass(): string
     {
         return Book::class;
-    }
-
-    public function isExposedAsRelationship(): bool
-    {
-        return $this->exposedAsRelationship;
     }
 
     public function getUpdatability(): ResourceUpdatability
