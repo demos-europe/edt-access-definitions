@@ -20,12 +20,12 @@ use EDT\Wrapping\PropertyBehavior\Relationship\ToOne\CallbackToOneRelationshipSe
 class CallbackToOneRelationshipSetBehaviorFactory implements RelationshipSetBehaviorFactoryInterface
 {
     /**
-     * @var callable(TEntity, TRelationship|null): bool
+     * @var callable(TEntity, TRelationship|null): list<non-empty-string>
      */
     private $setBehaviorCallback;
 
     /**
-     * @param callable(TEntity, TRelationship|null): bool $setBehaviorCallback
+     * @param callable(TEntity, TRelationship|null): list<non-empty-string> $setBehaviorCallback
      * @param list<TCondition> $relationshipConditions
      * @param list<TCondition> $entityConditions
      */

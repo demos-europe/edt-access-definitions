@@ -19,7 +19,7 @@ class CallbackAttributeSetBehavior extends AbstractAttributeSetBehavior
     /**
      * @param non-empty-string $propertyName
      * @param list<TCondition> $entityConditions
-     * @param callable(TEntity, simple_primitive|array<int|string, mixed>|null): bool $setterCallback
+     * @param callable(TEntity, simple_primitive|array<int|string, mixed>|null): list<non-empty-string> $setterCallback
      */
     public function __construct(
         string $propertyName,
@@ -30,7 +30,7 @@ class CallbackAttributeSetBehavior extends AbstractAttributeSetBehavior
         parent::__construct($propertyName, $entityConditions, $optional);
     }
 
-    protected function updateAttributeValue(object $entity, mixed $value): bool
+    protected function updateAttributeValue(object $entity, mixed $value): array
     {
         $value = $this->assertValidValue($value);
         return ($this->setterCallback)($entity, $value);

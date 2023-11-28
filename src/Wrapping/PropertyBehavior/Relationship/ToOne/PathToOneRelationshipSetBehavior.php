@@ -45,7 +45,7 @@ class PathToOneRelationshipSetBehavior extends AbstractToOneRelationshipSetBehav
         return $this->relationshipType;
     }
 
-    public function updateToOneRelationship(object $entity, ?object $relationship): bool
+    public function updateToOneRelationship(object $entity, ?object $relationship): array
     {
         $propertyPath = $this->propertyPath;
         $propertyName = array_pop($propertyPath);
@@ -55,7 +55,7 @@ class PathToOneRelationshipSetBehavior extends AbstractToOneRelationshipSetBehav
         Assert::object($target);
         $this->propertyAccessor->setValue($target, $relationship, $propertyName);
 
-        return false;
+        return [];
     }
     public function getDescription(): string
     {

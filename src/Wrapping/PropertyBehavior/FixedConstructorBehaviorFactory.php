@@ -15,7 +15,7 @@ use EDT\Wrapping\PropertyBehavior\Relationship\RelationshipConstructorBehaviorFa
 class FixedConstructorBehaviorFactory implements RelationshipConstructorBehaviorFactoryInterface, ConstructorBehaviorFactoryInterface
 {
     /**
-     * @param callable(CreationDataInterface): mixed $callback
+     * @param callable(CreationDataInterface): array{mixed, list<non-empty-string>} $callback
      */
     public function __construct(
         protected readonly mixed $callback

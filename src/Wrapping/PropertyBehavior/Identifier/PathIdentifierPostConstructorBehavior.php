@@ -27,7 +27,7 @@ class PathIdentifierPostConstructorBehavior implements IdentifierPostConstructor
     ) {
     }
 
-    public function setIdentifier(object $entity, CreationDataInterface $entityData): bool
+    public function setIdentifier(object $entity, CreationDataInterface $entityData): array
     {
         $entityIdentifier = $entityData->getEntityIdentifier();
         if (null === $entityIdentifier) {
@@ -35,7 +35,7 @@ class PathIdentifierPostConstructorBehavior implements IdentifierPostConstructor
                 throw new \InvalidArgumentException('Entity identifier must be provided.');
             }
 
-            return false;
+            return [];
         }
 
         $propertyPath = $this->propertyPath;
@@ -47,7 +47,7 @@ class PathIdentifierPostConstructorBehavior implements IdentifierPostConstructor
 
         $this->propertyAccessor->setValue($target, $entityIdentifier, $propertyName);
 
-        return false;
+        return [];
     }
 
     public function getRequiredAttributes(): array

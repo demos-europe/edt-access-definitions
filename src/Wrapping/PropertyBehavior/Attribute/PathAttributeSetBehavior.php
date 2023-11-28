@@ -35,7 +35,7 @@ class PathAttributeSetBehavior extends AbstractAttributeSetBehavior
         parent::__construct($propertyName, $entityConditions, $optional);
     }
 
-    protected function updateAttributeValue(object $entity, mixed $value): bool
+    protected function updateAttributeValue(object $entity, mixed $value): array
     {
         $value = $this->assertValidValue($value);
 
@@ -47,7 +47,7 @@ class PathAttributeSetBehavior extends AbstractAttributeSetBehavior
         Assert::object($target);
         $this->propertyAccessor->setValue($target, $value, $propertyName);
 
-        return false;
+        return [];
     }
 
     public function getDescription(): string

@@ -19,7 +19,7 @@ class TestAttributeSetBehavior extends AbstractAttributeSetBehavior
         parent::__construct($propertyName, [], $optional);
     }
 
-    protected function updateAttributeValue(object $entity, mixed $value): bool
+    protected function updateAttributeValue(object $entity, mixed $value): array
     {
         $propertyPath = $this->propertyPath;
         $propertyName = array_pop($propertyPath);
@@ -29,7 +29,7 @@ class TestAttributeSetBehavior extends AbstractAttributeSetBehavior
         Assert::object($target);
         $this->propertyAccessor->setValue($target, $value, $propertyName);
 
-        return false;
+        return [];
     }
 
     public function getDescription(): string

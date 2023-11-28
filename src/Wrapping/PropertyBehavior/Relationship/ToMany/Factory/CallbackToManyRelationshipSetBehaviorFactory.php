@@ -20,12 +20,12 @@ use EDT\Wrapping\PropertyBehavior\Relationship\ToMany\CallbackToManyRelationship
 class CallbackToManyRelationshipSetBehaviorFactory implements RelationshipSetBehaviorFactoryInterface
 {
     /**
-     * @var callable(TEntity, list<TRelationship>): bool
+     * @var callable(TEntity, list<TRelationship>): list<non-empty-string>
      */
     private $setBehaviorCallback;
 
     /**
-     * @param callable(TEntity, list<TRelationship>): bool $setBehaviorCallback
+     * @param callable(TEntity, list<TRelationship>): list<non-empty-string> $setBehaviorCallback
      * @param list<TCondition> $relationshipConditions
      * @param list<TCondition> $entityConditions
      */

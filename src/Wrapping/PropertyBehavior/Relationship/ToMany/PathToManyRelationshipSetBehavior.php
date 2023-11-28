@@ -45,7 +45,7 @@ class PathToManyRelationshipSetBehavior extends AbstractToManyRelationshipSetBeh
         return $this->relationshipType;
     }
 
-    public function updateToManyRelationship(object $entity, array $relationships): bool
+    public function updateToManyRelationship(object $entity, array $relationships): array
     {
         $propertyPath = $this->propertyPath;
         $propertyName = array_pop($propertyPath);
@@ -55,7 +55,7 @@ class PathToManyRelationshipSetBehavior extends AbstractToManyRelationshipSetBeh
         Assert::object($target);
         $this->propertyAccessor->setValue($target, $relationships, $propertyName);
 
-        return false;
+        return [];
     }
 
     public function getDescription(): string

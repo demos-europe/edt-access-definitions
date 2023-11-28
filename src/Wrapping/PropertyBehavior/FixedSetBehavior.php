@@ -14,13 +14,13 @@ use EDT\Wrapping\EntityDataInterface;
 class FixedSetBehavior implements PropertySetBehaviorInterface
 {
     /**
-     * @param callable(TEntity, EntityDataInterface): bool $callback
+     * @param callable(TEntity, EntityDataInterface): list<non-empty-string> $callback
      */
     public function __construct(
         protected readonly mixed $callback
     ){}
 
-    public function executeBehavior(object $entity, EntityDataInterface $entityData): bool
+    public function executeBehavior(object $entity, EntityDataInterface $entityData): array
     {
         return ($this->callback)($entity, $entityData);
     }

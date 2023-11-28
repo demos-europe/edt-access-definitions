@@ -9,6 +9,7 @@ use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\CreationDataInterface;
 use EDT\Wrapping\PropertyBehavior\PropertyUpdaterTrait;
 use EDT\Wrapping\PropertyBehavior\Relationship\AbstractRelationshipConstructorBehavior;
+use InvalidArgumentException;
 use function array_key_exists;
 
 /**
@@ -19,12 +20,16 @@ use function array_key_exists;
  */
 class ToOneRelationshipConstructorBehavior extends AbstractRelationshipConstructorBehavior
 {
+    use PropertyUpdaterTrait;
+
     /**
+     * @template TRelationship of object
+     *
      * @param non-empty-string $argumentName
      * @param non-empty-string $propertyName
-     * @param TransferableTypeInterface<TCondition, TSorting, object> $relationshipType
+     * @param TransferableTypeInterface<TCondition, TSorting, TRelationship> $relationshipType
      * @param list<TCondition> $relationshipConditions
-     * @param null|callable(CreationDataInterface): (TransferableTypeInterface<TCondition, TSorting, object>|null) $fallback
+     * @param null|callable(CreationDataInterface): array{TRelationship|null, list<non-empty-string>} $fallback
      */
     public function __construct(
         string $argumentName,
@@ -36,12 +41,6 @@ class ToOneRelationshipConstructorBehavior extends AbstractRelationshipConstruct
         parent::__construct($argumentName, $propertyName, $relationshipType);
     }
 
-    use PropertyUpdaterTrait;
-
-    /**
-     * @param CreationDataInterface $entityData
-     * @return array<non-empty-string, object|null>
-     */
     public function getArguments(CreationDataInterface $entityData): array
     {
         $toOneRelationships = $entityData->getToOneRelationships();
@@ -51,15 +50,14 @@ class ToOneRelationshipConstructorBehavior extends AbstractRelationshipConstruct
                 $this->relationshipConditions,
                 $toOneRelationships[$this->propertyName]
             );
+            $propertyDeviations = [];
         } elseif (null !== $this->fallback) {
-            $relationshipValue = ($this->fallback)($entityData);
+            [$relationshipValue, $propertyDeviations] = ($this->fallback)($entityData);
         } else {
-            throw new \InvalidArgumentException("No to-one relationship '$this->propertyName' present and no fallback set.");
+            throw new InvalidArgumentException("No to-one relationship '$this->propertyName' present and no fallback set.");
         }
 
-        return [
-            $this->argumentName => $relationshipValue,
-        ];
+        return [$this->argumentName => [$relationshipValue, $propertyDeviations]];
     }
     
     public function getRequiredToOneRelationships(): array

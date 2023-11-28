@@ -89,12 +89,14 @@ class ResourceUpdatability extends AbstractResourceModifier
 
     /**
      * @param TEntity $entity
+     *
+     * @return list<non-empty-string>
      */
-    public function updateProperties(object $entity, EntityDataInterface $entityData): bool
+    public function updateProperties(object $entity, EntityDataInterface $entityData): array
     {
         $setabilities = $this->getRelevantSetabilities($entityData->getPropertyNames());
 
-        return $this->getSetabilitiesSideEffect($setabilities, $entity, $entityData);
+        return $this->getSetabilitiesRequestDeviations($setabilities, $entity, $entityData);
     }
 
     /**

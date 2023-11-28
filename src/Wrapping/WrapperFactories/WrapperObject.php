@@ -241,8 +241,10 @@ class WrapperObject
 
     /**
      * @param non-empty-string $propertyName
+     *
+     * @return list<non-empty-string>
      */
-    public function setAttribute(string $propertyName, mixed $value): bool
+    public function setAttribute(string $propertyName, mixed $value): array
     {
         $entityUpdatability = $this->type->getUpdatability();
         $entityData = $this->createAttributeEntityData($propertyName, $value);
@@ -256,12 +258,14 @@ class WrapperObject
      *
      * @param non-empty-string $propertyName
      * @param PropertyReadableTypeInterface<TCondition, TSorting, TRelationship>&NamedTypeInterface&EntityBasedInterface<TRelationship> $relationshipType
+     *
+     * @return list<non-empty-string>
      */
     public function setToOneRelationship(
         string $propertyName,
         ?object $relationship,
         PropertyReadableTypeInterface&NamedTypeInterface&EntityBasedInterface $relationshipType
-    ): bool {
+    ): array {
         $entityUpdatability = $this->type->getUpdatability();
 
         $relationshipClass = $relationshipType->getEntityClass();
@@ -277,12 +281,14 @@ class WrapperObject
      * @param non-empty-string $propertyName
      * @param list<TRelationship> $values
      * @param PropertyReadableTypeInterface<TCondition, TSorting, TRelationship>&NamedTypeInterface&EntityBasedInterface<TRelationship> $relationshipType
+     *
+     * @return list<non-empty-string>
      */
     public function setToManyRelationship(
         string $propertyName,
         array $values,
         PropertyReadableTypeInterface&NamedTypeInterface&EntityBasedInterface $relationshipType
-    ): bool {
+    ): array {
         $entityUpdatability = $this->type->getUpdatability();
 
         // create entity data
@@ -311,8 +317,10 @@ class WrapperObject
 
     /**
      * @param ResourceUpdatability<TCondition, TSorting, TEntity> $updatability
+     *
+     * @return list<non-empty-string>
      */
-    protected function updateEntity(ResourceUpdatability $updatability, EntityData $entityData): bool
+    protected function updateEntity(ResourceUpdatability $updatability, EntityData $entityData): array
     {
         $relevantEntityConditions = $updatability->getEntityConditions($entityData);
         $this->type->assertMatchingEntity($this->entity, $relevantEntityConditions);
@@ -418,7 +426,7 @@ class WrapperObject
      *
      * @param non-empty-string $methodName
      *
-     * @return array{0: 'set'|'get', 1: non-empty-string}
+     * @return array{'set'|'get', non-empty-string}
      *
      * @throws AccessException
      * @throws InvalidArgumentException

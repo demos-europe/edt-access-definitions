@@ -16,10 +16,10 @@ interface PropertySetBehaviorInterface extends PropertyConstrainingInterface
     /**
      * @param TEntity $entity must match all conditions in {@link self::getEntityConditions()}
      *
-     * @return bool `true` if the execution had side effects, i.e. it changed properties other than
-     *               the one defined in the given entity data; `false` otherwise
+     * @return list<non-empty-string> non-empty if the execution did not change any properties in a different way than requested;
+     *                                otherwise it will contain the names of the properties that were not adjusted according to the request
      */
-    public function executeBehavior(object $entity, EntityDataInterface $entityData): bool;
+    public function executeBehavior(object $entity, EntityDataInterface $entityData): array;
 
     /**
      * @return non-empty-string

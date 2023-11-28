@@ -6,7 +6,6 @@ namespace EDT\Wrapping\PropertyBehavior\Relationship\ToOne\Factory;
 
 use EDT\JsonApi\ResourceTypes\ResourceTypeInterface;
 use EDT\Querying\Contracts\PathsBasedInterface;
-use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\CreationDataInterface;
 use EDT\Wrapping\PropertyBehavior\ConstructorBehaviorInterface;
 use EDT\Wrapping\PropertyBehavior\Relationship\RelationshipConstructorBehaviorFactoryInterface;
@@ -22,7 +21,7 @@ class ToOneRelationshipConstructorBehaviorFactory implements RelationshipConstru
     /**
      * @param non-empty-string|null $argumentName
      * @param list<TCondition> $relationshipConditions
-     * @param null|callable(CreationDataInterface): (TransferableTypeInterface<TCondition, PathsBasedInterface, object>|null) $fallback
+     * @param null|callable(CreationDataInterface): array{object|null, list<non-empty-string>} $fallback
      */
     public function __construct(
         protected readonly ?string $argumentName,

@@ -10,17 +10,18 @@ class FixedConstructorBehavior implements ConstructorBehaviorInterface
 {
     /**
      * @param non-empty-string $argumentName
-     * @param callable(CreationDataInterface): mixed $callback
+     * @param callable(CreationDataInterface): array{mixed, list<non-empty-string>} $callback
      */
     public function __construct(
         protected readonly string $argumentName,
         protected readonly mixed $callback
     ){}
 
-
     public function getArguments(CreationDataInterface $entityData): array
     {
-        return [$this->argumentName => ($this->callback)($entityData)];
+        [$argument, $deviatingProperties] = ($this->callback)($entityData);
+
+        return [$this->argumentName => [$argument, $deviatingProperties]];
     }
 
     public function getRequiredAttributes(): array

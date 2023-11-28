@@ -49,14 +49,14 @@ abstract class AbstractToOneRelationshipSetBehavior implements RelationshipSetBe
      * @param TEntity $entity
      * @param TRelationship|null $relationship
      *
-     * @return bool `true` if the update had side effects, i.e. it changed properties other than
-     *              the one this instance corresponds to; `false` otherwise
+     * @return list<non-empty-string> non-empty if the update had side effects, i.e. it changed properties other than
+     *               the one this instance corresponds to; empty otherwise
      *
      * @throws Exception
      */
-    abstract protected function updateToOneRelationship(object $entity, ?object $relationship): bool;
+    abstract protected function updateToOneRelationship(object $entity, ?object $relationship): array;
 
-    public function executeBehavior(object $entity, EntityDataInterface $entityData): bool
+    public function executeBehavior(object $entity, EntityDataInterface $entityData): array
     {
         $requestRelationships = $entityData->getToOneRelationships();
         $relationshipReference = $requestRelationships[$this->propertyName];

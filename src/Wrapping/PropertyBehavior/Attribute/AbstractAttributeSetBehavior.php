@@ -42,14 +42,14 @@ abstract class AbstractAttributeSetBehavior implements PropertyUpdatabilityInter
      *
      * @param TEntity $entity
      *
-     * @return bool `true` if the update had side effects, i.e. it changed properties other than
-     *              the one this instance corresponds to; `false` otherwise
+     * @return list<non-empty-string> non-empty if the update had side effects, i.e. it changed properties other than
+     *              the one this instance corresponds to; otherwise a list containing these properties
      *
      * @throws Exception
      */
-    abstract protected function updateAttributeValue(object $entity, mixed $value): bool;
+    abstract protected function updateAttributeValue(object $entity, mixed $value): array;
 
-    public function executeBehavior(object $entity, EntityDataInterface $entityData): bool
+    public function executeBehavior(object $entity, EntityDataInterface $entityData): array
     {
         $attributes = $entityData->getAttributes();
         if (array_key_exists($this->propertyName, $attributes)) {
@@ -60,7 +60,7 @@ abstract class AbstractAttributeSetBehavior implements PropertyUpdatabilityInter
 
         Assert::true($this->optional, "No value present for non-optional attribute `$this->propertyName`.");
 
-        return false;
+        return [];
     }
 
     public function getRequiredAttributes(): array

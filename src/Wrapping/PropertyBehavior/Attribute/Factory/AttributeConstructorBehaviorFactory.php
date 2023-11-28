@@ -13,7 +13,7 @@ class AttributeConstructorBehaviorFactory implements ConstructorBehaviorFactoryI
 {
     /**
      * @param non-empty-string|null $argumentName
-     * @param null|callable(CreationDataInterface): mixed $fallback
+     * @param null|callable(CreationDataInterface): array{mixed, list<non-empty-string>} $fallback
      */
     public function __construct(
         protected readonly ?string $argumentName,

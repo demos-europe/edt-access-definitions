@@ -9,11 +9,12 @@ use EDT\Wrapping\CreationDataInterface;
 use EDT\Wrapping\PropertyBehavior\ConstructorBehaviorInterface;
 use EDT\Wrapping\PropertyBehavior\Identifier\IdentifierPostConstructorBehaviorInterface;
 use EDT\Wrapping\PropertyBehavior\PropertySetBehaviorInterface;
+use EDT\Wrapping\Utilities\ConstructorArgumentLookupList;
 use InvalidArgumentException;
 use ReflectionClass;
+use ReflectionException;
 use ReflectionMethod;
 use ReflectionParameter;
-use Webmozart\Assert\Assert;
 use function array_key_exists;
 
 /**
@@ -48,28 +49,31 @@ class ResourceInstantiability extends AbstractResourceModifier
     }
 
     /**
-     * @return TEntity
+     * @return array{TEntity, list<non-empty-string>}
      */
-    public function initializeEntity(CreationDataInterface $entityData): object
+    public function initializeEntity(CreationDataInterface $entityData): array
     {
-        $constructorArguments = $this->getConstructorArguments($entityData);
+        $lookupTable = $this->createLookupTable($entityData);
+        [$arguments, $deviations] = $this->getConstructorArguments($lookupTable);
+        $entity = new $this->entityClass(...$arguments);
 
-        return new $this->entityClass(...$constructorArguments);
+        return [$entity, $deviations];
     }
 
     /**
      * @param TEntity $entity
+     *
+     * @return list<non-empty-string>
      */
-    public function fillProperties(object $entity, CreationDataInterface $entityData): bool
+    public function fillProperties(object $entity, CreationDataInterface $entityData): array
     {
-        $idSideEffect = false;
-
+        $nestedIdRequestDeviations = [];
         // if a specific ID was provided, check if it can be set either via constructor
         // parameter or post instantiation setter, if not throw an exception
         if (null !== $entityData->getEntityIdentifier()) {
             if ([] !== $this->identifierPostConstructorBehaviors) {
                 foreach ($this->identifierPostConstructorBehaviors as $identifierPostConstructorBehavior) {
-                    $idSideEffect = $identifierPostConstructorBehavior->setIdentifier($entity, $entityData) || $idSideEffect;
+                    $nestedIdRequestDeviations[] = $identifierPostConstructorBehavior->setIdentifier($entity, $entityData);
                 }
             } elseif (!array_key_exists(ContentField::ID, $this->propertyConstructorBehaviors)) {
                 // TODO: MUST return 403 Forbidden (https://jsonapi.org/format/#crud-creating-client-ids)
@@ -79,10 +83,10 @@ class ResourceInstantiability extends AbstractResourceModifier
 
         $flattenedPostConstructorBehaviors = $this->getFlattenedValues($this->propertyPostConstructorBehaviors);
         $flattenedPostConstructorBehaviors = array_merge($this->generalPostConstructorBehaviors, $flattenedPostConstructorBehaviors);
-        $propertySideEffects = $this
-            ->getSetabilitiesSideEffect($flattenedPostConstructorBehaviors, $entity, $entityData);
+        $requestDeviations = $this
+            ->getSetabilitiesRequestDeviations($flattenedPostConstructorBehaviors, $entity, $entityData);
 
-        return $idSideEffect && $propertySideEffects;
+        return array_unique(array_merge($requestDeviations, ...$nestedIdRequestDeviations));
     }
 
     protected function getParameterConstrains(): array
@@ -125,82 +129,91 @@ class ResourceInstantiability extends AbstractResourceModifier
     }
 
     /**
-     * @return list<mixed>
+     * @return array{list<mixed>, list<non-empty-string>}
+     * @throws ReflectionException
      */
-    protected function getConstructorArguments(CreationDataInterface $entityData): array
+    protected function getConstructorArguments(ConstructorArgumentLookupList $lookupTable): array
     {
-        $lookupTable = $this->createLookupTable($entityData);
-
         // loop through all constructor arguments of the corresponding entity and
         // determine a value to be used if possible
-        return array_map(
-            static fn (
+        $constructorArgumentsWithDeviatingProperties = array_map(
+            static function (
                 ReflectionParameter $reflectionParameter
-            ): mixed => $lookupTable[$reflectionParameter->getName()] ?? (
+            ) use ($lookupTable): array {
+                $argumentName = $reflectionParameter->getName();
+                if ($lookupTable->hasArgument($argumentName)) {
+                    return $lookupTable->getArgument($argumentName);
+                }
+
                 // if no constructor parameter was given, try to fall back to default values
-                $reflectionParameter->isDefaultValueAvailable()
+                $defaultValue = $reflectionParameter->isDefaultValueAvailable()
                     ? $reflectionParameter->getDefaultValue()
-                    : throw new InvalidArgumentException("Missing constructor parameter value: `{$reflectionParameter->getName()}`")
-            ),
+                    : throw new InvalidArgumentException("Missing constructor parameter value: `{$reflectionParameter->getName()}`");
+
+                return [$defaultValue, []];
+            },
             $this->reflectionConstructorParameters
         );
+        $constructorArguments = array_column($constructorArgumentsWithDeviatingProperties, 0);
+        $requestDeviations = array_column($constructorArgumentsWithDeviatingProperties, 1);
+        $requestDeviations = array_unique(array_merge(...$requestDeviations));
+
+        return [$constructorArguments, $requestDeviations];
     }
 
     /**
-     * @return array<non-empty-string, mixed>
+     * @param CreationDataInterface $entityData
      */
-    protected function createLookupTable(CreationDataInterface $entityData): array
+    protected function createLookupTable(CreationDataInterface $entityData): ConstructorArgumentLookupList
     {
-        $relevantProperties = array_flip($entityData->getPropertyNames());
-        $relevantPropertyConstructorBehaviors = array_merge(
-            ...array_intersect_key($this->propertyConstructorBehaviors, $relevantProperties)
-        );
+        $relevantPropertyConstructorBehaviors = $this->getRelevantPropertyConstructorBehaviors($entityData);
 
-        $propertyConstructorArgumentLists = $this->calculateConstructorArguments($relevantPropertyConstructorBehaviors, $entityData);
-        $propertyLookupTable = $this->reduceConstructorArguments($propertyConstructorArgumentLists);
+        $propertyLookupTable = $this->calculateConstructorArguments($relevantPropertyConstructorBehaviors, $entityData);
+        $generalLookupTable = $this->calculateConstructorArguments($this->generalConstructorBehaviors, $entityData);
 
-        $generalConstructorArgumentLists = $this->calculateConstructorArguments($this->generalConstructorBehaviors, $entityData);
-        $generalLookupTable = $this->reduceConstructorArguments($generalConstructorArgumentLists);
-
-        // constructor arguments from a general constructor behavior are only used for arguments that
-        // are not already defined by constructor arguments from property constructor behaviors
-        return array_merge($generalLookupTable, $propertyLookupTable);
-    }
-
-    /**
-     * @param list<array<non-empty-string, mixed>> $constructorArgumentLists
-     *
-     * @return array<non-empty-string, mixed>
-     */
-    protected function reduceConstructorArguments(array $constructorArgumentLists): array
-    {
-        $propertyLookupTable = [];
-        foreach ($constructorArgumentLists as $constructorArguments) {
-            foreach ($constructorArguments as $argumentName => $constructorArgument) {
-                Assert::keyNotExists($propertyLookupTable, $argumentName);
-                $propertyLookupTable[$argumentName] = $constructorArgument;
-            }
-        }
+        $propertyLookupTable->addFallbacks($generalLookupTable);
 
         return $propertyLookupTable;
+    }
+
+    /**
+     * Returns all {@link self::$propertyConstructorBehaviors} which are connected to property names that are present
+     * in the given entity data.
+     *
+     * @return list<ConstructorBehaviorInterface>
+     */
+    protected function getRelevantPropertyConstructorBehaviors(CreationDataInterface $entityData): array
+    {
+        $relevantProperties = array_flip($entityData->getPropertyNames());
+
+        return array_merge(
+            ...array_intersect_key($this->propertyConstructorBehaviors, $relevantProperties)
+        );
     }
 
     /**
      * Will provide each constructor parameter behavior instance with the given entity data.
      *
      * The result will be a mapping from a resource property name to an associative list of constructor arguments.
-     * I.e. the result may contain conflicting values or may not cover all required constructor arguments, if the
+     * The result may contain invalid argument value types or not cover all required constructor arguments, if the
      * configuration contains mistakes.
      *
      * @param list<ConstructorBehaviorInterface> $constructorBehaviors
-     *
-     * @return list<array<non-empty-string, mixed>>
      */
-    protected function calculateConstructorArguments(array $constructorBehaviors, CreationDataInterface $entityData): array
+    public function calculateConstructorArguments(array $constructorBehaviors, CreationDataInterface $entityData): ConstructorArgumentLookupList
     {
-        return array_map(
-            static fn(ConstructorBehaviorInterface $constructorBehavior): array => $constructorBehavior->getArguments($entityData),
+        $nestedArguments = array_map(
+            static fn(ConstructorBehaviorInterface $behavior): array => $behavior->getArguments($entityData),
             $constructorBehaviors
         );
+
+        $list = new ConstructorArgumentLookupList();
+        foreach ($nestedArguments as $arguments) {
+            foreach ($arguments as $name => [$value, $deviations]) {
+                $list->add($name, $value, $deviations);
+            }
+        }
+
+        return $list;
     }
 }

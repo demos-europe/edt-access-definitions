@@ -22,7 +22,7 @@ class CallbackToManyRelationshipSetBehavior extends AbstractToManyRelationshipSe
      * @param list<TCondition> $entityConditions
      * @param list<TCondition> $relationshipConditions
      * @param TransferableTypeInterface<TCondition, TSorting, TRelationship> $relationshipType
-     * @param callable(TEntity, list<TRelationship>): bool $setterCallback
+     * @param callable(TEntity, list<TRelationship>): list<non-empty-string> $setterCallback
      */
     public function __construct(
         string $propertyName,
@@ -40,7 +40,7 @@ class CallbackToManyRelationshipSetBehavior extends AbstractToManyRelationshipSe
         return $this->relationshipType;
     }
 
-    public function updateToManyRelationship(object $entity, array $relationships): bool
+    public function updateToManyRelationship(object $entity, array $relationships): array
     {
         return ($this->setterCallback)($entity, $relationships);
     }

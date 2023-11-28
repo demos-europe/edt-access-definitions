@@ -49,14 +49,14 @@ abstract class AbstractToManyRelationshipSetBehavior implements RelationshipSetB
      * @param TEntity $entity
      * @param list<TRelationship> $relationships
      *
-     * @return bool `true` if the update had side effects, i.e. it changed properties other than
-     *              the one this instance corresponds to; `false` otherwise
+     * @return list<non-empty-string> non-empty if the update had side effects, i.e. it changed properties other than
+     *              the one this instance corresponds to; empty otherwise
      *
      * @throws Exception
      */
-    abstract protected function updateToManyRelationship(object $entity, array $relationships): bool;
+    abstract protected function updateToManyRelationship(object $entity, array $relationships): array;
 
-    public function executeBehavior(object $entity, EntityDataInterface $entityData): bool
+    public function executeBehavior(object $entity, EntityDataInterface $entityData): array
     {
         $requestRelationships = $entityData->getToManyRelationships();
         $relationshipReferences = $requestRelationships[$this->propertyName];

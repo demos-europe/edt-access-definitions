@@ -21,17 +21,12 @@ class DataProvidedIdentifierConstructorBehavior implements ConstructorBehaviorIn
         protected readonly string $argumentName
     ) {}
 
-    /**
-     * @return array<non-empty-string, non-empty-string>
-     */
     public function getArguments(CreationDataInterface $entityData): array
     {
         $entityIdentifier = $entityData->getEntityIdentifier();
         Assert::stringNotEmpty($entityIdentifier);
 
-        return [
-            $this->argumentName => $entityIdentifier,
-        ];
+        return [$this->argumentName => [$entityIdentifier, []]];
     }
 
     public function getRequiredAttributes(): array

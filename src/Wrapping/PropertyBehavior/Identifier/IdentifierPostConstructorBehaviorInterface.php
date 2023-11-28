@@ -14,6 +14,8 @@ interface IdentifierPostConstructorBehaviorInterface extends PropertyConstrainin
 {
     /**
      * @param TEntity $entity
+     *
+     * @return list<non-empty-string>
      */
-    public function setIdentifier(object $entity, CreationDataInterface $entityData): bool;
+    public function setIdentifier(object $entity, CreationDataInterface $entityData): array;
 }

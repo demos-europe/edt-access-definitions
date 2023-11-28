@@ -23,7 +23,7 @@ class CallbackToOneRelationshipSetBehavior extends AbstractToOneRelationshipSetB
      * @param list<TCondition> $entityConditions
      * @param list<TCondition> $relationshipConditions
      * @param TransferableTypeInterface<TCondition, TSorting, TRelationship> $relationshipType
-     * @param callable(TEntity, TRelationship|null): bool $setterCallback
+     * @param callable(TEntity, TRelationship|null): list<non-empty-string> $setterCallback
      */
     public function __construct(
         string $propertyName,
@@ -41,7 +41,7 @@ class CallbackToOneRelationshipSetBehavior extends AbstractToOneRelationshipSetB
         return $this->relationshipType;
     }
 
-    public function updateToOneRelationship(object $entity, ?object $relationship): bool
+    public function updateToOneRelationship(object $entity, ?object $relationship): array
     {
         return ($this->setterCallback)($entity, $relationship);
     }

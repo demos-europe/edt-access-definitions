@@ -20,7 +20,7 @@ interface ConstructorBehaviorInterface extends PropertyConstrainingInterface
      * The values in the returned array will be directly passed as constructor argument
      * that correspond to the matching array key (i.e. the argument name).
      *
-     * @return array<non-empty-string, mixed>
+     * @return array<non-empty-string, array{mixed, list<non-empty-string>}>
      */
     public function getArguments(CreationDataInterface $entityData): array;
 }

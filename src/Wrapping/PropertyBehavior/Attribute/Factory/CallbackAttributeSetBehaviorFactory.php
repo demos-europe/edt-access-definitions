@@ -18,13 +18,13 @@ use EDT\Wrapping\PropertyBehavior\PropertyUpdatabilityInterface;
 class CallbackAttributeSetBehaviorFactory implements PropertyUpdatabilityFactoryInterface
 {
     /**
-     * @var callable(TEntity, simple_primitive|array<int|string, mixed>|null): bool
+     * @var callable(TEntity, simple_primitive|array<int|string, mixed>|null): list<non-empty-string>
      */
     private $updateCallback;
 
     /**
      * @param list<TCondition> $entityConditions
-     * @param callable(TEntity, simple_primitive|array<int|string, mixed>|null): bool $updateCallback
+     * @param callable(TEntity, simple_primitive|array<int|string, mixed>|null): list<non-empty-string> $updateCallback
      */
     public function __construct(
         protected readonly array $entityConditions,

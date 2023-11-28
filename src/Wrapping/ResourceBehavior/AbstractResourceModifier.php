@@ -107,21 +107,17 @@ abstract class AbstractResourceModifier
      *
      * @param list<PropertySetBehaviorInterface<TEnt>> $setBehaviors
      * @param TEnt $entity
+     *
+     * @return list<non-empty-string>
      */
-    protected function getSetabilitiesSideEffect(array $setBehaviors, object $entity, EntityDataInterface $entityData): bool
+    protected function getSetabilitiesRequestDeviations(array $setBehaviors, object $entity, EntityDataInterface $entityData): array
     {
-        $nestedSideEffects = array_map(
-            static fn (PropertySetBehaviorInterface $setBehavior): bool => $setBehavior->executeBehavior($entity, $entityData),
+        $nestedRequestDeviations = array_map(
+            static fn (PropertySetBehaviorInterface $setBehavior): array => $setBehavior->executeBehavior($entity, $entityData),
             $setBehaviors
         );
 
-        foreach ($nestedSideEffects as $sideEffect) {
-            if ($sideEffect) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_unique(array_merge(...$nestedRequestDeviations));
     }
 
     /**

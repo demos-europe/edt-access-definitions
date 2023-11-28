@@ -22,7 +22,7 @@ class ToManyRelationshipConstructorBehaviorFactory implements RelationshipConstr
     /**
      * @param non-empty-string|null $argumentName will fall back to the property name if `null`
      * @param list<TCondition> $relationshipConditions
-     * @param null|callable(CreationDataInterface): list<TransferableTypeInterface<TCondition, PathsBasedInterface, object>> $fallback if `null` the property will be set to be required in the request, otherwise will be used if no value was provided in the request
+     * @param null|callable(CreationDataInterface): array{list<object>, list<non-empty-string>} $fallback if `null` the property will be set to be required in the request, otherwise will be used if no value was provided in the request
      */
     public function __construct(
         protected readonly ?string $argumentName,
