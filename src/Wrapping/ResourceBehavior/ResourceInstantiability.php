@@ -161,9 +161,6 @@ class ResourceInstantiability extends AbstractResourceModifier
         return [$constructorArguments, $requestDeviations];
     }
 
-    /**
-     * @param CreationDataInterface $entityData
-     */
     protected function createLookupTable(CreationDataInterface $entityData): ConstructorArgumentLookupList
     {
         $relevantPropertyConstructorBehaviors = $this->getRelevantPropertyConstructorBehaviors($entityData);
@@ -187,7 +184,7 @@ class ResourceInstantiability extends AbstractResourceModifier
         $relevantProperties = array_flip($entityData->getPropertyNames());
 
         return array_merge(
-            ...array_intersect_key($this->propertyConstructorBehaviors, $relevantProperties)
+            ...array_values(array_intersect_key($this->propertyConstructorBehaviors, $relevantProperties))
         );
     }
 

@@ -24,7 +24,7 @@ class ConstructorArgumentLookupList
     public function add(string $argumentName, mixed $value, array $propertyDeviations): void
     {
         Assert::keyNotExists($this->arguments, $argumentName);
-        $this->arguments[$argumentName][] = [$value, $propertyDeviations];
+        $this->arguments[$argumentName] = [$value, $propertyDeviations];
     }
 
     /**

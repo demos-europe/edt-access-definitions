@@ -6,6 +6,7 @@ namespace EDT\Wrapping\PropertyBehavior;
 
 use InvalidArgumentException;
 use Webmozart\Assert\Assert;
+use function is_array;
 
 trait EntityVerificationTrait
 {
@@ -44,7 +45,10 @@ trait EntityVerificationTrait
      */
     protected function assertValidToManyValue(mixed $entities, string $entityClass): array
     {
-        Assert::isArray($entities);
+        if (!is_array($entities)) {
+            Assert::isIterable($entities);
+            $entities = iterator_to_array($entities);
+        }
         Assert::allIsInstanceOf($entities, $entityClass);
 
         // Checks above are not yet understood by phpstan, adding manual checks that can be removed
