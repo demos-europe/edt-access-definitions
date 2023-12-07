@@ -12,6 +12,8 @@ use EDT\Querying\Contracts\PropertyAccessorInterface;
 use EDT\Querying\PropertyPaths\NonRelationshipLink;
 use EDT\Querying\PropertyPaths\RelationshipLink;
 use EDT\Querying\Utilities\ConditionEvaluator;
+use EDT\Querying\Utilities\Reindexer;
+use EDT\Querying\Utilities\Sorter;
 use EDT\Querying\Utilities\TableJoiner;
 use EDT\Wrapping\Contracts\TypeProviderInterface;
 use EDT\Wrapping\Contracts\Types\FilteringTypeInterface;
@@ -23,7 +25,7 @@ use EDT\Wrapping\PropertyBehavior\Relationship\ToMany\PathToManyRelationshipRead
 use EDT\Wrapping\PropertyBehavior\Relationship\ToMany\PathToManyRelationshipSetBehavior;
 use EDT\Wrapping\ResourceBehavior\ResourceReadability;
 use EDT\Wrapping\ResourceBehavior\ResourceUpdatability;
-use Tests\data\Model\Person;
+use Tests\data\AdModel\Person;
 use Webmozart\Assert\Assert;
 
 class AuthorType implements
@@ -175,7 +177,9 @@ class AuthorType implements
 
     public function reindexEntities(array $entities, array $conditions, array $sortMethods): array
     {
-        throw new \RuntimeException();
+        $tableJoiner = new TableJoiner($this->propertyAccessor);
+        $reindexer = new Reindexer(new ConditionEvaluator($tableJoiner), new Sorter($tableJoiner));
+        return $reindexer->reindexEntities($entities, $conditions, $sortMethods);
     }
 
     public function getEntityForRelationship(string $identifier, array $conditions): object

@@ -51,7 +51,7 @@ class PathToManyRelationshipReadability implements ToManyRelationshipReadability
 
     public function getValue(object $entity, array $conditions, array $sortMethods): array
     {
-        $relationshipEntities = $this->propertyAccessor->getValueByPropertyPath($entity, ...$this->propertyPath);
+        $relationshipEntities = $this->propertyAccessor->getValuesByPropertyPath($entity, 1, $this->propertyPath);
         $relationshipClass = $this->relationshipType->getEntityClass();
         $relationshipEntities = $this->assertValidToManyValue($relationshipEntities, $relationshipClass);
 

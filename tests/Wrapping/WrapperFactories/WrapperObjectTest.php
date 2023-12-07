@@ -11,12 +11,12 @@ use EDT\Wrapping\Contracts\AccessException;
 use EDT\Wrapping\TypeProviders\LazyTypeProvider;
 use EDT\Wrapping\TypeProviders\PrefilledTypeProvider;
 use EDT\Wrapping\WrapperFactories\WrapperObject;
+use Tests\data\AdModelBasedTest;
 use Tests\data\Types\AuthorType;
 use Tests\data\Types\BirthType;
 use Tests\data\Types\BookType;
-use Tests\ModelBasedTest;
 
-class WrapperObjectTest extends ModelBasedTest
+class WrapperObjectTest extends AdModelBasedTest
 {
     private AuthorType $authorType;
     private BookType $bookType;

@@ -25,7 +25,7 @@ use EDT\Wrapping\PropertyBehavior\Identifier\PathIdentifierReadability;
 use EDT\Wrapping\PropertyBehavior\Relationship\ToOne\PathToOneRelationshipReadability;
 use EDT\Wrapping\ResourceBehavior\ResourceReadability;
 use EDT\Wrapping\ResourceBehavior\ResourceUpdatability;
-use Tests\data\Model\Book;
+use Tests\data\AdModel\Book;
 use Webmozart\Assert\Assert;
 
 class BookType implements

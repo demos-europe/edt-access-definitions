@@ -49,7 +49,6 @@ class CallbackToManyRelationshipReadability implements ToManyRelationshipReadabi
     public function getValue(object $entity, array $conditions, array $sortMethods): array
     {
         $relationshipEntities = ($this->readCallback)($entity);
-
         $relationshipClass = $this->relationshipType->getEntityClass();
         $relationshipEntities = $this->assertValidToManyValue($relationshipEntities, $relationshipClass);
 

@@ -10,6 +10,7 @@ class Person
      * @param list<Book> $books
      */
     public function __construct(
+        protected string $id,
         protected string $name,
         protected ?string $pseudonym,
         protected Birth $birth,
@@ -27,5 +28,10 @@ class Person
     public function getBooks(): iterable
     {
         return $this->books;
+    }
+
+    public function getId(): string
+    {
+        return $this->id;
     }
 }

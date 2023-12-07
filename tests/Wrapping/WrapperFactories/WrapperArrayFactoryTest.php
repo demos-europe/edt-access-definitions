@@ -19,14 +19,14 @@ use EDT\Wrapping\Utilities\SchemaPathProcessor;
 use EDT\Wrapping\WrapperFactories\WrapperArrayFactory;
 use EDT\Querying\ObjectProviders\PrefilledEntityProvider;
 use EDT\Wrapping\TypeProviders\PrefilledTypeProvider;
-use Tests\data\Model\Person;
+use Tests\data\AdModel\Person;
+use Tests\data\AdModelBasedTest;
 use Tests\data\Types\BirthType;
-use Tests\ModelBasedTest;
 use Tests\data\Types\AuthorType;
 use Tests\data\Types\BookType;
 use Webmozart\Assert\Assert;
 
-class WrapperArrayFactoryTest extends ModelBasedTest
+class WrapperArrayFactoryTest extends AdModelBasedTest
 {
     private AuthorType $authorType;
 
