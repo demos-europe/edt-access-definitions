@@ -82,7 +82,7 @@ class ResourceInstantiability extends AbstractResourceModifier
      */
     public function setIdentifier(object $entity, CreationDataInterface $entityData): ?array
     {
-        if (null !== $entityData->getEntityIdentifier()) {
+        if (null === $entityData->getEntityIdentifier()) {
             return null;
         }
 
