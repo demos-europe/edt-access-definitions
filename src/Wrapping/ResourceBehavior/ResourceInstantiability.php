@@ -67,26 +67,39 @@ class ResourceInstantiability extends AbstractResourceModifier
      */
     public function fillProperties(object $entity, CreationDataInterface $entityData): array
     {
-        $nestedIdRequestDeviations = [];
-        // if a specific ID was provided, check if it can be set either via constructor
-        // parameter or post instantiation setter, if not throw an exception
-        if (null !== $entityData->getEntityIdentifier()) {
-            if ([] !== $this->identifierPostConstructorBehaviors) {
-                foreach ($this->identifierPostConstructorBehaviors as $identifierPostConstructorBehavior) {
-                    $nestedIdRequestDeviations[] = $identifierPostConstructorBehavior->setIdentifier($entity, $entityData);
-                }
-            } elseif (!array_key_exists(ContentField::ID, $this->propertyConstructorBehaviors)) {
-                // TODO: MUST return 403 Forbidden (https://jsonapi.org/format/#crud-creating-client-ids)
-                throw new InvalidArgumentException('Value for `id` field was provided in request, but no setup to handle it exists.');
-            }
-        }
-
         $flattenedPostConstructorBehaviors = $this->getFlattenedValues($this->propertyPostConstructorBehaviors);
         $flattenedPostConstructorBehaviors = array_merge($this->generalPostConstructorBehaviors, $flattenedPostConstructorBehaviors);
         $requestDeviations = $this
             ->getSetabilitiesRequestDeviations($flattenedPostConstructorBehaviors, $entity, $entityData);
 
-        return array_unique(array_merge($requestDeviations, ...$nestedIdRequestDeviations));
+        return array_unique($requestDeviations);
+    }
+
+    /**
+     * @param TEntity $entity
+     *
+     * @return list<non-empty-string>|null  a list of properties that were set differently than requested, due to the presence of the ID in the request; `null` if the ID was not present in the request
+     */
+    public function setIdentifier(object $entity, CreationDataInterface $entityData): ?array
+    {
+        if (null !== $entityData->getEntityIdentifier()) {
+            return null;
+        }
+
+        // if a specific ID was provided, check if it can be set either via constructor
+        // parameter or post instantiation setter, if not throw an exception
+
+        $nestedIdRequestDeviations = [];
+        if ([] !== $this->identifierPostConstructorBehaviors) {
+            foreach ($this->identifierPostConstructorBehaviors as $identifierPostConstructorBehavior) {
+                $nestedIdRequestDeviations[] = $identifierPostConstructorBehavior->setIdentifier($entity, $entityData);
+            }
+        } elseif (!array_key_exists(ContentField::ID, $this->propertyConstructorBehaviors)) {
+            // TODO: MUST return 403 Forbidden (https://jsonapi.org/format/#crud-creating-client-ids)
+            throw new InvalidArgumentException('Value for `id` field was provided in request, but no setup to handle it exists.');
+        }
+
+        return array_unique(array_merge(...$nestedIdRequestDeviations));
     }
 
     protected function getParameterConstrains(): array
