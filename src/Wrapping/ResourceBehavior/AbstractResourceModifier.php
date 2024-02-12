@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace EDT\Wrapping\ResourceBehavior;
 
 use EDT\JsonApi\RequestHandling\ExpectedPropertyCollection;
-use EDT\Querying\Contracts\PathsBasedInterface;
+use EDT\JsonApi\RequestHandling\ExpectedPropertyCollectionInterface;
 use EDT\Wrapping\EntityDataInterface;
 use EDT\Wrapping\PropertyBehavior\PropertyConstrainingInterface;
 use EDT\Wrapping\PropertyBehavior\PropertySetBehaviorInterface;
 
 abstract class AbstractResourceModifier
 {
-    public function getExpectedProperties(): ExpectedPropertyCollection
+    public function getExpectedProperties(): ExpectedPropertyCollectionInterface
     {
         return new ExpectedPropertyCollection(
             $this->getRequiredAttributeNames(),

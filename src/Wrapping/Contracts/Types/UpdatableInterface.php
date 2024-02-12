@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Contracts\Types;
 
-use EDT\JsonApi\RequestHandling\ExpectedPropertyCollection;
+use EDT\JsonApi\RequestHandling\ExpectedPropertyCollectionInterface;
 use EDT\JsonApi\RequestHandling\ModifiedEntity;
 use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\EntityDataInterface;
@@ -15,7 +15,7 @@ use EDT\Wrapping\EntityDataInterface;
  */
 interface UpdatableInterface
 {
-    public function getExpectedUpdateProperties(): ExpectedPropertyCollection;
+    public function getExpectedUpdateProperties(): ExpectedPropertyCollectionInterface;
 
     /**
      * @param non-empty-string $entityId
