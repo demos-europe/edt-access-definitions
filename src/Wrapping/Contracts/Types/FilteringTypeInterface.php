@@ -20,9 +20,6 @@ use EDT\Querying\PropertyPaths\PropertyLinkInterface;
  * {@link TransferableTypeInterface} and {@link FilteringTypeInterface}, then it you may want to
  * allow filtering of `Author` entities by properties of their written books, without allowing
  * the reading of these `Book` entities, i.e. without having `BookType` implement {@link TransferableTypeInterface}.
- *
- * @template TCondition of PathsBasedInterface
- * @template TSorting of PathsBasedInterface
  */
 interface FilteringTypeInterface
 {

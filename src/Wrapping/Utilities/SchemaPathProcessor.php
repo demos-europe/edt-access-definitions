@@ -32,9 +32,8 @@ class SchemaPathProcessor
      * Check the paths of the given conditions for availability and applies aliases using the given type.
      *
      * @template TCondition of PathsBasedInterface
-     * @template TSorting of PathsBasedInterface
      *
-     * @param FilteringTypeInterface<TCondition, TSorting>&EntityBasedInterface<object> $type
+     * @param FilteringTypeInterface&EntityBasedInterface<object> $type
      * @param non-empty-list<TCondition> $conditions
      *
      * @throws PathException
