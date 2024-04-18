@@ -39,9 +39,4 @@ class EntityData implements EntityDataInterface
     {
         return $this->toManyRelationships;
     }
-
-    public function getPropertyNames(): array
-    {
-        return array_keys(array_merge($this->attributes, $this->toOneRelationships, $this->toManyRelationships));
-    }
 }

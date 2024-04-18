@@ -25,9 +25,4 @@ interface EntityDataInterface
      * @return array<non-empty-string, list<JsonApiRelationship>>
      */
     public function getToManyRelationships(): array;
-
-    /**
-     * @return list<non-empty-string>
-     */
-    public function getPropertyNames(): array;
 }

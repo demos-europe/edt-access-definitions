@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Attribute;
 
+use EDT\JsonApi\ApiDocumentation\DefaultField;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
 use EDT\Wrapping\Utilities\AttributeTypeResolverInterface;
 
@@ -22,7 +23,7 @@ class PathAttributeReadability implements AttributeReadabilityInterface
     public function  __construct(
         protected readonly string $entityClass,
         protected readonly mixed $propertyPath,
-        protected readonly bool $defaultField,
+        protected readonly DefaultField $defaultField,
         protected readonly PropertyAccessorInterface $propertyAccessor,
         protected readonly AttributeTypeResolverInterface $typeResolver
     ) {}
@@ -36,7 +37,7 @@ class PathAttributeReadability implements AttributeReadabilityInterface
 
     public function isDefaultField(): bool
     {
-        return $this->defaultField;
+        return $this->defaultField->equals(DefaultField::YES);
     }
 
     public function getPropertySchema(): array

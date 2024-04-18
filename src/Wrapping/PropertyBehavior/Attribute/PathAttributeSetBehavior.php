@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Attribute;
 
+use EDT\JsonApi\ApiDocumentation\OptionalField;
 use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
+use EDT\Wrapping\PropertyBehavior\Attribute\Factory\PathAttributeSetBehaviorFactory;
 use Webmozart\Assert\Assert;
 
 /**
@@ -30,9 +32,24 @@ class PathAttributeSetBehavior extends AbstractAttributeSetBehavior
         array $entityConditions,
         protected readonly mixed $propertyPath,
         protected readonly PropertyAccessorInterface $propertyAccessor,
-        bool $optional
+        OptionalField $optional
     ) {
         parent::__construct($propertyName, $entityConditions, $optional);
+    }
+
+    /**
+     * @template TCond of PathsBasedInterface
+     *
+     * @param list<TCond> $entityConditions
+     *
+     * @return PathAttributeSetBehaviorFactory<TCond, object>
+     */
+    public static function createFactory(
+        PropertyAccessorInterface $propertyAccessor,
+        array $entityConditions,
+        OptionalField $optional
+    ): PathAttributeSetBehaviorFactory {
+        return new PathAttributeSetBehaviorFactory($propertyAccessor, $entityConditions, $optional);
     }
 
     protected function updateAttributeValue(object $entity, mixed $value): array
@@ -55,7 +72,7 @@ class PathAttributeSetBehavior extends AbstractAttributeSetBehavior
         $propertyPathString = implode('.', $this->propertyPath);
 
         return
-            ($this->optional
+            ($this->optional->equals(OptionalField::YES)
                 ? "Allows an attribute `$this->propertyName` to be present in the request body, but does not require it. "
                 : "Requires an attribute `$this->propertyName` to be present in the request body.")
             . "The attribute will be stored in $this->entityClass::$propertyPathString. "

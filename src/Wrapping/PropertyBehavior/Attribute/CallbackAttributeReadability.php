@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Attribute;
 
+use EDT\JsonApi\ApiDocumentation\DefaultField;
 use EDT\Wrapping\Utilities\AttributeTypeResolverInterface;
 
 /**
@@ -19,7 +20,7 @@ class CallbackAttributeReadability implements AttributeReadabilityInterface
      * @param callable(TEntity): (simple_primitive|array<int|string, mixed>|null) $readCallback
      */
     public function __construct(
-        protected readonly bool $defaultField,
+        protected readonly DefaultField $defaultField,
         protected readonly mixed $readCallback,
         protected readonly AttributeTypeResolverInterface $typeResolver
     ) {}
@@ -33,7 +34,7 @@ class CallbackAttributeReadability implements AttributeReadabilityInterface
 
     public function isDefaultField(): bool
     {
-        return $this->defaultField;
+        return $this->defaultField->equals(DefaultField::YES);
     }
 
     public function getPropertySchema(): array

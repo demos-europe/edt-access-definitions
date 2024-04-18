@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Relationship\ToMany\Factory;
 
+use EDT\JsonApi\ApiDocumentation\OptionalField;
 use EDT\JsonApi\ResourceTypes\ResourceTypeInterface;
 use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
+use EDT\Wrapping\Contracts\TransferableTypeProviderInterface;
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\PropertyBehavior\Relationship\RelationshipSetBehaviorFactoryInterface;
 use EDT\Wrapping\PropertyBehavior\Relationship\RelationshipSetBehaviorInterface;
 use EDT\Wrapping\PropertyBehavior\Relationship\ToMany\PathToManyRelationshipSetBehavior;
@@ -27,12 +30,12 @@ class PathToManyRelationshipSetBehaviorFactory implements RelationshipSetBehavio
      */
     public function __construct(
         protected readonly array $relationshipConditions,
-        protected readonly bool $optional,
+        protected readonly OptionalField $optional,
         protected readonly PropertyAccessorInterface $propertyAccessor,
         protected readonly array $entityConditions
     ) {}
 
-    public function createRelationshipSetBehavior(string $name, array $propertyPath, string $entityClass, ResourceTypeInterface $relationshipType): RelationshipSetBehaviorInterface
+    public function __invoke(string $name, array $propertyPath, string $entityClass, TransferableTypeInterface|TransferableTypeProviderInterface $relationshipType): RelationshipSetBehaviorInterface
     {
         return new PathToManyRelationshipSetBehavior(
             $name,
@@ -44,5 +47,10 @@ class PathToManyRelationshipSetBehaviorFactory implements RelationshipSetBehavio
             $this->propertyAccessor,
             $this->optional
         );
+    }
+
+    public function createRelationshipSetBehavior(string $name, array $propertyPath, string $entityClass, ResourceTypeInterface $relationshipType): RelationshipSetBehaviorInterface
+    {
+        return $this($name, $propertyPath, $entityClass, $relationshipType);
     }
 }

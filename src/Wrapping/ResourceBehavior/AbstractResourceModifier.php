@@ -15,13 +15,37 @@ abstract class AbstractResourceModifier
     public function getExpectedProperties(): ExpectedPropertyCollectionInterface
     {
         return new ExpectedPropertyCollection(
+            $this->isIdRequired(),
             $this->getRequiredAttributeNames(),
             $this->getRequiredToOneRelationshipIdentifiers(),
             $this->getRequiredToManyRelationshipIdentifiers(),
+            $this->isIdOptional(),
             $this->getOptionalAttributeNames(),
             $this->getOptionalToOneRelationshipIdentifiers(),
             $this->getOptionalToManyRelationshipIdentifiers()
         );
+    }
+
+    protected function isIdRequired(): bool
+    {
+        foreach ($this->getParameterConstrains() as $constrain) {
+            if ($constrain->isIdRequired()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected function isIdOptional(): bool
+    {
+        foreach ($this->getParameterConstrains() as $constrain) {
+            if ($constrain->isIdOptional()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

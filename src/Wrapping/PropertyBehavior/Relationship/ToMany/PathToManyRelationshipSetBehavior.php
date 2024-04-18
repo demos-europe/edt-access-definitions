@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Relationship\ToMany;
 
+use EDT\JsonApi\ApiDocumentation\OptionalField;
 use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
+use EDT\Wrapping\Contracts\TransferableTypeProviderInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
+use EDT\Wrapping\PropertyBehavior\Relationship\RelationshipSetBehaviorFactoryInterface;
+use EDT\Wrapping\PropertyBehavior\Relationship\ToMany\Factory\PathToManyRelationshipSetBehaviorFactory;
 use Webmozart\Assert\Assert;
 
 /**
@@ -24,25 +28,37 @@ class PathToManyRelationshipSetBehavior extends AbstractToManyRelationshipSetBeh
      * @param class-string<TEntity> $entityClass
      * @param list<TCondition> $entityConditions
      * @param list<TCondition> $relationshipConditions
-     * @param TransferableTypeInterface<TCondition, TSorting, TRelationship> $relationshipType
+     * @param TransferableTypeInterface<TCondition, TSorting, TRelationship>|TransferableTypeProviderInterface<TCondition, TSorting, TRelationship> $relationshipType
      * @param non-empty-list<non-empty-string> $propertyPath
      */
     public function __construct(
-        string $propertyName,
-        protected readonly string $entityClass,
-        array $entityConditions,
-        array $relationshipConditions,
-        protected readonly TransferableTypeInterface $relationshipType,
-        protected readonly array $propertyPath,
-        protected readonly PropertyAccessorInterface $propertyAccessor,
-        bool $optional
+        string                                                      $propertyName,
+        protected readonly string                                   $entityClass,
+        array                                                       $entityConditions,
+        array                                                       $relationshipConditions,
+        TransferableTypeInterface|TransferableTypeProviderInterface $relationshipType,
+        protected readonly array                                    $propertyPath,
+        protected readonly PropertyAccessorInterface                $propertyAccessor,
+        OptionalField                                               $optional
     ) {
-        parent::__construct($propertyName, $entityConditions, $relationshipConditions, $optional);
+        parent::__construct($propertyName, $entityConditions, $relationshipConditions, $optional, $relationshipType);
     }
 
-    public function getRelationshipType(): TransferableTypeInterface
-    {
-        return $this->relationshipType;
+    /**
+     * @template TCond of PathsBasedInterface
+     *
+     * @param list<TCond> $relationshipConditions
+     * @param list<TCond> $entityConditions
+     *
+     * @return RelationshipSetBehaviorFactoryInterface<TCond, PathsBasedInterface, object, object>
+     */
+    public static function createFactory(
+        array $relationshipConditions,
+        OptionalField $optional,
+        PropertyAccessorInterface $propertyAccessor,
+        array $entityConditions
+    ): RelationshipSetBehaviorFactoryInterface {
+        return new PathToManyRelationshipSetBehaviorFactory($relationshipConditions, $optional, $propertyAccessor, $entityConditions);
     }
 
     public function updateToManyRelationship(object $entity, array $relationships): array
@@ -61,10 +77,10 @@ class PathToManyRelationshipSetBehavior extends AbstractToManyRelationshipSetBeh
     public function getDescription(): string
     {
         $propertyPathString = implode('.', $this->propertyPath);
-        $relationshipType = $this->relationshipType->getTypeName();
+        $relationshipType = $this->getRelationshipType()->getTypeName();
 
         return
-            ($this->optional
+            ($this->optional->equals(OptionalField::YES)
                 ? "Allows a to-many relationship `$this->propertyName` of type `$relationshipType` to be present in the request body, but does not require it. "
                 : "Requires a to-many relationship `$this->propertyName` of type `$relationshipType` to be present in the request body.")
             . "The relationship will be stored in $this->entityClass::$propertyPathString. "

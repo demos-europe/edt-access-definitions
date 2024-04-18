@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\data\Types;
 
+use EDT\JsonApi\ApiDocumentation\OptionalField;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
 use EDT\Wrapping\PropertyBehavior\Attribute\AbstractAttributeSetBehavior;
 use Webmozart\Assert\Assert;
@@ -14,7 +15,7 @@ class TestAttributeSetBehavior extends AbstractAttributeSetBehavior
         string $propertyName,
         protected readonly array $propertyPath,
         protected readonly PropertyAccessorInterface $propertyAccessor,
-        bool $optional
+        OptionalField $optional
     ) {
         parent::__construct($propertyName, [], $optional);
     }

@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Relationship\ToMany\Factory;
 
+use EDT\JsonApi\ApiDocumentation\OptionalField;
 use EDT\JsonApi\ResourceTypes\ResourceTypeInterface;
 use EDT\Querying\Contracts\PathsBasedInterface;
+use EDT\Wrapping\Contracts\TransferableTypeProviderInterface;
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\PropertyBehavior\Relationship\RelationshipSetBehaviorFactoryInterface;
 use EDT\Wrapping\PropertyBehavior\Relationship\RelationshipSetBehaviorInterface;
 use EDT\Wrapping\PropertyBehavior\Relationship\ToMany\CallbackToManyRelationshipSetBehavior;
@@ -32,13 +35,13 @@ class CallbackToManyRelationshipSetBehaviorFactory implements RelationshipSetBeh
     public function __construct(
         callable $setBehaviorCallback,
         protected readonly array $relationshipConditions,
-        protected readonly bool $optional,
+        protected readonly OptionalField $optional,
         protected readonly array $entityConditions
     ) {
         $this->setBehaviorCallback = $setBehaviorCallback;
     }
 
-    public function createRelationshipSetBehavior(string $name, array $propertyPath, string $entityClass, ResourceTypeInterface $relationshipType): RelationshipSetBehaviorInterface
+    public function __invoke(string $name, array $propertyPath, string $entityClass, TransferableTypeInterface|TransferableTypeProviderInterface $relationshipType): RelationshipSetBehaviorInterface
     {
         return new CallbackToManyRelationshipSetBehavior(
             $name,
@@ -48,5 +51,10 @@ class CallbackToManyRelationshipSetBehaviorFactory implements RelationshipSetBeh
             $this->setBehaviorCallback,
             $this->optional
         );
+    }
+
+    public function createRelationshipSetBehavior(string $name, array $propertyPath, string $entityClass, ResourceTypeInterface $relationshipType): RelationshipSetBehaviorInterface
+    {
+        return $this($name, $propertyPath, $entityClass, $relationshipType);
     }
 }

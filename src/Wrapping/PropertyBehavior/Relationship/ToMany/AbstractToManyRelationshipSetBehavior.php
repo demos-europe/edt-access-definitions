@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Relationship\ToMany;
 
+use EDT\JsonApi\ApiDocumentation\OptionalField;
 use EDT\Querying\Contracts\PathsBasedInterface;
+use EDT\Wrapping\Contracts\TransferableTypeProviderInterface;
+use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\EntityDataInterface;
-use EDT\Wrapping\PropertyBehavior\PropertyUpdaterTrait;
-use EDT\Wrapping\PropertyBehavior\Relationship\RelationshipSetBehaviorInterface;
+use EDT\Wrapping\PropertyBehavior\Relationship\AbstractRelationshipSetBehavior;
 use Exception;
+use function array_key_exists;
 
 /**
  * @template TCondition of PathsBasedInterface
@@ -16,27 +19,41 @@ use Exception;
  * @template TEntity of object
  * @template TRelationship of object
  *
- * @template-implements RelationshipSetBehaviorInterface<TCondition, TSorting, TEntity, TRelationship>
+ * @template-extends AbstractRelationshipSetBehavior<TCondition, TSorting, TEntity, TRelationship>
  */
-abstract class AbstractToManyRelationshipSetBehavior implements RelationshipSetBehaviorInterface
+abstract class AbstractToManyRelationshipSetBehavior extends AbstractRelationshipSetBehavior
 {
-    use PropertyUpdaterTrait;
-
     /**
      * @param non-empty-string $propertyName
      * @param list<TCondition> $entityConditions
      * @param list<TCondition> $relationshipConditions
+     * @param TransferableTypeInterface<TCondition, TSorting, TRelationship>|TransferableTypeProviderInterface<TCondition, TSorting, TRelationship> $relationshipType
      */
     public function __construct(
-        protected readonly string $propertyName,
-        protected readonly array $entityConditions,
+        string $propertyName,
+        array $entityConditions,
         protected readonly array $relationshipConditions,
-        protected readonly bool $optional
-    ) {}
+        OptionalField $optional,
+        TransferableTypeInterface|TransferableTypeProviderInterface $relationshipType
+    ) {
+        parent::__construct($propertyName, $entityConditions, $optional, $relationshipType);
+    }
 
-    public function getEntityConditions(EntityDataInterface $entityData): array
+    protected function hasPropertyValue(EntityDataInterface $entityData): bool
     {
-        return $this->entityConditions;
+        return array_key_exists($this->propertyName, $entityData->getToManyRelationships());
+    }
+
+    protected function setPropertyValue(object $entity, EntityDataInterface $entityData): array
+    {
+        $relationshipReferences = $entityData->getToManyRelationships()[$this->propertyName];
+        $relationshipValues = $this->determineToManyRelationshipValues(
+            $this->getRelationshipType(),
+            $this->relationshipConditions,
+            $relationshipReferences
+        );
+
+        return $this->updateToManyRelationship($entity, $relationshipValues);
     }
 
     /**
@@ -56,49 +73,16 @@ abstract class AbstractToManyRelationshipSetBehavior implements RelationshipSetB
      */
     abstract protected function updateToManyRelationship(object $entity, array $relationships): array;
 
-    public function executeBehavior(object $entity, EntityDataInterface $entityData): array
-    {
-        $requestRelationships = $entityData->getToManyRelationships();
-        $relationshipReferences = $requestRelationships[$this->propertyName];
-        $relationshipValues = $this->determineToManyRelationshipValues(
-            $this->getRelationshipType(),
-            $this->relationshipConditions,
-            $relationshipReferences
-        );
-
-        return $this->updateToManyRelationship($entity, $relationshipValues);
-    }
-
-    public function getRequiredAttributes(): array
-    {
-        return [];
-    }
-
-    public function getOptionalAttributes(): array
-    {
-        return [];
-    }
-
-    public function getRequiredToOneRelationships(): array
-    {
-        return [];
-    }
-
-    public function getOptionalToOneRelationships(): array
-    {
-        return [];
-    }
-
     public function getRequiredToManyRelationships(): array
     {
-        return $this->optional
+        return $this->optional->equals(OptionalField::YES)
             ? []
             : [$this->propertyName => $this->getRelationshipType()->getTypeName()];
     }
 
     public function getOptionalToManyRelationships(): array
     {
-        return $this->optional
+        return $this->optional->equals(OptionalField::YES)
             ? [$this->propertyName => $this->getRelationshipType()->getTypeName()]
             : [];
     }

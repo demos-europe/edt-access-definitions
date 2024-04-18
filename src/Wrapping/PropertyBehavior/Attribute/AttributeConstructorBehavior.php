@@ -4,77 +4,66 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Attribute;
 
+use EDT\JsonApi\ApiDocumentation\OptionalField;
 use EDT\Wrapping\CreationDataInterface;
+use EDT\Wrapping\PropertyBehavior\AbstractConstructorBehavior;
+use EDT\Wrapping\PropertyBehavior\ConstructorBehaviorFactoryInterface;
 use EDT\Wrapping\PropertyBehavior\ConstructorBehaviorInterface;
 use function array_key_exists;
 
-/**
- * When used, instances require a specific attribute to be present in the request, which will
- * be directly used as constructor argument.
- */
-class AttributeConstructorBehavior implements ConstructorBehaviorInterface
+class AttributeConstructorBehavior extends AbstractConstructorBehavior
 {
     /**
-     * @param non-empty-string $attributeName
-     * @param non-empty-string $argumentName
-     * @param null|callable(CreationDataInterface): array{mixed, list<non-empty-string>} $fallback
+     * @param non-empty-string|null $argumentName
+     * @param null|callable(CreationDataInterface): array{mixed, list<non-empty-string>} $customBehavior
      */
-    public function __construct(
-        protected readonly string $attributeName,
-        protected readonly string $argumentName,
-        protected readonly mixed $fallback
-    ) {}
-
-    public function getArguments(CreationDataInterface $entityData): array
+    public static function createFactory(?string $argumentName, OptionalField $optional, ?callable $customBehavior): ConstructorBehaviorFactoryInterface
     {
-        $attributes = $entityData->getAttributes();
-        if (array_key_exists($this->attributeName, $attributes)) {
-            $attributeValue = $attributes[$this->attributeName];
-            $propertyDeviations = [];
-        } elseif (null !== $this->fallback) {
-            [$attributeValue, $propertyDeviations] = ($this->fallback)($entityData);
-        } else {
-            throw new \InvalidArgumentException("No attribute '$this->attributeName' present and no fallback set.");
-        }
+        return new class($argumentName, $optional, $customBehavior) implements ConstructorBehaviorFactoryInterface {
+            /**
+             * @param non-empty-string|null $argumentName
+             * @param null|callable(CreationDataInterface): array{mixed, list<non-empty-string>} $customBehavior
+             */
+            public function __construct(
+                protected readonly ?string $argumentName,
+                protected readonly OptionalField $optional,
+                protected readonly mixed $customBehavior
+            ) {}
 
-        return [$this->argumentName => [$attributeValue, $propertyDeviations]];
+            public function __invoke(string $name, array $propertyPath, string $entityClass): ConstructorBehaviorInterface
+            {
+                return new AttributeConstructorBehavior(
+                    $name,
+                    $this->argumentName ?? $name,
+                    $this->optional,
+                    $this->customBehavior
+                );
+            }
+
+            public function createConstructorBehavior(string $name, array $propertyPath, string $entityClass): ConstructorBehaviorInterface
+            {
+                return $this($name, $propertyPath, $entityClass);
+            }
+        };
+    }
+
+    protected function isValueInRequest(CreationDataInterface $entityData): bool
+    {
+        return array_key_exists($this->resourcePropertyName, $entityData->getAttributes());
+    }
+
+    protected function getArgumentValueFromRequest(CreationDataInterface $entityData): mixed
+    {
+        return $entityData->getAttributes()[$this->resourcePropertyName];
     }
 
     public function getRequiredAttributes(): array
     {
-        if (null === $this->fallback) {
-            return [$this->attributeName];
-        }
-
-        return [];
+        return $this->getRequiredPropertyList();
     }
 
     public function getOptionalAttributes(): array
     {
-        if (null === $this->fallback) {
-            return [];
-        }
-
-        return [$this->attributeName];
-    }
-
-    public function getRequiredToOneRelationships(): array
-    {
-        return [];
-    }
-
-    public function getOptionalToOneRelationships(): array
-    {
-        return [];
-    }
-
-    public function getRequiredToManyRelationships(): array
-    {
-        return [];
-    }
-
-    public function getOptionalToManyRelationships(): array
-    {
-        return [];
+        return $this->getOptionalPropertyList();
     }
 }

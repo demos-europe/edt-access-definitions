@@ -43,23 +43,15 @@ class ResourceUpdatability extends AbstractResourceModifier
     /**
      * Get all setabilities, that correspond to the given entity data.
      *
-     * @param list<non-empty-string> $propertyNames
-     *
      * @return list<PropertyUpdatabilityInterface<TCondition, TEntity>>
      */
-    protected function getRelevantSetabilities(array $propertyNames): array
+    protected function getSetabilities(): array
     {
-        $allowedKeys = array_flip($propertyNames);
-
-        $relevantAttributes = array_intersect_key($this->attributes, $allowedKeys);
-        $relevantToOneRelationships = array_intersect_key($this->toOneRelationships, $allowedKeys);
-        $relevantToManyRelationships = array_intersect_key($this->toManyRelationships, $allowedKeys);
-
         return array_merge(
             $this->generalUpdateBehaviors,
-            array_merge(...array_values($relevantAttributes)),
-            array_merge(...array_values($relevantToOneRelationships)),
-            array_merge(...array_values($relevantToManyRelationships))
+            array_merge(...array_values($this->attributes)),
+            array_merge(...array_values($this->toOneRelationships)),
+            array_merge(...array_values($this->toManyRelationships))
         );
     }
 
@@ -94,7 +86,7 @@ class ResourceUpdatability extends AbstractResourceModifier
      */
     public function updateProperties(object $entity, EntityDataInterface $entityData): array
     {
-        $setabilities = $this->getRelevantSetabilities($entityData->getPropertyNames());
+        $setabilities = $this->getSetabilities();
 
         return $this->getSetabilitiesRequestDeviations($setabilities, $entity, $entityData);
     }
@@ -111,7 +103,7 @@ class ResourceUpdatability extends AbstractResourceModifier
     {
         $entityConditions = array_map(
             static fn (PropertySetBehaviorInterface $accessibility): array => $accessibility->getEntityConditions($entityData),
-            $this->getRelevantSetabilities($entityData->getPropertyNames())
+            $this->getSetabilities()
         );
 
         return array_merge(...$entityConditions);

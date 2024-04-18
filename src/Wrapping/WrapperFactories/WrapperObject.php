@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\WrapperFactories;
 
+use EDT\JsonApi\ResourceTypes\AbstractResourceType;
 use EDT\Querying\Contracts\EntityBasedInterface;
 use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\AccessException;
@@ -163,6 +164,8 @@ class WrapperObject
     }
 
     /**
+     * TODO: should returned instances automatically be sorted by {@link AbstractResourceType::getDefaultSortMethods()}? Would this conflict with {@link \Doctrine\ORM\Mapping\OrderBy}? How/where to implement?
+     *
      * @param non-empty-string $propertyName
      * @param list<TCondition> $conditions
      * @param list<TSorting> $sortMethods

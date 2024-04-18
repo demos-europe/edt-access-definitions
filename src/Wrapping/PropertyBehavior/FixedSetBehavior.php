@@ -7,12 +7,17 @@ namespace EDT\Wrapping\PropertyBehavior;
 use EDT\Wrapping\EntityDataInterface;
 
 /**
+ * The behavior of this class is always executed on creation and update requests,
+ * regardless of the properties provided in the request body.
+ *
  * @template TEntity of object
  *
  * @template-implements PropertySetBehaviorInterface<TEntity>
  */
 class FixedSetBehavior implements PropertySetBehaviorInterface
 {
+    use IdUnrelatedTrait;
+
     /**
      * @param callable(TEntity, EntityDataInterface): list<non-empty-string> $callback
      */

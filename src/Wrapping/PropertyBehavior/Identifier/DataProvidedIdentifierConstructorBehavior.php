@@ -4,58 +4,70 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Identifier;
 
+use EDT\JsonApi\ApiDocumentation\OptionalField;
+use EDT\Wrapping\Contracts\ContentField;
 use EDT\Wrapping\CreationDataInterface;
+use EDT\Wrapping\PropertyBehavior\AbstractConstructorBehavior;
 use EDT\Wrapping\PropertyBehavior\ConstructorBehaviorInterface;
-use Webmozart\Assert\Assert;
+use EDT\Wrapping\PropertyBehavior\Identifier\Factory\IdentifierConstructorBehaviorFactoryInterface;
 
-/**
- * When used, instances require a specific attribute to be present in the request, which will
- * be directly used as constructor argument.
- */
-class DataProvidedIdentifierConstructorBehavior implements ConstructorBehaviorInterface
+class DataProvidedIdentifierConstructorBehavior extends AbstractConstructorBehavior
 {
     /**
      * @param non-empty-string $argumentName
+     * @param null|callable(CreationDataInterface): array{mixed, list<non-empty-string>} $customBehavior
      */
-    public function __construct(
-        protected readonly string $argumentName
-    ) {}
-
-    public function getArguments(CreationDataInterface $entityData): array
+    public function __construct(string $argumentName, OptionalField $optional, ?callable $customBehavior)
     {
-        $entityIdentifier = $entityData->getEntityIdentifier();
-        Assert::stringNotEmpty($entityIdentifier);
-
-        return [$this->argumentName => [$entityIdentifier, []]];
+        parent::__construct(ContentField::ID, $argumentName, $optional, $customBehavior);
     }
 
-    public function getRequiredAttributes(): array
+    /**
+     * @param non-empty-string|null $argumentName
+     * @param null|callable(CreationDataInterface): array{mixed, list<non-empty-string>} $customBehavior
+     */
+    public static function createFactory(?string $argumentName, OptionalField $optional, ?callable $customBehavior): IdentifierConstructorBehaviorFactoryInterface
     {
-        return [];
+        return new class($argumentName, $optional, $customBehavior) implements IdentifierConstructorBehaviorFactoryInterface {
+            /**
+             * @param non-empty-string|null $argumentName
+             * @param null|callable(CreationDataInterface): array{mixed, list<non-empty-string>} $customBehavior
+             */
+            public function __construct(
+                protected readonly ?string $argumentName,
+                protected readonly OptionalField $optional,
+                protected readonly mixed $customBehavior
+            ) {}
+
+            public function __invoke(array $propertyPath, string $entityClass): ConstructorBehaviorInterface
+            {
+                return new DataProvidedIdentifierConstructorBehavior($this->argumentName ?? ContentField::ID, $this->optional, $this->customBehavior);
+            }
+
+            public function createIdentifierConstructorBehavior(array $propertyPath, string $entityClass): ConstructorBehaviorInterface
+            {
+                return $this($propertyPath, $entityClass);
+            }
+        };
     }
 
-    public function getOptionalAttributes(): array
+    protected function isValueInRequest(CreationDataInterface $entityData): bool
     {
-        return [];
+        return null !== $entityData->getEntityIdentifier();
     }
 
-    public function getRequiredToOneRelationships(): array
+    protected function getArgumentValueFromRequest(CreationDataInterface $entityData): mixed
     {
-        return [];
+        return $entityData->getEntityIdentifier();
     }
 
-    public function getOptionalToOneRelationships(): array
+    public function isIdRequired(): bool
     {
-        return [];
+        return $this->optional->equals(OptionalField::NO);
     }
 
-    public function getRequiredToManyRelationships(): array
+    public function isIdOptional(): bool
     {
-        return [];
-    }
-
-    public function getOptionalToManyRelationships(): array
-    {
-        return [];
+        return $this->optional->equals(OptionalField::YES);
     }
 }

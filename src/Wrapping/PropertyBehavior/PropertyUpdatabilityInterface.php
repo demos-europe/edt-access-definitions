@@ -11,6 +11,8 @@ use EDT\Wrapping\EntityDataInterface;
  * @template TEntity of object
  *
  * @template-extends PropertySetBehaviorInterface<TEntity>
+ *
+ * TODO: try to merge this interface with its parent, make sure `getEntityConditions` is used where necessary
  */
 interface PropertyUpdatabilityInterface extends PropertySetBehaviorInterface
 {

@@ -6,6 +6,7 @@ namespace Tests\data\Types;
 
 use EDT\ConditionFactory\PathsBasedConditionFactoryInterface;
 use EDT\JsonApi\ApiDocumentation\AttributeTypeResolver;
+use EDT\JsonApi\ApiDocumentation\OptionalField;
 use EDT\JsonApi\RequestHandling\ExpectedPropertyCollection;
 use EDT\JsonApi\RequestHandling\ModifiedEntity;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
@@ -113,13 +114,13 @@ class AuthorType implements
                     'name',
                     ['name'],
                     $this->propertyAccessor,
-                    true
+                    OptionalField::YES
                 )],
                 'birthCountry' => [new TestAttributeSetBehavior(
                     'birthCountry',
                     ['birth', 'country'],
                     $this->propertyAccessor,
-                    true
+                    OptionalField::YES
                 )],
             ],
             [],
@@ -132,7 +133,7 @@ class AuthorType implements
                     $bookType,
                     ['books'],
                     $this->propertyAccessor,
-                    true
+                    OptionalField::YES
                 )],
             ],
             []

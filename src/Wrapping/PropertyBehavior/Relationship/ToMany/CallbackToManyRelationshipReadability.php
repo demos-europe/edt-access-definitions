@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace EDT\Wrapping\PropertyBehavior\Relationship\ToMany;
 
 use EDT\Querying\Contracts\PathsBasedInterface;
+use EDT\Wrapping\Contracts\TransferableTypeProviderInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\PropertyBehavior\EntityVerificationTrait;
 
@@ -22,13 +23,13 @@ class CallbackToManyRelationshipReadability implements ToManyRelationshipReadabi
 
     /**
      * @param callable(TEntity): iterable<TRelationship> $readCallback
-     * @param TransferableTypeInterface<TCondition, TSorting, TRelationship> $relationshipType
+     * @param TransferableTypeInterface<TCondition, TSorting, TRelationship>|TransferableTypeProviderInterface<TCondition, TSorting, TRelationship> $relationshipType
      */
     public function __construct(
-        protected readonly bool $defaultField,
-        protected readonly bool $defaultInclude,
-        protected readonly mixed $readCallback,
-        protected readonly TransferableTypeInterface $relationshipType,
+        protected readonly bool                                                        $defaultField,
+        protected readonly bool                                                        $defaultInclude,
+        protected readonly mixed                                                       $readCallback,
+        protected readonly TransferableTypeInterface|TransferableTypeProviderInterface $relationshipType,
     ) {}
 
     public function isDefaultInclude(): bool
@@ -38,7 +39,9 @@ class CallbackToManyRelationshipReadability implements ToManyRelationshipReadabi
 
     public function getRelationshipType(): TransferableTypeInterface
     {
-        return $this->relationshipType;
+        return $this->relationshipType instanceof TransferableTypeInterface
+            ? $this->relationshipType
+            : $this->relationshipType->getType();
     }
 
     public function isDefaultField(): bool
@@ -49,9 +52,9 @@ class CallbackToManyRelationshipReadability implements ToManyRelationshipReadabi
     public function getValue(object $entity, array $conditions, array $sortMethods): array
     {
         $relationshipEntities = ($this->readCallback)($entity);
-        $relationshipClass = $this->relationshipType->getEntityClass();
+        $relationshipClass = $this->getRelationshipType()->getEntityClass();
         $relationshipEntities = $this->assertValidToManyValue($relationshipEntities, $relationshipClass);
 
-        return $this->relationshipType->reindexEntities($relationshipEntities, $conditions, $sortMethods);
+        return $this->getRelationshipType()->reindexEntities($relationshipEntities, $conditions, $sortMethods);
     }
 }

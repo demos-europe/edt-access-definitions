@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Attribute\Factory;
 
+use EDT\JsonApi\ApiDocumentation\OptionalField;
 use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
 use EDT\Wrapping\PropertyBehavior\Attribute\PathAttributeSetBehavior;
@@ -12,8 +13,9 @@ use EDT\Wrapping\PropertyBehavior\PropertyUpdatabilityInterface;
 
 /**
  * @template TCondition of PathsBasedInterface
+ * @template TEntity of object
  *
- * @template-implements PropertyUpdatabilityFactoryInterface<TCondition>
+ * @template-implements PropertyUpdatabilityFactoryInterface<TCondition, TEntity>
  */
 class PathAttributeSetBehaviorFactory implements PropertyUpdatabilityFactoryInterface
 {
@@ -23,19 +25,10 @@ class PathAttributeSetBehaviorFactory implements PropertyUpdatabilityFactoryInte
     public function __construct(
         protected readonly PropertyAccessorInterface $propertyAccessor,
         protected readonly array $entityConditions,
-        protected readonly bool $optional
+        protected readonly OptionalField $optional
     ) {}
 
-    /**
-     * @template TEntity of object
-     *
-     * @param non-empty-string $name
-     * @param non-empty-list<non-empty-string> $propertyPath
-     * @param class-string<TEntity> $entityClass
-     *
-     * @return PropertyUpdatabilityInterface<TCondition, TEntity>
-     */
-    public function createUpdatability(string $name, array $propertyPath, string $entityClass): PropertyUpdatabilityInterface
+    public function __invoke(string $name, array $propertyPath, string $entityClass): PropertyUpdatabilityInterface
     {
         return new PathAttributeSetBehavior(
             $name,
@@ -45,5 +38,10 @@ class PathAttributeSetBehaviorFactory implements PropertyUpdatabilityFactoryInte
             $this->propertyAccessor,
             $this->optional
         );
+    }
+
+    public function createUpdatability(string $name, array $propertyPath, string $entityClass): PropertyUpdatabilityInterface
+    {
+        return $this($name, $propertyPath, $entityClass);
     }
 }

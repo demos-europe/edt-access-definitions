@@ -23,6 +23,19 @@ use EDT\Wrapping\EntityDataInterface;
 interface PropertyConstrainingInterface
 {
     /**
+     * The ID may be required in a creation request, if it is required to create the corresponding resource, because
+     * the server application does not have the capability to select an ID by itself.
+     */
+    public function isIdRequired(): bool;
+
+    /**
+     * The ID is to be set as optional, if it can be reasonably handled by the implementation (i.e. not just simply
+     * be ignored). If a resource creation request is received and no configured implementation of this interface is
+     * capable of handling a provided ID, the request will be denied if it contains a specific ID to be used.
+     */
+    public function isIdOptional(): bool;
+
+    /**
      * The attributes required by this instance.
      *
      * The returned list must contain all attribute names that are mandatory for this instance.
