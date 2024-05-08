@@ -19,4 +19,12 @@ class ContentField
     public const META = 'meta';
 
     public const INCLUDED = 'included';
+
+    public const LINKS = 'links';
+
+    public const SELF = 'self';
+
+    public const JSONAPI = 'jsonapi';
+
+    public const VERSION = 'version';
 }

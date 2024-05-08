@@ -28,10 +28,10 @@ class RequiredRelationshipConstructorBehavior implements ConstructorBehaviorInte
      * @param NamedTypeInterface|ResourceTypeProviderInterface<TCondition, PathsBasedInterface, object> $relationshipType
      */
     public function __construct(
-        protected readonly string                                           $argumentName,
-        protected readonly mixed                                            $callback,
+        protected readonly string $argumentName,
+        protected readonly mixed $callback,
         protected readonly NamedTypeInterface|ResourceTypeProviderInterface $relationshipType,
-        protected readonly Cardinality                                      $cardinality
+        protected readonly Cardinality $cardinality
     ) {}
 
     /**

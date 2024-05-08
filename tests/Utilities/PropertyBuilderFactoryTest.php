@@ -91,7 +91,7 @@ class PropertyBuilderFactoryTest extends TestCase
 
     }
 
-    public function getTestAttributeData(): array
+    public static function getTestAttributeData(): array
     {
         return [
             [true, true, true],

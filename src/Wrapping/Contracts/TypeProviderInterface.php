@@ -16,6 +16,8 @@ use EDT\Querying\Contracts\PathsBasedInterface;
 interface TypeProviderInterface
 {
     /**
+     * @param non-empty-string $typeIdentifier
+     *
      * @return EntityBasedInterface<object>|null
      *
      * @throws TypeRetrievalAccessException

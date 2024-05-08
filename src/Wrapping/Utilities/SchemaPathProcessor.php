@@ -8,8 +8,10 @@ use EDT\Querying\Contracts\EntityBasedInterface;
 use EDT\Querying\Contracts\PathException;
 use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\AccessException;
+use EDT\Wrapping\Contracts\ContentField;
 use EDT\Wrapping\Contracts\PropertyAccessException;
 use EDT\Wrapping\Contracts\Types\FilteringTypeInterface;
+use EDT\Wrapping\Contracts\Types\PropertyReadableTypeInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\Contracts\Types\SortingTypeInterface;
 use EDT\Wrapping\Utilities\TypeAccessors\ExternFilterableProcessorConfig;
@@ -66,41 +68,64 @@ class SchemaPathProcessor
     }
 
     /**
-     * Compares the given path with the {@link TransferableTypeInterface::getReadability()}
-     * of the involved types.
+     * Compares the given path with the {@link TransferableTypeInterface::getReadability()} of the involved types.
      *
-     * @param TransferableTypeInterface<PathsBasedInterface, PathsBasedInterface, object> $type
+     * I.e. the given type specifies properties that are set as readable.
+     * If such property is a relationship, it will point to another type, which itself specifies another set of
+     * readable properties.
+     *
+     * The verification is done for the whole given path.
+     * The first path segment must be present in the readable properties of the given type.
+     * All path segments except for the last one must be represented as relationship property in their corresponding
+     * type.
+     * So if a path consisting of two segments is given, the first one must be a relationship in the given type.
+     * The second path segment is unrelated to the given type.
+     * Instead, it must be present in the type of the relationship property that corresponds to the first path segment.
+     *
+     * The last segment may be represented in the corresponding type by a relationship property or an attribute
+     * property.
+     * Except if `$allowAttribute` is set to false, in which case all segments in the given path must be represented
+     * by a corresponding relationship.
+     *
+     * Note that {@link ContentField::ID} and {@link ContentField::TYPE} are not allowed in the given path, as they
+     * are always readable.
+     *
+     * @param PropertyReadableTypeInterface<PathsBasedInterface, PathsBasedInterface, object> $type
      * @param non-empty-list<non-empty-string> $path
      *
      * @throws PropertyAccessException
      */
-    public function verifyExternReadablePath(TransferableTypeInterface $type, array $path, bool $allowAttribute): void
+    public function verifyExternReadablePath(PropertyReadableTypeInterface $type, array $path, bool $allowAttribute): void
     {
         $originalPath = $path;
         try {
-            $readableProperties = $type->getReadability();
-            $allReadableProperties = $allowAttribute
-                ? $readableProperties->getAllProperties()
-                : $readableProperties->getRelationships();
+            $typeReadability = $type->getReadability();
+            $readableProperties = $allowAttribute
+                ? $typeReadability->getAllProperties()
+                : $typeReadability->getRelationships();
 
-            $pathSegment = array_shift($path);
-            if (!array_key_exists($pathSegment, $allReadableProperties)) {
-                $availablePropertyNames = array_keys($allReadableProperties);
-                throw PropertyAccessException::propertyNotAvailableInType($pathSegment, $type, $availablePropertyNames);
+            $currentPathSegment = array_shift($path);
+            if (!array_key_exists($currentPathSegment, $readableProperties)) {
+                $availablePropertyNames = array_keys($readableProperties);
+                throw PropertyAccessException::propertyNotAvailableInType($currentPathSegment, $type, $availablePropertyNames);
             }
 
+            // after processing the path segment above, we check if there are more segments to check, if not, we are done
             if ([] === $path) {
                 return;
             }
 
-            if (!$readableProperties->hasRelationship($pathSegment)) {
-                throw PropertyAccessException::nonRelationship($pathSegment, $type);
+            // if there are more path segments to check, the current path segment checked above must be a relationship
+            if (!$typeReadability->hasRelationship($currentPathSegment)) {
+                throw PropertyAccessException::nonRelationship($currentPathSegment, $type);
             }
 
-            $property = $readableProperties->getRelationship($pathSegment);
+            // the current path segment checked above is a relationship, retrieve the relationship type
+            $property = $typeReadability->getRelationship($currentPathSegment);
             $relationshipType = $property->getRelationshipType();
 
             try {
+                // go into the next recursion level, to check the remaining path segments
                 $this->verifyExternReadablePath($relationshipType, $path, $allowAttribute);
             } catch (Exception $exception) {
                 throw new ExternReadableRelationshipSchemaVerificationException($relationshipType, $path, $exception);

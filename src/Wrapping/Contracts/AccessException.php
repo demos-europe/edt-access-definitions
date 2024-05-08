@@ -27,7 +27,7 @@ class AccessException extends InvalidArgumentException
     /**
      * @param TType $type
      *
-     * @return self<TType>
+     * @return AccessException<TType>
      */
     public static function typeNotDirectlyAccessible(object $type): self
     {
@@ -51,7 +51,7 @@ class AccessException extends InvalidArgumentException
     /**
      * @param TType $type
      *
-     * @return self<TType>
+     * @return AccessException<TType>
      */
     public static function typeNotAvailable(object $type): self
     {

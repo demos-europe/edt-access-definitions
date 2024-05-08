@@ -63,7 +63,7 @@ class WrapperArrayFactoryTest extends AdModelBasedTest
             new Sorter(new TableJoiner($this->propertyAccessor)),
             $this->authors
         );
-        $this->schemaPathProcessor = new SchemaPathProcessor(new PropertyPathProcessorFactory(), $this->typeProvider);
+        $this->schemaPathProcessor = new SchemaPathProcessor(new PropertyPathProcessorFactory());
     }
 
     public function testTrue(): void
