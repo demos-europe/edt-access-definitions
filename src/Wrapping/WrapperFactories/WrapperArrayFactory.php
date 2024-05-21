@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace EDT\Wrapping\WrapperFactories;
 
 use EDT\Querying\Contracts\PathException;
-use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
 use EDT\Querying\Contracts\SortException;
 use EDT\Wrapping\Contracts\AccessException;
@@ -60,10 +59,7 @@ class WrapperArrayFactory
      * wrapped using this factory until the depth set in this instance is reached.
      * If access is not granted it will be replaced by `null`.
      *
-     * @template TCondition of PathsBasedInterface
-     * @template TSorting of PathsBasedInterface
-     *
-     * @param TransferableTypeInterface<TCondition, TSorting, object> $type
+     * @param TransferableTypeInterface<object> $type
      *
      * @return array<non-empty-string, mixed> an array containing the readable properties of the given type
      *

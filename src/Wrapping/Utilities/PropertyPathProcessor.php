@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Utilities;
 
+use EDT\Querying\Contracts\PathAdjustableInterface;
 use EDT\Querying\Contracts\PathException;
 use EDT\Querying\Contracts\PathsBasedInterface;
-use EDT\Querying\Contracts\PropertyPathAccessInterface;
-use EDT\Querying\PropertyPaths\PathInfo;
 use EDT\Querying\PropertyPaths\PropertyLinkInterface;
 use EDT\Wrapping\Contracts\AccessException;
 use EDT\Wrapping\Contracts\PropertyAccessException;
@@ -44,23 +43,21 @@ class PropertyPathProcessor
      *                         {@link AbstractProcessorConfig::getProperties()}).
      * @throws PathException
      */
-    public function processPropertyPaths(PathsBasedInterface $pathsBased): void
+    public function processPropertyPaths(PathAdjustableInterface $pathAdjustable): void
     {
         // If the path is `book.author.name` and `author` needs mapping but `book` does not
         // then we get the author relationship here and map it to something like
         // `book.authoredBy.fullName` or `book.author.meta.name` depending on the
         // schema of the object class backing the type.
-        array_map(function (PropertyPathAccessInterface $propertyPath): void {
-            $path = $propertyPath->getAsNames();
+        $pathAdjustable->adjustPath(function (array $path): array {
             $rootType = $this->processorConfig->getRootType();
             try {
                 $availableProperties = $this->processorConfig->getProperties($rootType);
-                $path = $this->processPropertyPath($availableProperties, [], ...$path);
+                return $this->processPropertyPath($availableProperties, [], ...$path);
             } catch (PropertyAccessException $exception) {
                 throw AccessException::pathDenied($rootType, $exception, $path);
             }
-            $propertyPath->setPath($path);
-        }, PathInfo::getPropertyPaths($pathsBased));
+        });
     }
 
     /**

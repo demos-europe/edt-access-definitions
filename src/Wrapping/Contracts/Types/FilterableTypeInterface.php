@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Contracts\Types;
 
-use EDT\Querying\Contracts\PathsBasedInterface;
+use EDT\ConditionFactory\DrupalFilterInterface;
 use Exception;
 
 /**
- * @template TCondition of PathsBasedInterface
  * @template TEntity of object
  */
 interface FilterableTypeInterface
@@ -23,7 +22,7 @@ interface FilterableTypeInterface
      * imposed by the implementation.
      *
      * @param TEntity $entity
-     * @param list<TCondition> $conditions
+     * @param list<DrupalFilterInterface> $conditions
      *
      * @throws Exception
      */
@@ -39,7 +38,7 @@ interface FilterableTypeInterface
      * imposed by the implementation.
      *
      * @param TEntity $entity
-     * @param list<TCondition> $conditions
+     * @param list<DrupalFilterInterface> $conditions
      */
     public function isMatchingEntity(object $entity, array $conditions): bool;
 }

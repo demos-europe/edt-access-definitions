@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Wrapping\Utilities;
 
+use EDT\ConditionFactory\ConditionFactory;
 use EDT\JsonApi\ApiDocumentation\AttributeTypeResolver;
-use EDT\Querying\ConditionFactories\PhpConditionFactory;
 use EDT\Querying\PropertyAccessors\ReflectionPropertyAccessor;
-use EDT\Wrapping\Contracts\PropertyAccessException;
 use EDT\Wrapping\TypeProviders\LazyTypeProvider;
 use EDT\Wrapping\TypeProviders\PrefilledTypeProvider;
 use EDT\Wrapping\Utilities\PropertyPathProcessor;
@@ -28,7 +27,7 @@ class PropertyPathProcessorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $conditionFactory = new PhpConditionFactory();
+        $conditionFactory = new ConditionFactory();
         $lazyTypeProvider = new LazyTypeProvider();
         $propertyAccessor = new ReflectionPropertyAccessor();
         $typeResolver = new AttributeTypeResolver();

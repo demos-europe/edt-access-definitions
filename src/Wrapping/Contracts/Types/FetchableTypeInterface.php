@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Contracts\Types;
 
-use EDT\Querying\Contracts\PathsBasedInterface;
+use EDT\ConditionFactory\DrupalFilterInterface;
 use EDT\Querying\Pagination\PagePagination;
+use EDT\Querying\SortMethodFactories\SortMethodInterface;
 use Pagerfanta\Pagerfanta;
 
 /**
- * @template TCondition of PathsBasedInterface
- * @template TSorting of PathsBasedInterface
  * @template TEntity of object
  */
 interface FetchableTypeInterface
@@ -25,8 +24,8 @@ interface FetchableTypeInterface
      * The given conditions and sort methods must only use properties that are allowed to be used
      * by an external request.
      *
-     * @param list<TCondition> $conditions
-     * @param list<TSorting> $sortMethods
+     * @param list<DrupalFilterInterface> $conditions
+     * @param list<SortMethodInterface> $sortMethods
      *
      * @return list<TEntity>
      */
@@ -42,8 +41,8 @@ interface FetchableTypeInterface
      * The given conditions and sort methods must only use properties that are allowed to be used
      * by an external request.
      *
-     * @param list<TCondition> $conditions
-     * @param list<TSorting> $sortMethods
+     * @param list<DrupalFilterInterface> $conditions
+     * @param list<SortMethodInterface> $sortMethods
      *
      * @return Pagerfanta<TEntity>
      */

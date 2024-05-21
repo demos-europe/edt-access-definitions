@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Relationship\ToOne;
 
+use EDT\ConditionFactory\DrupalFilterInterface;
 use EDT\JsonApi\ApiDocumentation\OptionalField;
-use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
 use EDT\Wrapping\Contracts\TransferableTypeProviderInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
@@ -14,21 +14,19 @@ use EDT\Wrapping\PropertyBehavior\Relationship\ToOne\Factory\PathToOneRelationsh
 use Webmozart\Assert\Assert;
 
 /**
- * @template TCondition of PathsBasedInterface
- * @template TSorting of PathsBasedInterface
  * @template TEntity of object
  * @template TRelationship of object
  *
- * @template-extends AbstractToOneRelationshipSetBehavior<TCondition, TSorting, TEntity, TRelationship>
+ * @template-extends AbstractToOneRelationshipSetBehavior<TEntity, TRelationship>
  */
 class PathToOneRelationshipSetBehavior extends AbstractToOneRelationshipSetBehavior
 {
     /**
      * @param non-empty-string $propertyName
      * @param class-string<TEntity> $entityClass
-     * @param list<TCondition> $entityConditions
-     * @param list<TCondition> $relationshipConditions
-     * @param TransferableTypeInterface<TCondition, TSorting, TRelationship>|TransferableTypeProviderInterface<TCondition, TSorting, TRelationship> $relationshipType
+     * @param list<DrupalFilterInterface> $entityConditions
+     * @param list<DrupalFilterInterface> $relationshipConditions
+     * @param TransferableTypeInterface<TRelationship>|TransferableTypeProviderInterface<TRelationship> $relationshipType
      * @param non-empty-list<non-empty-string> $propertyPath
      */
     public function __construct(
@@ -45,12 +43,10 @@ class PathToOneRelationshipSetBehavior extends AbstractToOneRelationshipSetBehav
     }
 
     /**
-     * @template TCond of PathsBasedInterface
+     * @param list<DrupalFilterInterface> $relationshipConditions
+     * @param list<DrupalFilterInterface> $entityConditions
      *
-     * @param list<TCond> $relationshipConditions
-     * @param list<TCond> $entityConditions
-     *
-     * @return RelationshipSetBehaviorFactoryInterface<TCond, PathsBasedInterface, object, object>
+     * @return RelationshipSetBehaviorFactoryInterface<object, object>
      */
     public static function createFactory(
         array $relationshipConditions,

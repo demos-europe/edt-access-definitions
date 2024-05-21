@@ -4,18 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\data\Types;
 
-use EDT\ConditionFactory\PathsBasedConditionFactoryInterface;
+use EDT\ConditionFactory\ConditionFactoryInterface;
 use EDT\JsonApi\ApiDocumentation\AttributeTypeResolver;
 use EDT\JsonApi\ApiDocumentation\OptionalField;
+use EDT\JsonApi\InputHandling\PhpEntityRepository;
+use EDT\JsonApi\InputHandling\RepositoryInterface;
 use EDT\JsonApi\RequestHandling\ExpectedPropertyCollection;
 use EDT\JsonApi\RequestHandling\ModifiedEntity;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
+use EDT\Querying\PropertyAccessors\ReflectionPropertyAccessor;
 use EDT\Querying\PropertyPaths\NonRelationshipLink;
 use EDT\Querying\PropertyPaths\RelationshipLink;
-use EDT\Querying\Utilities\ConditionEvaluator;
-use EDT\Querying\Utilities\Reindexer;
-use EDT\Querying\Utilities\Sorter;
-use EDT\Querying\Utilities\TableJoiner;
 use EDT\Wrapping\Contracts\TypeProviderInterface;
 use EDT\Wrapping\Contracts\Types\FilteringTypeInterface;
 use EDT\Wrapping\Contracts\Types\SortingTypeInterface;
@@ -26,6 +25,7 @@ use EDT\Wrapping\PropertyBehavior\Relationship\ToMany\PathToManyRelationshipRead
 use EDT\Wrapping\PropertyBehavior\Relationship\ToMany\PathToManyRelationshipSetBehavior;
 use EDT\Wrapping\ResourceBehavior\ResourceReadability;
 use EDT\Wrapping\ResourceBehavior\ResourceUpdatability;
+use Symfony\Component\Validator\Validation;
 use Tests\data\AdModel\Person;
 use Webmozart\Assert\Assert;
 
@@ -34,12 +34,16 @@ class AuthorType implements
     FilteringTypeInterface,
     SortingTypeInterface
 {
+    protected readonly RepositoryInterface $repository;
+
     public function __construct(
-        protected readonly PathsBasedConditionFactoryInterface $conditionFactory,
+        protected readonly ConditionFactoryInterface $conditionFactory,
         protected readonly TypeProviderInterface $typeProvider,
         protected readonly PropertyAccessorInterface $propertyAccessor,
         protected readonly AttributeTypeResolver $typeResolver
-    ) {}
+    ) {
+        $this->repository = PhpEntityRepository::createDefault(Validation::createValidator(), new ReflectionPropertyAccessor(), []);
+    }
 
     public function getReadability(): ResourceReadability
     {
@@ -64,7 +68,6 @@ class AuthorType implements
                 $this->getEntityClass(),
                 ['id'],
                 $this->propertyAccessor,
-                $this->typeResolver
             )
         );
     }
@@ -162,25 +165,20 @@ class AuthorType implements
 
     public function assertMatchingEntity(object $entity, array $conditions): void
     {
-        $tableJoiner = new TableJoiner($this->propertyAccessor);
-        $conditionEvaluator = new ConditionEvaluator($tableJoiner);
         $conditions = array_merge($conditions, $this->getAccessConditions());
-        Assert::true($conditionEvaluator->evaluateConditions($entity, $conditions));
+        Assert::true($this->repository->isMatchingEntity($entity, $conditions));
     }
 
     public function isMatchingEntity(object $entity, array $conditions): bool
     {
         $conditions = array_merge($conditions, $this->getAccessConditions());
-        $tableJoiner = new TableJoiner($this->propertyAccessor);
 
-        return (new ConditionEvaluator($tableJoiner))->evaluateConditions($entity, $conditions);
+        return $this->repository->isMatchingEntity($entity, $conditions);
     }
 
     public function reindexEntities(array $entities, array $conditions, array $sortMethods): array
     {
-        $tableJoiner = new TableJoiner($this->propertyAccessor);
-        $reindexer = new Reindexer(new ConditionEvaluator($tableJoiner), new Sorter($tableJoiner));
-        return $reindexer->reindexEntities($entities, $conditions, $sortMethods);
+        return $this->repository->reindexEntities($entities, $conditions, $sortMethods);
     }
 
     public function getEntityForRelationship(string $identifier, array $conditions): object

@@ -5,16 +5,9 @@ declare(strict_types=1);
 namespace EDT\Wrapping\TypeProviders;
 
 use EDT\Querying\Contracts\EntityBasedInterface;
-use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\TypeProviderInterface;
 use InvalidArgumentException;
 
-/**
- * @template TCondition of PathsBasedInterface
- * @template TSorting of PathsBasedInterface
- *
- * @template-implements TypeProviderInterface<TCondition, TSorting>
- */
 class LazyTypeProvider implements TypeProviderInterface
 {
     /**
@@ -41,9 +34,6 @@ class LazyTypeProvider implements TypeProviderInterface
         $this->types[$identifier] = $type;
     }
 
-    /**
-     * @param TypeProviderInterface<TCondition, TSorting> $typeProvider
-     */
     public function setAllTypes(TypeProviderInterface $typeProvider): void
     {
         foreach ($typeProvider->getTypeIdentifiers() as $typeIdentifier) {
