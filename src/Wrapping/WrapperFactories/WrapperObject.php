@@ -163,8 +163,6 @@ class WrapperObject
     }
 
     /**
-     * TODO: should returned instances automatically be sorted by {@link AbstractResourceType::getDefaultSortMethods()}? Would this conflict with {@link \Doctrine\ORM\Mapping\OrderBy}? How/where to implement?
-     *
      * @param non-empty-string $propertyName
      * @param list<DrupalFilterInterface> $conditions
      * @param list<SortMethodInterface> $sortMethods

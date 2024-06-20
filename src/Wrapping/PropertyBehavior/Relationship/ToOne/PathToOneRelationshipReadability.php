@@ -39,7 +39,7 @@ class PathToOneRelationshipReadability implements ToOneRelationshipReadabilityIn
         $relationshipClass = $this->getRelationshipType()->getEntityClass();
         $relationship = $this->assertValidToOneValue($relationship, $relationshipClass);
 
-        // TODO: how to disallow a `null` relationship? can it be done with a condition?
+        // TODO (#148): how to disallow a `null` relationship? can it be done with a condition?
         return null === $relationship || $this->getRelationshipType()->isMatchingEntity($relationship, $conditions)
             ? $relationship
             : null;

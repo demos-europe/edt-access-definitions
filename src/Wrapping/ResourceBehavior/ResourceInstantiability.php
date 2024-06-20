@@ -95,7 +95,7 @@ class ResourceInstantiability extends AbstractResourceModifier
                 $nestedIdRequestDeviations[] = $identifierPostConstructorBehavior->setIdentifier($entity, $entityData);
             }
         } elseif (!array_key_exists(ContentField::ID, $this->propertyConstructorBehaviors)) {
-            // TODO: MUST return 403 Forbidden (https://jsonapi.org/format/#crud-creating-client-ids)
+            // TODO (#139): MUST return 403 Forbidden (https://jsonapi.org/format/#crud-creating-client-ids)
             throw new InvalidArgumentException('Value for `id` field was provided in request, but no setup to handle it exists.');
         }
 

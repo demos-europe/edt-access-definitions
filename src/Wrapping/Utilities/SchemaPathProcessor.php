@@ -25,12 +25,12 @@ use function array_key_exists;
  * allowed in the context of a given root {@link EntityBasedInterface} and maps
  * the paths according to the corresponding configured aliases.
  *
- * TODO: remove this class by moving its logic into the classes where it is actually needed
+ * TODO (#154): remove this class by moving its logic into the classes where it is actually needed
  */
 class SchemaPathProcessor
 {
     public function __construct(
-        protected readonly PropertyPathProcessorFactory $propertyPathProcessorFactory
+        protected readonly PropertyPathProcessorFactory $propertyPathProcessorFactory = new PropertyPathProcessorFactory()
     ) {}
 
     /**

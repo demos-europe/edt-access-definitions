@@ -35,7 +35,7 @@ class CallbackToOneRelationshipReadability implements ToOneRelationshipReadabili
         $relationshipClass = $this->getRelationshipType()->getEntityClass();
         $relationshipEntity = $this->assertValidToOneValue($relationshipEntity, $relationshipClass);
 
-        // TODO: how to disallow a `null` relationship? can it be done with a condition?
+        // TODO (#148): how to disallow a `null` relationship? can it be done with a condition?
         return null === $relationshipEntity || $this->getRelationshipType()->isMatchingEntity($relationshipEntity, $conditions)
             ? $relationshipEntity
             : null;

@@ -72,8 +72,8 @@ class WrapperArrayFactory
         // we only include properties in the result array that are actually accessible
         $readableProperties = $type->getReadability();
 
-        // TODO: respect $readability settings (default field, default include)?
-        // TODO: add sparse fieldset support
+        // TODO (#153): respect $readability settings (default field, default include)?
+        // TODO (#153): add sparse fieldset support
 
         $idReadability = $readableProperties->getIdentifierReadability();
         $attributes = $readableProperties->getAttributes();

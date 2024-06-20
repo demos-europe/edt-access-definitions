@@ -30,7 +30,7 @@ trait PropertyUpdaterTrait
         ?array $relationshipRef
     ): ?object {
         if (null === $relationshipRef) {
-            // TODO: how to disallow a `null` relationship? can it be done with a condition?
+            // TODO (#148): how to disallow a `null` relationship? can it be done with a condition?
             return null;
         }
 
@@ -55,7 +55,7 @@ trait PropertyUpdaterTrait
         array $relationshipRefs
     ): array {
         if ([] === $relationshipRefs) {
-            // TODO: how to disallow an empty relationship?
+            // TODO (#148): how to disallow an empty relationship?
             return [];
         }
 
