@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Relationship\ToOne;
 
+use EDT\ConditionFactory\DrupalFilterInterface;
 use EDT\JsonApi\ApiDocumentation\OptionalField;
 use EDT\JsonApi\ResourceTypes\ResourceTypeInterface;
-use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\RelationshipInterface;
 use EDT\Wrapping\Contracts\ResourceTypeProviderInterface;
 use EDT\Wrapping\Contracts\TransferableTypeProviderInterface;
@@ -19,10 +19,7 @@ use EDT\Wrapping\PropertyBehavior\Relationship\RelationshipConstructorBehaviorFa
 use function array_key_exists;
 
 /**
- * @template TCondition of PathsBasedInterface
- * @template TSorting of PathsBasedInterface
- *
- * @template-implements RelationshipInterface<TransferableTypeInterface<TCondition, TSorting, object>>
+ * @template-implements RelationshipInterface<TransferableTypeInterface<object>>
  */
 class ToOneRelationshipConstructorBehavior extends AbstractConstructorBehavior implements RelationshipInterface
 {
@@ -33,8 +30,8 @@ class ToOneRelationshipConstructorBehavior extends AbstractConstructorBehavior i
      *
      * @param non-empty-string $argumentName
      * @param non-empty-string $propertyName
-     * @param TransferableTypeInterface<TCondition, TSorting, TRelationship>|TransferableTypeProviderInterface<TCondition, TSorting, TRelationship> $relationshipType
-     * @param list<TCondition> $relationshipConditions
+     * @param TransferableTypeInterface<TRelationship>|TransferableTypeProviderInterface<TRelationship> $relationshipType
+     * @param list<DrupalFilterInterface> $relationshipConditions
      * @param null|callable(CreationDataInterface): array{mixed, list<non-empty-string>} $customBehavior
      */
     public function __construct(
@@ -49,25 +46,21 @@ class ToOneRelationshipConstructorBehavior extends AbstractConstructorBehavior i
     }
 
     /**
-     * @template TCond of PathsBasedInterface
-     *
      * @param non-empty-string|null $argumentName
-     * @param list<TCond> $relationshipConditions
+     * @param list<DrupalFilterInterface> $relationshipConditions
      * @param null|callable(CreationDataInterface): array{mixed, list<non-empty-string>} $customBehavior
-     *
-     * @return RelationshipConstructorBehaviorFactoryInterface<TCond>
      */
     public static function createFactory(
         ?string $argumentName,
         array $relationshipConditions,
         mixed $customBehavior,
         OptionalField $optional
-    ): callable {
+    ): RelationshipConstructorBehaviorFactoryInterface {
         return new class($argumentName, $relationshipConditions, $customBehavior, $optional) implements RelationshipConstructorBehaviorFactoryInterface
         {
             /**
              * @param non-empty-string|null $argumentName
-             * @param list<TCondition> $relationshipConditions
+             * @param list<DrupalFilterInterface> $relationshipConditions
              * @param null|callable(CreationDataInterface): array{mixed, list<non-empty-string>} $customBehavior
              */
             public function __construct(

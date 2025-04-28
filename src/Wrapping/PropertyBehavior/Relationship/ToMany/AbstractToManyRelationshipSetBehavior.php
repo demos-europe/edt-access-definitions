@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Relationship\ToMany;
 
+use EDT\ConditionFactory\DrupalFilterInterface;
 use EDT\JsonApi\ApiDocumentation\OptionalField;
-use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\TransferableTypeProviderInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\EntityDataInterface;
@@ -14,20 +14,18 @@ use Exception;
 use function array_key_exists;
 
 /**
- * @template TCondition of PathsBasedInterface
- * @template TSorting of PathsBasedInterface
  * @template TEntity of object
  * @template TRelationship of object
  *
- * @template-extends AbstractRelationshipSetBehavior<TCondition, TSorting, TEntity, TRelationship>
+ * @template-extends AbstractRelationshipSetBehavior<TEntity, TRelationship>
  */
 abstract class AbstractToManyRelationshipSetBehavior extends AbstractRelationshipSetBehavior
 {
     /**
      * @param non-empty-string $propertyName
-     * @param list<TCondition> $entityConditions
-     * @param list<TCondition> $relationshipConditions
-     * @param TransferableTypeInterface<TCondition, TSorting, TRelationship>|TransferableTypeProviderInterface<TCondition, TSorting, TRelationship> $relationshipType
+     * @param list<DrupalFilterInterface> $entityConditions
+     * @param list<DrupalFilterInterface> $relationshipConditions
+     * @param TransferableTypeInterface<TRelationship>|TransferableTypeProviderInterface<TRelationship> $relationshipType
      */
     public function __construct(
         string $propertyName,

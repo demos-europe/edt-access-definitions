@@ -6,7 +6,6 @@ namespace EDT\Wrapping\PropertyBehavior\Relationship;
 
 use EDT\JsonApi\ApiDocumentation\Cardinality;
 use EDT\JsonApi\ResourceTypes\ResourceTypeInterface;
-use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\ResourceTypeProviderInterface;
 use EDT\Wrapping\Contracts\Types\NamedTypeInterface;
 use EDT\Wrapping\CreationDataInterface;
@@ -15,8 +14,6 @@ use EDT\Wrapping\PropertyBehavior\IdUnrelatedTrait;
 
 /**
  * This behavior will always trigger on creation requests, regardless of the properties present in the request.
- *
- * @template TCondition of PathsBasedInterface
  */
 class RequiredRelationshipConstructorBehavior implements ConstructorBehaviorInterface
 {
@@ -25,7 +22,7 @@ class RequiredRelationshipConstructorBehavior implements ConstructorBehaviorInte
     /**
      * @param non-empty-string $argumentName
      * @param callable(CreationDataInterface): array{mixed, list<non-empty-string>} $callback
-     * @param NamedTypeInterface|ResourceTypeProviderInterface<TCondition, PathsBasedInterface, object> $relationshipType
+     * @param NamedTypeInterface|ResourceTypeProviderInterface<object> $relationshipType
      */
     public function __construct(
         protected readonly string $argumentName,
@@ -36,8 +33,6 @@ class RequiredRelationshipConstructorBehavior implements ConstructorBehaviorInte
 
     /**
      * @param callable(CreationDataInterface): array{mixed, list<non-empty-string>} $behavior
-     *
-     * @return RelationshipConstructorBehaviorFactoryInterface<PathsBasedInterface>
      */
     public static function createFactory(callable $behavior): RelationshipConstructorBehaviorFactoryInterface
     {

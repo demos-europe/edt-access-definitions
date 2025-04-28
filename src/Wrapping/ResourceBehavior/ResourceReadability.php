@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\ResourceBehavior;
 
-use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\ContentField;
 use EDT\Wrapping\PropertyBehavior\Attribute\AttributeReadabilityInterface;
 use EDT\Wrapping\PropertyBehavior\Identifier\IdentifierReadabilityInterface;
@@ -21,16 +20,14 @@ use function array_key_exists;
  * results for multiple calls of the same method or even weaken sanity checks, which may
  * have unpredictable effects.
  *
- * @template TCondition of PathsBasedInterface
- * @template TSorting of PathsBasedInterface
  * @template TEntity of object
  */
 final class ResourceReadability
 {
     /**
      * @param array<non-empty-string, AttributeReadabilityInterface<TEntity>> $attributes
-     * @param array<non-empty-string, ToOneRelationshipReadabilityInterface<TCondition, TSorting, TEntity, object>> $toOneRelationships
-     * @param array<non-empty-string, ToManyRelationshipReadabilityInterface<TCondition, TSorting, TEntity, object>> $toManyRelationships
+     * @param array<non-empty-string, ToOneRelationshipReadabilityInterface<TEntity, object>> $toOneRelationships
+     * @param array<non-empty-string, ToManyRelationshipReadabilityInterface<TEntity, object>> $toManyRelationships
      * @param IdentifierReadabilityInterface<TEntity> $idReadability
      */
     public function __construct(
@@ -59,7 +56,7 @@ final class ResourceReadability
     }
 
     /**
-     * @return array<non-empty-string, ToOneRelationshipReadabilityInterface<TCondition, TSorting, TEntity, object>>
+     * @return array<non-empty-string, ToOneRelationshipReadabilityInterface<TEntity, object>>
      */
     public function getToOneRelationships(): array
     {
@@ -67,7 +64,7 @@ final class ResourceReadability
     }
 
     /**
-     * @return array<non-empty-string, ToManyRelationshipReadabilityInterface<TCondition, TSorting, TEntity, object>>
+     * @return array<non-empty-string, ToManyRelationshipReadabilityInterface<TEntity, object>>
      */
     public function getToManyRelationships(): array
     {
@@ -75,7 +72,7 @@ final class ResourceReadability
     }
 
     /**
-     * @return array<non-empty-string, AttributeReadabilityInterface<TEntity>|ToOneRelationshipReadabilityInterface<TCondition, TSorting, TEntity, object>|ToManyRelationshipReadabilityInterface<TCondition, TSorting, TEntity, object>>
+     * @return array<non-empty-string, AttributeReadabilityInterface<TEntity>|ToOneRelationshipReadabilityInterface<TEntity, object>|ToManyRelationshipReadabilityInterface<TEntity, object>>
      */
     public function getAllProperties(): array
     {
@@ -87,7 +84,7 @@ final class ResourceReadability
     }
 
     /**
-     * @return array<non-empty-string, ToOneRelationshipReadabilityInterface<TCondition, TSorting, TEntity, object>|ToManyRelationshipReadabilityInterface<TCondition, TSorting, TEntity, object>>
+     * @return array<non-empty-string, ToOneRelationshipReadabilityInterface<TEntity, object>|ToManyRelationshipReadabilityInterface<TEntity, object>>
      */
     public function getRelationships(): array
     {
@@ -106,7 +103,7 @@ final class ResourceReadability
     /**
      * @param non-empty-string $propertyName
      *
-     * @return ToOneRelationshipReadabilityInterface<TCondition, TSorting, TEntity, object>|ToManyRelationshipReadabilityInterface<TCondition, TSorting, TEntity, object>
+     * @return ToOneRelationshipReadabilityInterface<TEntity, object>|ToManyRelationshipReadabilityInterface<TEntity, object>
      *
      * @throws InvalidArgumentException
      */
@@ -133,7 +130,7 @@ final class ResourceReadability
     /**
      * @param non-empty-string $propertyName
      *
-     * @return ToOneRelationshipReadabilityInterface<TCondition, TSorting, TEntity, object>
+     * @return ToOneRelationshipReadabilityInterface<TEntity, object>
      */
     public function getToOneRelationship(string $propertyName): ToOneRelationshipReadabilityInterface
     {
@@ -144,7 +141,7 @@ final class ResourceReadability
     /**
      * @param non-empty-string $propertyName
      *
-     * @return ToManyRelationshipReadabilityInterface<TCondition, TSorting, TEntity, object>
+     * @return ToManyRelationshipReadabilityInterface<TEntity, object>
      */
     public function getToManyRelationship(string $propertyName): ToManyRelationshipReadabilityInterface
     {

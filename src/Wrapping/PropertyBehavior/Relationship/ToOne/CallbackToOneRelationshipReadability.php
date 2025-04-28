@@ -4,18 +4,15 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Relationship\ToOne;
 
-use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\TransferableTypeProviderInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\PropertyBehavior\EntityVerificationTrait;
 
 /**
- * @template TCondition of PathsBasedInterface
- * @template TSorting of PathsBasedInterface
  * @template TEntity of object
  * @template TRelationship of object
  *
- * @template-implements ToOneRelationshipReadabilityInterface<TCondition, TSorting, TEntity, TRelationship>
+ * @template-implements ToOneRelationshipReadabilityInterface<TEntity, TRelationship>
  */
 class CallbackToOneRelationshipReadability implements ToOneRelationshipReadabilityInterface
 {
@@ -23,7 +20,7 @@ class CallbackToOneRelationshipReadability implements ToOneRelationshipReadabili
 
     /**
      * @param callable(TEntity): (TRelationship|null) $readCallback
-     * @param TransferableTypeInterface<TCondition, TSorting, TRelationship>|TransferableTypeProviderInterface<TCondition, TSorting, TRelationship> $relationshipType
+     * @param TransferableTypeInterface<TRelationship>|TransferableTypeProviderInterface<TRelationship> $relationshipType
      */
     public function __construct(
         protected readonly bool                                                        $defaultField,
@@ -38,7 +35,7 @@ class CallbackToOneRelationshipReadability implements ToOneRelationshipReadabili
         $relationshipClass = $this->getRelationshipType()->getEntityClass();
         $relationshipEntity = $this->assertValidToOneValue($relationshipEntity, $relationshipClass);
 
-        // TODO: how to disallow a `null` relationship? can it be done with a condition?
+        // TODO (#148): how to disallow a `null` relationship? can it be done with a condition?
         return null === $relationshipEntity || $this->getRelationshipType()->isMatchingEntity($relationshipEntity, $conditions)
             ? $relationshipEntity
             : null;

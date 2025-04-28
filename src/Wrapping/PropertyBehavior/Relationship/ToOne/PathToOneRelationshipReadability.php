@@ -4,19 +4,16 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Relationship\ToOne;
 
-use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
 use EDT\Wrapping\Contracts\TransferableTypeProviderInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\PropertyBehavior\EntityVerificationTrait;
 
 /**
- * @template TCondition of PathsBasedInterface
- * @template TSorting of PathsBasedInterface
  * @template TEntity of object
  * @template TRelationship of object
  *
- * @template-implements ToOneRelationshipReadabilityInterface<TCondition, TSorting, TEntity, TRelationship>
+ * @template-implements ToOneRelationshipReadabilityInterface<TEntity, TRelationship>
  */
 class PathToOneRelationshipReadability implements ToOneRelationshipReadabilityInterface
 {
@@ -25,7 +22,7 @@ class PathToOneRelationshipReadability implements ToOneRelationshipReadabilityIn
     /**
      * @param class-string<TEntity> $entityClass
      * @param non-empty-list<non-empty-string> $propertyPath
-     * @param TransferableTypeInterface<TCondition, TSorting, TRelationship>|TransferableTypeProviderInterface<TCondition, TSorting, TRelationship> $relationshipType
+     * @param TransferableTypeInterface<TRelationship>|TransferableTypeProviderInterface<TRelationship> $relationshipType
      */
     public function __construct(
         protected readonly string                                                      $entityClass,
@@ -42,7 +39,7 @@ class PathToOneRelationshipReadability implements ToOneRelationshipReadabilityIn
         $relationshipClass = $this->getRelationshipType()->getEntityClass();
         $relationship = $this->assertValidToOneValue($relationship, $relationshipClass);
 
-        // TODO: how to disallow a `null` relationship? can it be done with a condition?
+        // TODO (#148): how to disallow a `null` relationship? can it be done with a condition?
         return null === $relationship || $this->getRelationshipType()->isMatchingEntity($relationship, $conditions)
             ? $relationship
             : null;

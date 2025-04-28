@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Contracts\Types;
 
-use EDT\Querying\Contracts\PathsBasedInterface;
+use EDT\ConditionFactory\DrupalFilterInterface;
+use EDT\Querying\SortMethodFactories\SortMethodInterface;
 
 /**
- * @template TCondition of PathsBasedInterface
- * @template TSorting of PathsBasedInterface
  * @template TEntity of object
  *
- * @template-extends FilterableTypeInterface<TCondition, TEntity>
+ * @template-extends FilterableTypeInterface<TEntity>
  */
 interface ReindexableTypeInterface extends FilterableTypeInterface
 {
@@ -21,8 +20,8 @@ interface ReindexableTypeInterface extends FilterableTypeInterface
      * the internal default sort method setting.
      *
      * @param list<TEntity> $entities
-     * @param list<TCondition> $conditions
-     * @param list<TSorting> $sortMethods
+     * @param list<DrupalFilterInterface> $conditions
+     * @param list<SortMethodInterface> $sortMethods
      *
      * @return list<TEntity>
      */

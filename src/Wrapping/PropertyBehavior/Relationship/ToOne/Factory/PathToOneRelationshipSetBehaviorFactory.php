@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Relationship\ToOne\Factory;
 
+use EDT\ConditionFactory\DrupalFilterInterface;
 use EDT\JsonApi\ApiDocumentation\OptionalField;
 use EDT\JsonApi\ResourceTypes\ResourceTypeInterface;
-use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
 use EDT\Wrapping\Contracts\TransferableTypeProviderInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
@@ -15,18 +15,16 @@ use EDT\Wrapping\PropertyBehavior\Relationship\RelationshipSetBehaviorInterface;
 use EDT\Wrapping\PropertyBehavior\Relationship\ToOne\PathToOneRelationshipSetBehavior;
 
 /**
- * @template TCondition of PathsBasedInterface
- * @template TSorting of PathsBasedInterface
  * @template TEntity of object
  * @template TRelationship of object
  *
- * @template-implements RelationshipSetBehaviorFactoryInterface<TCondition, TSorting, TEntity, TRelationship>
+ * @template-implements RelationshipSetBehaviorFactoryInterface<TEntity, TRelationship>
  */
 class PathToOneRelationshipSetBehaviorFactory implements RelationshipSetBehaviorFactoryInterface
 {
     /**
-     * @param list<TCondition> $relationshipConditions
-     * @param list<TCondition> $entityConditions
+     * @param list<DrupalFilterInterface> $relationshipConditions
+     * @param list<DrupalFilterInterface> $entityConditions
      */
     public function __construct(
         protected readonly array $relationshipConditions,

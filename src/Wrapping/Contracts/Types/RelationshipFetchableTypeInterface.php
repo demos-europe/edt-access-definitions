@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Contracts\Types;
 
-use EDT\Querying\Contracts\PathsBasedInterface;
+use EDT\ConditionFactory\DrupalFilterInterface;
+use EDT\Querying\SortMethodFactories\SortMethodInterface;
 
 /**
- * @template TCondition of PathsBasedInterface
- * @template TSorting of PathsBasedInterface
  * @template TEntity of object
  */
 interface RelationshipFetchableTypeInterface
@@ -24,8 +23,8 @@ interface RelationshipFetchableTypeInterface
      * supported if they are not present in the entity.
      *
      * @param non-empty-list<non-empty-string> $identifiers
-     * @param list<TCondition> $conditions
-     * @param list<TSorting> $sortMethods
+     * @param list<DrupalFilterInterface> $conditions
+     * @param list<SortMethodInterface> $sortMethods
      *
      * @return list<TEntity>
      */
@@ -37,7 +36,7 @@ interface RelationshipFetchableTypeInterface
      * Implementations are responsible to not return instances with restricted accessibility.
      *
      * @param non-empty-string $identifier
-     * @param list<TCondition> $conditions will be given full access to the properties of the entity
+     * @param list<DrupalFilterInterface> $conditions will be given full access to the properties of the entity
      *
      * @return TEntity
      */

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Wrapping\Utilities;
 
+use EDT\ConditionFactory\ConditionFactory;
 use EDT\JsonApi\ApiDocumentation\AttributeTypeResolver;
 use EDT\Querying\ConditionFactories\PhpConditionFactory;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
@@ -24,7 +25,7 @@ class PropertyReaderTest extends ModelBasedTest
     protected function setUp(): void
     {
         parent::setUp();
-        $conditionFactory = new PhpConditionFactory();
+        $conditionFactory = new ConditionFactory();
         $lazyTypeProvider = new LazyTypeProvider();
         $this->propertyAccessor = new ReflectionPropertyAccessor();
         $typeResolver = new AttributeTypeResolver();

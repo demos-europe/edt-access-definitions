@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Identifier;
 
+use EDT\ConditionFactory\DrupalFilterInterface;
 use EDT\JsonApi\ApiDocumentation\OptionalField;
-use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
 use EDT\Wrapping\Contracts\ContentField;
 use EDT\Wrapping\CreationDataInterface;
@@ -20,18 +20,17 @@ use Webmozart\Assert\Assert;
  *
  * The means of setting the identifier are provided to instances via a {@link PropertyAccessorInterface}.
  *
- * @template TCondition of PathsBasedInterface
  * @template TEntity of object
  *
  * @template-implements IdentifierPostConstructorBehaviorInterface<TEntity>
- * @template-extends AbstractPropertySetBehavior<TCondition, TEntity>
+ * @template-extends AbstractPropertySetBehavior<TEntity>
  */
 class PathIdentifierPostConstructorBehavior extends AbstractPropertySetBehavior implements IdentifierPostConstructorBehaviorInterface
 {
     /**
      * @param class-string<TEntity> $entityClass
      * @param non-empty-list<non-empty-string> $propertyPath
-     * @param list<TCondition> $entityConditions
+     * @param list<DrupalFilterInterface> $entityConditions
      */
     public function __construct(
         protected readonly string $entityClass,
@@ -44,7 +43,7 @@ class PathIdentifierPostConstructorBehavior extends AbstractPropertySetBehavior 
     }
 
     /**
-     * @param list<TCondition> $entityConditions
+     * @param list<DrupalFilterInterface> $entityConditions
      *
      * @return IdentifierPostConstructorBehaviorFactoryInterface<object>
      */
@@ -52,7 +51,7 @@ class PathIdentifierPostConstructorBehavior extends AbstractPropertySetBehavior 
     {
         return new class($optional, $propertyAccessor, $entityConditions) implements IdentifierPostConstructorBehaviorFactoryInterface {
             /**
-             * @param list<TCondition> $entityConditions
+             * @param list<DrupalFilterInterface> $entityConditions
              */
             public function __construct(
                 protected readonly OptionalField $optional,

@@ -4,28 +4,26 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Relationship\ToOne;
 
+use EDT\ConditionFactory\DrupalFilterInterface;
 use EDT\JsonApi\ApiDocumentation\OptionalField;
-use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\TransferableTypeProviderInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\PropertyBehavior\Relationship\RelationshipSetBehaviorFactoryInterface;
 use EDT\Wrapping\PropertyBehavior\Relationship\ToOne\Factory\CallbackToOneRelationshipSetBehaviorFactory;
 
 /**
- * @template TCondition of PathsBasedInterface
- * @template TSorting of PathsBasedInterface
  * @template TEntity of object
  * @template TRelationship of object
  *
- * @template-extends AbstractToOneRelationshipSetBehavior<TCondition, TSorting, TEntity, TRelationship>
+ * @template-extends AbstractToOneRelationshipSetBehavior<TEntity, TRelationship>
  */
 class CallbackToOneRelationshipSetBehavior extends AbstractToOneRelationshipSetBehavior
 {
     /**
      * @param non-empty-string $propertyName
-     * @param list<TCondition> $entityConditions
-     * @param list<TCondition> $relationshipConditions
-     * @param TransferableTypeInterface<TCondition, TSorting, TRelationship>|TransferableTypeProviderInterface<TCondition, TSorting, TRelationship> $relationshipType
+     * @param list<DrupalFilterInterface> $entityConditions
+     * @param list<DrupalFilterInterface> $relationshipConditions
+     * @param TransferableTypeInterface<TRelationship>|TransferableTypeProviderInterface<TRelationship> $relationshipType
      * @param callable(TEntity, TRelationship|null): list<non-empty-string> $setterCallback
      */
     public function __construct(
@@ -40,15 +38,14 @@ class CallbackToOneRelationshipSetBehavior extends AbstractToOneRelationshipSetB
     }
 
     /**
-     * @template TCond of PathsBasedInterface
      * @template TEnt of object
      * @template TRel of object
      *
      * @param callable(TEnt, TRel|null): list<non-empty-string> $setBehaviorCallback
-     * @param list<TCond> $relationshipConditions
-     * @param list<TCond> $entityConditions
+     * @param list<DrupalFilterInterface> $relationshipConditions
+     * @param list<DrupalFilterInterface> $entityConditions
      *
-     * @return RelationshipSetBehaviorFactoryInterface<TCond, PathsBasedInterface, TEnt, TRel>
+     * @return RelationshipSetBehaviorFactoryInterface<TEnt, TRel>
      */
     public static function createFactory(
         mixed $setBehaviorCallback,
