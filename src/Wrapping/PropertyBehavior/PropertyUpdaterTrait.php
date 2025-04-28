@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior;
 
-use EDT\ConditionFactory\DrupalFilterInterface;
+use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\ContentField;
 use EDT\Wrapping\Contracts\Types\NamedTypeInterface;
 use EDT\Wrapping\Contracts\Types\RelationshipFetchableTypeInterface;
@@ -15,9 +15,11 @@ trait PropertyUpdaterTrait
 {
     /**
      * @template TRel of object
+     * @template TCond of PathsBasedInterface
+     * @template TSort of PathsBasedInterface
      *
-     * @param NamedTypeInterface&RelationshipFetchableTypeInterface<TRel> $relationshipType
-     * @param list<DrupalFilterInterface> $relationshipConditions
+     * @param NamedTypeInterface&RelationshipFetchableTypeInterface<TCond, TSort, TRel> $relationshipType
+     * @param list<TCond> $relationshipConditions
      * @param JsonApiRelationship|null $relationshipRef
      *
      * @return TRel|null
@@ -30,7 +32,7 @@ trait PropertyUpdaterTrait
         ?array $relationshipRef
     ): ?object {
         if (null === $relationshipRef) {
-            // TODO (#148): how to disallow a `null` relationship? can it be done with a condition?
+            // TODO: how to disallow a `null` relationship? can it be done with a condition?
             return null;
         }
 
@@ -42,9 +44,11 @@ trait PropertyUpdaterTrait
 
     /**
      * @template TRel of object
+     * @template TCond of PathsBasedInterface
+     * @template TSort of PathsBasedInterface
      *
-     * @param NamedTypeInterface&RelationshipFetchableTypeInterface<TRel> $relationshipType
-     * @param list<DrupalFilterInterface> $relationshipConditions
+     * @param NamedTypeInterface&RelationshipFetchableTypeInterface<TCond, TSort, TRel> $relationshipType
+     * @param list<TCond> $relationshipConditions
      * @param list<JsonApiRelationship> $relationshipRefs
      *
      * @return list<TRel>
@@ -55,7 +59,7 @@ trait PropertyUpdaterTrait
         array $relationshipRefs
     ): array {
         if ([] === $relationshipRefs) {
-            // TODO (#148): how to disallow an empty relationship?
+            // TODO: how to disallow an empty relationship?
             return [];
         }
 

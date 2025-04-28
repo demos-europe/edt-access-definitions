@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Contracts\Types;
 
+use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\ResourceBehavior\ResourceUpdatability;
 
 /**
+ * @template TCondition of PathsBasedInterface
+ * @template TSorting of PathsBasedInterface
  * @template TEntity of object
  */
 interface PropertyUpdatableTypeInterface
@@ -20,7 +23,7 @@ interface PropertyUpdatableTypeInterface
      *
      * Hint: You can merge the returned nested arrays via `array_merge(...$type->getUpdatableProperties())`.
      *
-     * @return ResourceUpdatability<TEntity>
+     * @return ResourceUpdatability<TCondition, TSorting, TEntity>
      */
     public function getUpdatability(): ResourceUpdatability;
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace EDT\Wrapping\WrapperFactories;
 
 use EDT\Querying\Contracts\PathException;
+use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
 use EDT\Querying\Contracts\SortException;
 use EDT\Wrapping\Contracts\AccessException;
@@ -59,7 +60,10 @@ class WrapperArrayFactory
      * wrapped using this factory until the depth set in this instance is reached.
      * If access is not granted it will be replaced by `null`.
      *
-     * @param TransferableTypeInterface<object> $type
+     * @template TCondition of PathsBasedInterface
+     * @template TSorting of PathsBasedInterface
+     *
+     * @param TransferableTypeInterface<TCondition, TSorting, object> $type
      *
      * @return array<non-empty-string, mixed> an array containing the readable properties of the given type
      *
@@ -72,8 +76,8 @@ class WrapperArrayFactory
         // we only include properties in the result array that are actually accessible
         $readableProperties = $type->getReadability();
 
-        // TODO (#153): respect $readability settings (default field, default include)?
-        // TODO (#153): add sparse fieldset support
+        // TODO: respect $readability settings (default field, default include)?
+        // TODO: add sparse fieldset support
 
         $idReadability = $readableProperties->getIdentifierReadability();
         $attributes = $readableProperties->getAttributes();

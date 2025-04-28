@@ -22,8 +22,8 @@ interface PropertySetBehaviorInterface extends PropertyConstrainingInterface
     public function executeBehavior(object $entity, EntityDataInterface $entityData): array;
 
     /**
-     * TODO (#133): move this method to a place where implementations of {@link ConstructorBehaviorInterface} can use it
-     * TODO (#133): use this method for the OpenAPI schema generation
+     * TODO: move this method to a place where implementations of {@link ConstructorBehaviorInterface} can use it
+     * TODO: use this method for the OpenAPI schema generation
      *
      * @return non-empty-string
      */

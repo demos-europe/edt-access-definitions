@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Relationship\ToMany;
 
-use EDT\ConditionFactory\DrupalFilterInterface;
 use EDT\JsonApi\ApiDocumentation\OptionalField;
+use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\EntityDataInterface;
 use EDT\Wrapping\PropertyBehavior\IdUnrelatedTrait;
 use EDT\Wrapping\PropertyBehavior\PropertyUpdatabilityInterface;
@@ -13,9 +13,10 @@ use EDT\Wrapping\PropertyBehavior\PropertyUpdaterTrait;
 use InvalidArgumentException;
 
 /**
+ * @template TCondition of PathsBasedInterface
  * @template TEntity of object
  *
- * @template-implements PropertyUpdatabilityInterface<TEntity>
+ * @template-implements PropertyUpdatabilityInterface<TCondition, TEntity>
  */
 abstract class AbstractPropertySetBehavior implements PropertyUpdatabilityInterface
 {
@@ -24,7 +25,7 @@ abstract class AbstractPropertySetBehavior implements PropertyUpdatabilityInterf
 
     /**
      * @param non-empty-string $propertyName the exposed property name accepted by this instance
-     * @param list<DrupalFilterInterface> $entityConditions
+     * @param list<TCondition> $entityConditions
      */
     public function __construct(
         protected readonly string $propertyName,

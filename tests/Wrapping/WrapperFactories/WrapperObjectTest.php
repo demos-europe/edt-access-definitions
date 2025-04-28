@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Wrapping\WrapperFactories;
 
-use EDT\ConditionFactory\ConditionFactory;
 use EDT\JsonApi\ApiDocumentation\AttributeTypeResolver;
 use EDT\Querying\ConditionFactories\PhpConditionFactory;
 use EDT\Querying\PropertyAccessors\ReflectionPropertyAccessor;
@@ -25,7 +24,7 @@ class WrapperObjectTest extends AdModelBasedTest
     protected function setUp(): void
     {
         parent::setUp();
-        $conditionFactory = new ConditionFactory();
+        $conditionFactory = new PhpConditionFactory();
         $propertyAccessor = new ReflectionPropertyAccessor();
         $lazyTypeProvider = new LazyTypeProvider();
         $attributeTypeResolver = new AttributeTypeResolver();

@@ -3,15 +3,16 @@
 declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior;
-use EDT\ConditionFactory\DrupalFilterInterface;
+use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\EntityDataInterface;
 
 /**
+ * @template TCondition of PathsBasedInterface
  * @template TEntity of object
  *
  * @template-extends PropertySetBehaviorInterface<TEntity>
  *
- * TODO (#145): try to merge this interface with its parent, make sure `getEntityConditions` is used where necessary
+ * TODO: try to merge this interface with its parent, make sure `getEntityConditions` is used where necessary
  */
 interface PropertyUpdatabilityInterface extends PropertySetBehaviorInterface
 {
@@ -20,7 +21,7 @@ interface PropertyUpdatabilityInterface extends PropertySetBehaviorInterface
      *
      * The conditions are allowed to access any properties of the entity without restrictions.
      *
-     * @return list<DrupalFilterInterface>
+     * @return list<TCondition>
      */
     public function getEntityConditions(EntityDataInterface $entityData): array;
 }

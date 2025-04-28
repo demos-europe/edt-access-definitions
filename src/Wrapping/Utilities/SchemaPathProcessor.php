@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\Utilities;
 
-use EDT\ConditionFactory\DrupalFilterInterface;
 use EDT\Querying\Contracts\EntityBasedInterface;
 use EDT\Querying\Contracts\PathException;
-use EDT\Querying\SortMethodFactories\SortMethodInterface;
+use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\AccessException;
 use EDT\Wrapping\Contracts\ContentField;
 use EDT\Wrapping\Contracts\PropertyAccessException;
@@ -24,20 +23,20 @@ use function array_key_exists;
  * Follows {@link PropertyPathAccessInterface} instances to check if access is
  * allowed in the context of a given root {@link EntityBasedInterface} and maps
  * the paths according to the corresponding configured aliases.
- *
- * TODO (#154): remove this class by moving its logic into the classes where it is actually needed
  */
 class SchemaPathProcessor
 {
     public function __construct(
-        protected readonly PropertyPathProcessorFactory $propertyPathProcessorFactory = new PropertyPathProcessorFactory()
+        protected readonly PropertyPathProcessorFactory $propertyPathProcessorFactory
     ) {}
 
     /**
      * Check the paths of the given conditions for availability and applies aliases using the given type.
      *
+     * @template TCondition of PathsBasedInterface
+     *
      * @param FilteringTypeInterface&EntityBasedInterface<object> $type
-     * @param non-empty-list<DrupalFilterInterface> $conditions
+     * @param non-empty-list<TCondition> $conditions
      *
      * @throws PathException
      * @throws AccessException
@@ -52,7 +51,11 @@ class SchemaPathProcessor
     /**
      * Check the paths of the given sort methods for availability and aliases using the given type.
      *
-     * @param non-empty-list<SortMethodInterface> $sortMethods
+     * @template TCondition of PathsBasedInterface
+     * @template TSorting of PathsBasedInterface
+     *
+     * @param SortingTypeInterface<TCondition, TSorting> $type
+     * @param non-empty-list<TSorting> $sortMethods
      *
      * @throws AccessException
      * @throws PathException
@@ -87,7 +90,7 @@ class SchemaPathProcessor
      * Note that {@link ContentField::ID} and {@link ContentField::TYPE} are not allowed in the given path, as they
      * are always readable.
      *
-     * @param PropertyReadableTypeInterface<object> $type
+     * @param PropertyReadableTypeInterface<PathsBasedInterface, PathsBasedInterface, object> $type
      * @param non-empty-list<non-empty-string> $path
      *
      * @throws PropertyAccessException

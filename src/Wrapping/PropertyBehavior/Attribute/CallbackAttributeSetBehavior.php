@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Attribute;
 
-use EDT\ConditionFactory\DrupalFilterInterface;
 use EDT\JsonApi\ApiDocumentation\OptionalField;
+use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\PropertyBehavior\Attribute\Factory\CallbackAttributeSetBehaviorFactory;
 
 /**
+ * @template TCondition of PathsBasedInterface
  * @template TEntity of object
  *
- * @template-extends AbstractAttributeSetBehavior<TEntity>
+ * @template-extends AbstractAttributeSetBehavior<TCondition, TEntity>
  */
 class CallbackAttributeSetBehavior extends AbstractAttributeSetBehavior
 {
@@ -19,7 +20,7 @@ class CallbackAttributeSetBehavior extends AbstractAttributeSetBehavior
 
     /**
      * @param non-empty-string $propertyName the exposed resource property name
-     * @param list<DrupalFilterInterface> $entityConditions
+     * @param list<TCondition> $entityConditions
      * @param callable(TEntity, simple_primitive|array<int|string, mixed>|null): list<non-empty-string> $setterCallback
      */
     public function __construct(
@@ -32,12 +33,13 @@ class CallbackAttributeSetBehavior extends AbstractAttributeSetBehavior
     }
 
     /**
+     * @template TCond of PathsBasedInterface
      * @template TEnt of object
      *
-     * @param list<DrupalFilterInterface> $entityConditions
+     * @param list<TCond> $entityConditions
      * @param callable(TEnt, simple_primitive|array<int|string, mixed>|null): list<non-empty-string> $updateCallback
      *
-     * @return CallbackAttributeSetBehaviorFactory<TEnt>
+     * @return CallbackAttributeSetBehaviorFactory<TCond, TEnt>
      */
     public static function createFactory(array $entityConditions, mixed $updateCallback, OptionalField $optional): CallbackAttributeSetBehaviorFactory
     {

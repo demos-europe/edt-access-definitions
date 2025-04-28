@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Relationship\ToMany;
 
+use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\TransferableTypeProviderInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\PropertyBehavior\EntityVerificationTrait;
 
 /**
+ * @template TCondition of PathsBasedInterface
+ * @template TSorting of PathsBasedInterface
  * @template TEntity of object
  * @template TRelationship of object
  *
- * @template-implements ToManyRelationshipReadabilityInterface<TEntity, TRelationship>>
+ * @template-implements ToManyRelationshipReadabilityInterface<TCondition, TSorting, TEntity, TRelationship>>
  */
 class CallbackToManyRelationshipReadability implements ToManyRelationshipReadabilityInterface
 {
@@ -20,7 +23,7 @@ class CallbackToManyRelationshipReadability implements ToManyRelationshipReadabi
 
     /**
      * @param callable(TEntity): iterable<TRelationship> $readCallback
-     * @param TransferableTypeInterface<TRelationship>|TransferableTypeProviderInterface<TRelationship> $relationshipType
+     * @param TransferableTypeInterface<TCondition, TSorting, TRelationship>|TransferableTypeProviderInterface<TCondition, TSorting, TRelationship> $relationshipType
      */
     public function __construct(
         protected readonly bool                                                        $defaultField,

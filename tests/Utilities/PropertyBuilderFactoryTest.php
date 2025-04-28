@@ -4,11 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Utilities;
 
+use EDT\ConditionFactory\PathsBasedConditionFactoryInterface;
 use EDT\JsonApi\ApiDocumentation\AttributeTypeResolver;
 use EDT\JsonApi\Utilities\PropertyBuilderFactory;
+use EDT\Querying\ConditionFactories\PhpConditionFactory;
+use EDT\Querying\Contracts\PropertyAccessorInterface;
 use EDT\Querying\PropertyAccessors\ReflectionPropertyAccessor;
+use EDT\Wrapping\Contracts\TypeProviderInterface;
+use EDT\Wrapping\TypeProviders\LazyTypeProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
+use Tests\data\ApiTypes\AuthorType;
 use Tests\data\DqlModel\Person;
 use Tests\data\Model\Book;
 

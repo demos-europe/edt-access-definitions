@@ -4,21 +4,22 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Attribute\Factory;
 
-use EDT\ConditionFactory\DrupalFilterInterface;
 use EDT\JsonApi\ApiDocumentation\OptionalField;
+use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\PropertyBehavior\Attribute\CallbackAttributeSetBehavior;
 use EDT\Wrapping\PropertyBehavior\PropertyUpdatabilityFactoryInterface;
 use EDT\Wrapping\PropertyBehavior\PropertyUpdatabilityInterface;
 
 /**
+ * @template TCondition of PathsBasedInterface
  * @template TEntity of object
  *
- * @template-implements PropertyUpdatabilityFactoryInterface<TEntity>
+ * @template-implements PropertyUpdatabilityFactoryInterface<TCondition, TEntity>
  */
 class CallbackAttributeSetBehaviorFactory implements PropertyUpdatabilityFactoryInterface
 {
     /**
-     * @param list<DrupalFilterInterface> $entityConditions
+     * @param list<TCondition> $entityConditions
      * @param callable(TEntity, simple_primitive|array<int|string, mixed>|null): list<non-empty-string> $updateCallback
      */
     public function __construct(

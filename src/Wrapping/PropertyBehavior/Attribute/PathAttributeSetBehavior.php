@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Attribute;
 
-use EDT\ConditionFactory\DrupalFilterInterface;
 use EDT\JsonApi\ApiDocumentation\OptionalField;
+use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Querying\Contracts\PropertyAccessorInterface;
 use EDT\Wrapping\PropertyBehavior\Attribute\Factory\PathAttributeSetBehaviorFactory;
 use Webmozart\Assert\Assert;
 
 /**
+ * @template TCondition of PathsBasedInterface
  * @template TEntity of object
  *
- * @template-extends AbstractAttributeSetBehavior<TEntity>
+ * @template-extends AbstractAttributeSetBehavior<TCondition, TEntity>
  */
 class PathAttributeSetBehavior extends AbstractAttributeSetBehavior
 {
@@ -22,7 +23,7 @@ class PathAttributeSetBehavior extends AbstractAttributeSetBehavior
     /**
      * @param non-empty-string $propertyName
      * @param class-string<TEntity> $entityClass
-     * @param list<DrupalFilterInterface> $entityConditions
+     * @param list<TCondition> $entityConditions
      * @param non-empty-list<non-empty-string> $propertyPath
      */
     public function __construct(
@@ -37,9 +38,11 @@ class PathAttributeSetBehavior extends AbstractAttributeSetBehavior
     }
 
     /**
-     * @param list<DrupalFilterInterface> $entityConditions
+     * @template TCond of PathsBasedInterface
      *
-     * @return PathAttributeSetBehaviorFactory<object>
+     * @param list<TCond> $entityConditions
+     *
+     * @return PathAttributeSetBehaviorFactory<TCond, object>
      */
     public static function createFactory(
         PropertyAccessorInterface $propertyAccessor,

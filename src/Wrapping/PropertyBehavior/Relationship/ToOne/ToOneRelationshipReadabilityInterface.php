@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Relationship\ToOne;
 
-use EDT\ConditionFactory\DrupalFilterInterface;
+use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\PropertyBehavior\Relationship\RelationshipReadabilityInterface;
 use Exception;
@@ -12,10 +12,12 @@ use Exception;
 /**
  * Provides readability information and behavior for a to-one relationship property.
  *
+ * @template TCondition of PathsBasedInterface
+ * @template TSorting of PathsBasedInterface
  * @template TEntity of object
  * @template TRelationship of object
  *
- * @template-extends RelationshipReadabilityInterface<TransferableTypeInterface<TRelationship>>
+ * @template-extends RelationshipReadabilityInterface<TransferableTypeInterface<TCondition, TSorting, TRelationship>>
  */
 interface ToOneRelationshipReadabilityInterface extends RelationshipReadabilityInterface
 {
@@ -28,7 +30,7 @@ interface ToOneRelationshipReadabilityInterface extends RelationshipReadabilityI
      * that do not match all given conditions.
      *
      * @param TEntity $entity
-     * @param list<DrupalFilterInterface> $conditions
+     * @param list<TCondition> $conditions
      *
      * @return TRelationship|null
      *
