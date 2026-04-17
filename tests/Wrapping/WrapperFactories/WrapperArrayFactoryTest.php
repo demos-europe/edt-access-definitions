@@ -4,18 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Wrapping\WrapperFactories;
 
-use EDT\ConditionFactory\ConditionFactory;
 use EDT\JsonApi\ApiDocumentation\AttributeTypeResolver;
-use EDT\JsonApi\InputHandling\PhpEntityRepository;
-use EDT\JsonApi\InputHandling\RepositoryInterface;
-use EDT\JsonApi\RequestHandling\JsonApiSortingParser;
-use EDT\JsonApi\Validation\SortValidator;
-use EDT\Querying\ConditionParsers\Drupal\DrupalConditionParser;
-use EDT\Querying\ConditionParsers\Drupal\DrupalFilterParser;
-use EDT\Querying\ConditionParsers\Drupal\DrupalFilterValidator;
-use EDT\Querying\ConditionParsers\Drupal\PredefinedDrupalConditionFactory;
+use EDT\Querying\ConditionFactories\PhpConditionFactory;
 use EDT\Querying\PropertyAccessors\ReflectionPropertyAccessor;
-use EDT\Querying\SortMethodFactories\SortMethodFactory;
 use EDT\Querying\Utilities\ConditionEvaluator;
 use EDT\Querying\Utilities\Sorter;
 use EDT\Querying\Utilities\TableJoiner;
@@ -28,7 +19,6 @@ use EDT\Wrapping\Utilities\SchemaPathProcessor;
 use EDT\Wrapping\WrapperFactories\WrapperArrayFactory;
 use EDT\Querying\ObjectProviders\PrefilledEntityProvider;
 use EDT\Wrapping\TypeProviders\PrefilledTypeProvider;
-use Symfony\Component\Validator\Validation;
 use Tests\data\AdModel\Person;
 use Tests\data\AdModelBasedTest;
 use Tests\data\Types\BirthType;
@@ -40,7 +30,12 @@ class WrapperArrayFactoryTest extends AdModelBasedTest
 {
     private AuthorType $authorType;
 
-    private ConditionFactory $conditionFactory;
+    private PhpConditionFactory $conditionFactory;
+
+    /**
+     * @var PrefilledEntityProvider<Person>
+     */
+    private PrefilledEntityProvider $authorProvider;
 
     private PrefilledTypeProvider $typeProvider;
 
@@ -48,12 +43,10 @@ class WrapperArrayFactoryTest extends AdModelBasedTest
 
     private SchemaPathProcessor $schemaPathProcessor;
 
-    private RepositoryInterface $authorRepository;
-
     protected function setUp(): void
     {
         parent::setUp();
-        $this->conditionFactory = new ConditionFactory();
+        $this->conditionFactory = new PhpConditionFactory();
         $lazyTypeProvider = new LazyTypeProvider();
         $this->propertyAccessor = new ReflectionPropertyAccessor();
         $typeResolver = new AttributeTypeResolver();
@@ -65,15 +58,9 @@ class WrapperArrayFactoryTest extends AdModelBasedTest
             new BirthType($this->conditionFactory),
         ]);
         $lazyTypeProvider->setAllTypes($this->typeProvider);
-        $validator = Validation::createValidator();
-        $predefinedDrupalConditionFactory = new PredefinedDrupalConditionFactory($this->conditionFactory);
-        $filterValidator = new DrupalFilterValidator(
-            $validator,
-            $predefinedDrupalConditionFactory
-        );
-        $this->authorRepository = PhpEntityRepository::createDefault(
-            $validator,
-            new ReflectionPropertyAccessor(),
+        $this->authorProvider = new PrefilledEntityProvider(
+            new ConditionEvaluator(new TableJoiner($this->propertyAccessor)),
+            new Sorter(new TableJoiner($this->propertyAccessor)),
             $this->authors
         );
         $this->schemaPathProcessor = new SchemaPathProcessor(new PropertyPathProcessorFactory());
@@ -259,7 +246,7 @@ class WrapperArrayFactoryTest extends AdModelBasedTest
         $this->schemaPathProcessor->mapFilterConditions($type, $conditions);
         $conditions = array_merge($conditions, $type->getAccessConditions());
 
-        return $this->authorRepository->getEntities($conditions, []);
+        return $this->authorProvider->getEntities($conditions, [], null);
     }
 
     /**

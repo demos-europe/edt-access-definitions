@@ -6,9 +6,11 @@ namespace EDT\Wrapping\Contracts\Types;
 
 use EDT\JsonApi\RequestHandling\ExpectedPropertyCollectionInterface;
 use EDT\JsonApi\RequestHandling\ModifiedEntity;
+use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\EntityDataInterface;
 
 /**
+ * @template TCondition of PathsBasedInterface
  * @template TEntity of object
  */
 interface UpdatableInterface

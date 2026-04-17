@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace EDT\Wrapping\TypeProviders;
 
 use EDT\Querying\Contracts\EntityBasedInterface;
+use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\TypeProviderInterface;
 use InvalidArgumentException;
 use function array_key_exists;
@@ -14,6 +15,11 @@ use function array_key_exists;
  * and will assign each item an identifier using the {@link PrefilledTypeProvider::getIdentifier()}
  * method. By default, the fully qualified class name is chosen as identifier. To use something different
  * override {@link PrefilledTypeProvider::getIdentifier()}.
+ *
+ * @template TCondition of PathsBasedInterface
+ * @template TSorting of PathsBasedInterface
+ *
+ * @template-implements TypeProviderInterface<TCondition, TSorting>
  */
 class PrefilledTypeProvider implements TypeProviderInterface
 {

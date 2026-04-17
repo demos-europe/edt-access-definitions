@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace EDT\Wrapping\PropertyBehavior\Attribute;
 
 use EDT\JsonApi\ApiDocumentation\OptionalField;
+use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\EntityDataInterface;
 use EDT\Wrapping\PropertyBehavior\Relationship\ToMany\AbstractPropertySetBehavior;
 use Exception;
 use function array_key_exists;
 
 /**
+ * @template TCondition of PathsBasedInterface
  * @template TEntity of object
  *
- * @template-extends  AbstractPropertySetBehavior<TEntity>
+ * @template-extends  AbstractPropertySetBehavior<TCondition, TEntity>
  */
 abstract class AbstractAttributeSetBehavior extends AbstractPropertySetBehavior
 {

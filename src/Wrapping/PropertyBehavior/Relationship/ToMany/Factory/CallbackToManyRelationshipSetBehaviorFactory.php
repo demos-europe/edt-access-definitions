@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Relationship\ToMany\Factory;
 
-use EDT\ConditionFactory\DrupalFilterInterface;
 use EDT\JsonApi\ApiDocumentation\OptionalField;
 use EDT\JsonApi\ResourceTypes\ResourceTypeInterface;
+use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\TransferableTypeProviderInterface;
 use EDT\Wrapping\Contracts\Types\TransferableTypeInterface;
 use EDT\Wrapping\PropertyBehavior\Relationship\RelationshipSetBehaviorFactoryInterface;
@@ -16,8 +16,9 @@ use EDT\Wrapping\PropertyBehavior\Relationship\ToMany\CallbackToManyRelationship
 /**
  * @template TEntity of object
  * @template TRelationship of object
+ * @template TCondition of PathsBasedInterface
  *
- * @template-implements RelationshipSetBehaviorFactoryInterface<TEntity, TRelationship>
+ * @template-implements RelationshipSetBehaviorFactoryInterface<TCondition, PathsBasedInterface, TEntity, TRelationship>
  */
 class CallbackToManyRelationshipSetBehaviorFactory implements RelationshipSetBehaviorFactoryInterface
 {
@@ -28,8 +29,8 @@ class CallbackToManyRelationshipSetBehaviorFactory implements RelationshipSetBeh
 
     /**
      * @param callable(TEntity, list<TRelationship>): list<non-empty-string> $setBehaviorCallback
-     * @param list<DrupalFilterInterface> $relationshipConditions
-     * @param list<DrupalFilterInterface> $entityConditions
+     * @param list<TCondition> $relationshipConditions
+     * @param list<TCondition> $entityConditions
      */
     public function __construct(
         callable $setBehaviorCallback,

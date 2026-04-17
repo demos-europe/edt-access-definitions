@@ -127,14 +127,12 @@ abstract class AbstractResourceModifier
     }
 
     /**
-     * Executes all given `$setBehaviors` and returns the resulting deviations.
-     *
      * @template TEnt of object
      *
      * @param list<PropertySetBehaviorInterface<TEnt>> $setBehaviors
      * @param TEnt $entity
      *
-     * @return list<non-empty-string> the names of the properties that were not adjusted as defined in the `$entityData`
+     * @return list<non-empty-string>
      */
     protected function getSetabilitiesRequestDeviations(array $setBehaviors, object $entity, EntityDataInterface $entityData): array
     {

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\ResourceBehavior;
 
-use EDT\ConditionFactory\DrupalFilterInterface;
 use EDT\Querying\Contracts\EntityBasedInterface;
+use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\Types\NamedTypeInterface;
 use EDT\Wrapping\Contracts\Types\PropertyReadableTypeInterface;
 use EDT\Wrapping\EntityDataInterface;
@@ -17,15 +17,17 @@ use Webmozart\Assert\Assert;
 use function array_key_exists;
 
 /**
+ * @template TCondition of PathsBasedInterface
+ * @template TSorting of PathsBasedInterface
  * @template TEntity of object
  */
 class ResourceUpdatability extends AbstractResourceModifier
 {
     /**
-     * @param array<non-empty-string, list<PropertyUpdatabilityInterface<TEntity>>> $attributes
-     * @param array<non-empty-string, list<RelationshipSetBehaviorInterface<TEntity, object>>> $toOneRelationships
-     * @param array<non-empty-string, list<RelationshipSetBehaviorInterface<TEntity, object>>> $toManyRelationships
-     * @param list<PropertyUpdatabilityInterface<TEntity>> $generalUpdateBehaviors
+     * @param array<non-empty-string, list<PropertyUpdatabilityInterface<TCondition, TEntity>>> $attributes
+     * @param array<non-empty-string, list<RelationshipSetBehaviorInterface<TCondition, TSorting, TEntity, object>>> $toOneRelationships
+     * @param array<non-empty-string, list<RelationshipSetBehaviorInterface<TCondition, TSorting, TEntity, object>>> $toManyRelationships
+     * @param list<PropertyUpdatabilityInterface<TCondition, TEntity>> $generalUpdateBehaviors
      */
     public function __construct(
         protected readonly array $attributes,
@@ -41,7 +43,7 @@ class ResourceUpdatability extends AbstractResourceModifier
     /**
      * Get all setabilities, that correspond to the given entity data.
      *
-     * @return list<PropertyUpdatabilityInterface<TEntity>>
+     * @return list<PropertyUpdatabilityInterface<TCondition, TEntity>>
      */
     protected function getSetabilities(): array
     {
@@ -95,7 +97,7 @@ class ResourceUpdatability extends AbstractResourceModifier
      * Does not process any paths, as the set-behavior entity conditions are expected to
      * be hardcoded and not supplied via request.
      *
-     * @return list<DrupalFilterInterface>
+     * @return list<TCondition>
      */
     public function getEntityConditions(EntityDataInterface $entityData): array
     {
@@ -110,7 +112,7 @@ class ResourceUpdatability extends AbstractResourceModifier
     /**
      * @param non-empty-string $propertyName
      *
-     * @return array<non-empty-string, PropertyReadableTypeInterface<object>&NamedTypeInterface&EntityBasedInterface<object>>
+     * @return array<non-empty-string, PropertyReadableTypeInterface<TCondition, TSorting, object>&NamedTypeInterface&EntityBasedInterface<object>>
      */
     public function getToOneRelationshipTypes(string $propertyName): array
     {
@@ -123,7 +125,7 @@ class ResourceUpdatability extends AbstractResourceModifier
     /**
      * @param non-empty-string $propertyName
      *
-     * @return array<non-empty-string, PropertyReadableTypeInterface<object>&NamedTypeInterface&EntityBasedInterface<object>>
+     * @return array<non-empty-string, PropertyReadableTypeInterface<TCondition, TSorting, object>&NamedTypeInterface&EntityBasedInterface<object>>
      */
     public function getToManyRelationshipTypes(string $propertyName): array
     {
@@ -136,9 +138,9 @@ class ResourceUpdatability extends AbstractResourceModifier
     /**
      * @template TRelationship of object
      *
-     * @param list<RelationshipSetBehaviorInterface<TEntity, TRelationship>> $behaviors
+     * @param list<RelationshipSetBehaviorInterface<TCondition, TSorting, TEntity, TRelationship>> $behaviors
      *
-     * @return array<non-empty-string, PropertyReadableTypeInterface<TRelationship>&NamedTypeInterface&EntityBasedInterface<TRelationship>>
+     * @return array<non-empty-string, PropertyReadableTypeInterface<TCondition, TSorting, TRelationship>&NamedTypeInterface&EntityBasedInterface<TRelationship>>
      */
     protected function extractRelationshipTypes(array $behaviors): array
     {

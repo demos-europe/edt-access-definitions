@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior\Relationship\ToMany;
 
-use EDT\ConditionFactory\DrupalFilterInterface;
 use EDT\JsonApi\ApiDocumentation\OptionalField;
 use EDT\JsonApi\ResourceTypes\ResourceTypeInterface;
+use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\RelationshipInterface;
 use EDT\Wrapping\Contracts\ResourceTypeProviderInterface;
 use EDT\Wrapping\Contracts\TransferableTypeProviderInterface;
@@ -19,7 +19,10 @@ use EDT\Wrapping\PropertyBehavior\Relationship\RelationshipConstructorBehaviorFa
 use function array_key_exists;
 
 /**
- * @template-implements RelationshipInterface<TransferableTypeInterface<object>>
+ * @template TCondition of PathsBasedInterface
+ * @template TSorting of PathsBasedInterface
+ *
+ * @template-implements RelationshipInterface<TransferableTypeInterface<TCondition, TSorting, object>>
  */
 class ToManyRelationshipConstructorBehavior extends AbstractConstructorBehavior implements RelationshipInterface
 {
@@ -30,8 +33,8 @@ class ToManyRelationshipConstructorBehavior extends AbstractConstructorBehavior 
      *
      * @param non-empty-string $argumentName
      * @param non-empty-string $propertyName
-     * @param TransferableTypeInterface<TRelationship>|TransferableTypeProviderInterface<TRelationship> $relationshipType
-     * @param list<DrupalFilterInterface> $relationshipConditions
+     * @param TransferableTypeInterface<TCondition, TSorting, TRelationship>|TransferableTypeProviderInterface<TCondition, TSorting, TRelationship> $relationshipType
+     * @param list<TCondition> $relationshipConditions
      * @param null|callable(CreationDataInterface): array{mixed, list<non-empty-string>} $customBehavior
      */
     public function __construct(
@@ -46,9 +49,13 @@ class ToManyRelationshipConstructorBehavior extends AbstractConstructorBehavior 
     }
 
     /**
+     * @template TCond of PathsBasedInterface
+     *
      * @param non-empty-string|null $argumentName will fall back to the property name if `null`
-     * @param list<DrupalFilterInterface> $relationshipConditions
+     * @param list<TCond> $relationshipConditions
      * @param null|callable(CreationDataInterface): array{mixed, list<non-empty-string>} $customBehavior
+     *
+     * @return RelationshipConstructorBehaviorFactoryInterface<TCond>
      */
     public static function createFactory(
         ?string $argumentName,
@@ -59,7 +66,7 @@ class ToManyRelationshipConstructorBehavior extends AbstractConstructorBehavior 
         return new class($argumentName, $relationshipConditions, $customBehavior, $optional) implements RelationshipConstructorBehaviorFactoryInterface {
             /**
              * @param non-empty-string|null $argumentName will fall back to the property name if `null`
-             * @param list<DrupalFilterInterface> $relationshipConditions
+             * @param list<TCondition> $relationshipConditions
              * @param null|callable(CreationDataInterface): array{mixed, list<non-empty-string>} $customBehavior
              */
             public function __construct(

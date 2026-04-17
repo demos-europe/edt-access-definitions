@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\PropertyBehavior;
 
+use EDT\Querying\Contracts\PathsBasedInterface;
+
 /**
- * TODO: move the child implementations into the `createFactory` method of the corresponding behavior implementation if possible, to reduce the amount of boilerplate classes
+ * TODO: when TCondition is removed, move the child implementations into the `createFactory` method of the corresponding behavior implementation if possible, to reduce the amount of boilerplate classes
  *
+ * @template TCondition of PathsBasedInterface
  * @template TEntity of object
  */
 interface PropertyUpdatabilityFactoryInterface
@@ -16,7 +19,7 @@ interface PropertyUpdatabilityFactoryInterface
      * @param non-empty-list<non-empty-string> $propertyPath
      * @param class-string<TEntity> $entityClass
      *
-     * @return PropertyUpdatabilityInterface<TEntity>
+     * @return PropertyUpdatabilityInterface<TCondition, TEntity>
      */
     public function __invoke(string $name, array $propertyPath, string $entityClass): PropertyUpdatabilityInterface;
 
@@ -25,7 +28,7 @@ interface PropertyUpdatabilityFactoryInterface
      * @param non-empty-list<non-empty-string> $propertyPath
      * @param class-string<TEntity> $entityClass
      *
-     * @return PropertyUpdatabilityInterface<TEntity>
+     * @return PropertyUpdatabilityInterface<TCondition, TEntity>
      *
      * @deprecated call instance directly as callable instead (i.e. indirectly using {@link __invoke})
      */

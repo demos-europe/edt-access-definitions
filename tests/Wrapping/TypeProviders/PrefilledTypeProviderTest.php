@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Wrapping\TypeProviders;
 
-use EDT\ConditionFactory\ConditionFactory;
 use EDT\JsonApi\ApiDocumentation\AttributeTypeResolver;
 use EDT\Querying\ConditionFactories\PhpConditionFactory;
 use EDT\Querying\PropertyAccessors\ReflectionPropertyAccessor;
@@ -22,7 +21,7 @@ class PrefilledTypeProviderTest extends TestCase
     {
         parent::setUp();
 
-        $conditionFactory = new ConditionFactory();
+        $conditionFactory = new PhpConditionFactory();
         $lazyTypeProvider = new LazyTypeProvider();
         $propertyAccessor = new ReflectionPropertyAccessor();
         $typeResolver = new AttributeTypeResolver();

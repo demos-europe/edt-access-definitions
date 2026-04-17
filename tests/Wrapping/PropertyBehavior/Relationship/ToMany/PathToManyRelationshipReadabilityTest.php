@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Wrapping\PropertyBehavior\Relationship\ToMany;
 
-use EDT\ConditionFactory\ConditionFactory;
 use EDT\JsonApi\ApiDocumentation\AttributeTypeResolver;
 use EDT\Querying\ConditionFactories\PhpConditionFactory;
 use EDT\Querying\PropertyAccessors\ReflectionPropertyAccessor;
@@ -23,7 +22,7 @@ class PathToManyRelationshipReadabilityTest extends TestCase
     {
         parent::setUp();
 
-        $conditionFactory = new ConditionFactory();
+        $conditionFactory = new PhpConditionFactory();
         $lazyTypeProvider = new LazyTypeProvider();
         $this->propertyAccessor = new ReflectionPropertyAccessor();
         $typeResolver = new AttributeTypeResolver();

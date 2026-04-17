@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace EDT\Wrapping\WrapperFactories;
 
-use EDT\ConditionFactory\DrupalFilterInterface;
 use EDT\JsonApi\ResourceTypes\AbstractResourceType;
 use EDT\Querying\Contracts\EntityBasedInterface;
-use EDT\Querying\SortMethodFactories\SortMethodInterface;
+use EDT\Querying\Contracts\PathsBasedInterface;
 use EDT\Wrapping\Contracts\AccessException;
 use EDT\Wrapping\Contracts\ContentField;
 use EDT\Wrapping\Contracts\PropertyAccessException;
@@ -36,6 +35,8 @@ use function Safe\preg_match;
  * Returned relationships will be wrapped themselves inside {@link WrapperObject} instances.
  *
  * @template TEntity of object
+ * @template TCondition of PathsBasedInterface
+ * @template TSorting of PathsBasedInterface
  */
 class WrapperObject
 {
@@ -48,7 +49,7 @@ class WrapperObject
 
     /**
      * @param TEntity $entity
-     * @param TransferableTypeInterface<TEntity> $type
+     * @param TransferableTypeInterface<TCondition, TSorting, TEntity> $type
      *
      * @throws InvalidArgumentException
      */
@@ -65,7 +66,7 @@ class WrapperObject
     }
 
     /**
-     * @return TransferableTypeInterface<TEntity>
+     * @return TransferableTypeInterface<TCondition, TSorting, TEntity>
      */
     public function getResourceType(): TransferableTypeInterface
     {
@@ -132,9 +133,9 @@ class WrapperObject
 
     /**
      * @param non-empty-string $propertyName
-     * @param list<DrupalFilterInterface> $conditions
+     * @param list<TCondition> $conditions
      *
-     * @return WrapperObject<object>|null
+     * @return WrapperObject<object, TCondition, TSorting>|null
      */
     public function getToOneRelationship(string $propertyName, array $conditions = []): ?WrapperObject
     {
@@ -153,7 +154,7 @@ class WrapperObject
 
     /**
      * @param non-empty-string $propertyName
-     * @param list<DrupalFilterInterface> $conditions
+     * @param list<TCondition> $conditions
      *
      * @return non-empty-string|null
      */
@@ -163,11 +164,13 @@ class WrapperObject
     }
 
     /**
-     * @param non-empty-string $propertyName
-     * @param list<DrupalFilterInterface> $conditions
-     * @param list<SortMethodInterface> $sortMethods
+     * TODO: should returned instances automatically be sorted by {@link AbstractResourceType::getDefaultSortMethods()}? Would this conflict with {@link \Doctrine\ORM\Mapping\OrderBy}? How/where to implement?
      *
-     * @return list<WrapperObject<object>>
+     * @param non-empty-string $propertyName
+     * @param list<TCondition> $conditions
+     * @param list<TSorting> $sortMethods
+     *
+     * @return list<WrapperObject<object, TCondition, TSorting>>
      */
     public function getToManyRelationships(string $propertyName, array $conditions = [], array $sortMethods = []): array
     {
@@ -187,8 +190,8 @@ class WrapperObject
 
     /**
      * @param non-empty-string $propertyName
-     * @param list<DrupalFilterInterface> $conditions
-     * @param list<SortMethodInterface> $sortMethods
+     * @param list<TCondition> $conditions
+     * @param list<TSorting> $sortMethods
      *
      * @return list<non-empty-string>
      */
@@ -257,7 +260,7 @@ class WrapperObject
      * @template TRelationship of object
      *
      * @param non-empty-string $propertyName
-     * @param PropertyReadableTypeInterface<TRelationship>&NamedTypeInterface&EntityBasedInterface<TRelationship> $relationshipType
+     * @param PropertyReadableTypeInterface<TCondition, TSorting, TRelationship>&NamedTypeInterface&EntityBasedInterface<TRelationship> $relationshipType
      *
      * @return list<non-empty-string>
      */
@@ -280,7 +283,7 @@ class WrapperObject
      *
      * @param non-empty-string $propertyName
      * @param list<TRelationship> $values
-     * @param PropertyReadableTypeInterface<TRelationship>&NamedTypeInterface&EntityBasedInterface<TRelationship> $relationshipType
+     * @param PropertyReadableTypeInterface<TCondition, TSorting, TRelationship>&NamedTypeInterface&EntityBasedInterface<TRelationship> $relationshipType
      *
      * @return list<non-empty-string>
      */
@@ -302,9 +305,9 @@ class WrapperObject
     /**
      * @template TRelationship of object
      *
-     * @param array<non-empty-string, PropertyReadableTypeInterface<TRelationship>&NamedTypeInterface&EntityBasedInterface<TRelationship>> $relationshipTypes
+     * @param array<non-empty-string, PropertyReadableTypeInterface<TCondition, TSorting, TRelationship>&NamedTypeInterface&EntityBasedInterface<TRelationship>> $relationshipTypes
      *
-     * @return PropertyReadableTypeInterface<TRelationship>&NamedTypeInterface&EntityBasedInterface<TRelationship>
+     * @return PropertyReadableTypeInterface<TCondition, TSorting, TRelationship>&NamedTypeInterface&EntityBasedInterface<TRelationship>
      */
     protected function getSingleRelationshipType(array $relationshipTypes): object
     {
@@ -316,7 +319,7 @@ class WrapperObject
     }
 
     /**
-     * @param ResourceUpdatability<TEntity> $updatability
+     * @param ResourceUpdatability<TCondition, TSorting, TEntity> $updatability
      *
      * @return list<non-empty-string>
      */
@@ -395,7 +398,7 @@ class WrapperObject
     }
 
     /**
-     * @param list<DrupalFilterInterface> $conditions
+     * @param list<TCondition> $conditions
      */
     public function isMatchingAllConditions(array $conditions): bool
     {
@@ -485,9 +488,9 @@ class WrapperObject
      * @template TRelationship of object
      *
      * @param TRelationship $entity
-     * @param TransferableTypeInterface<TRelationship> $type
+     * @param TransferableTypeInterface<TCondition, TSorting, TRelationship> $type
      *
-     * @return WrapperObject<TRelationship>
+     * @return WrapperObject<TRelationship, TCondition, TSorting>
      *
      * @throws InvalidArgumentException
      */
@@ -511,7 +514,7 @@ class WrapperObject
      *
      * @param non-empty-string $propertyName
      * @param TRelationship|null $relationship
-     * @param PropertyReadableTypeInterface<TRelationship>&NamedTypeInterface $relationshipType
+     * @param PropertyReadableTypeInterface<TCondition, TSorting, TRelationship>&NamedTypeInterface $relationshipType
      */
     protected function createToOneRelationshipEntityData(
         string $propertyName,
@@ -533,7 +536,7 @@ class WrapperObject
      *
      * @param non-empty-string $propertyName
      * @param list<TRelationship> $relationships
-     * @param PropertyReadableTypeInterface<TRelationship>&NamedTypeInterface $relationshipType
+     * @param PropertyReadableTypeInterface<TCondition, TSorting, TRelationship>&NamedTypeInterface $relationshipType
      */
     protected function createToManyRelationshipEntityData(
         string $propertyName,

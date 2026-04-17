@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\data\Types;
 
-use EDT\ConditionFactory\ConditionFactoryInterface;
+use EDT\ConditionFactory\PathsBasedConditionFactoryInterface;
 use EDT\JsonApi\ApiDocumentation\AttributeTypeResolver;
 use EDT\JsonApi\RequestHandling\ExpectedPropertyCollection;
 use EDT\JsonApi\RequestHandling\ModifiedEntity;
@@ -43,7 +43,7 @@ class BookType implements
     }
 
     public function __construct(
-        protected readonly ConditionFactoryInterface $conditionFactory,
+        protected readonly PathsBasedConditionFactoryInterface $conditionFactory,
         protected readonly TypeProviderInterface $typeProvider,
         protected readonly PropertyAccessorInterface $propertyAccessor,
         protected readonly AttributeTypeResolver $typeResolver,
